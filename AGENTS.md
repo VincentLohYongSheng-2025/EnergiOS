@@ -2,6 +2,8 @@
 
 - Read `docs/EnergiOS_PRD.md` and `docs/EnergiOS_Backend_Implementation_Plan.md` completely before coding. The PRD governs product scope and API shapes; the plan governs task order.
 - Inspect the workspace and preserve existing work. Implement only the currently authorised task. Do not advance past a failed deployment gate.
+- Prototype scope rule: Treat the 20-item checklist as a triage list, not a requirement to complete every item. Implement only P0 items needed for the working EnergiOS hackathon prototype. Defer full authentication, separate staging infrastructure, Sentry, plugins/MCP setup, a formal design-system document, forecasting, solar simulation and multi-agent AI unless explicitly requested.
+- Keep the PRD and backend implementation plan unchanged unless the agreed product scope, API contract, technology stack or deployment architecture changes.
 - Current scope: preflight and a minimal Python 3.12 FastAPI service. Export `app` from `backend/app.py`. `/health` must return exactly `{"status":"ok","version":"1"}`. `/docs` documents only implemented routes.
 - Use one shared repository and separate Vercel projects rooted at `backend/` and, once ready, `frontend/`. Confirm repository ownership, import access, target team/project and plan eligibility before deploying. Do not create or publish a remote repository without team approval.
 - Before changing backend API contracts or handing them to the frontend team, check the latest accessible frontend commit. Compare its API requests, field names, units and status handling with the PRD and the current backend OpenAPI schema; report every mismatch and any unavailable frontend evidence. Preserve teammate files and commits, and coordinate contract changes instead of overwriting their work.
