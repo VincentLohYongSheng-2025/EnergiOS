@@ -9,6 +9,8 @@ __pycache__/
 .coverage
 htmlcov/
 .vercel/
+.supabase/
+backend/supabase/.temp/
 .tools/
 .vscode/
 .idea/
@@ -18,6 +20,8 @@ build/
 dist/
 node_modules/
 data/generated/
+data/source/
+data/local/
 models/
 *.joblib
 *.pkl

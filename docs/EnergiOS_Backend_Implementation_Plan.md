@@ -1,147 +1,137 @@
-# EnergiOS — Two-Day Backend Implementation Plan
+# EnergiOS — Backend Implementation Plan
 
-**Version:** 1.0 · **Companion:** `EnergiOS_PRD.md` · **Owner:** Backend engineer  
-**Goal:** Deploy a working FastAPI service on Vercel, backed by Supabase and connected to the frontend, for one defensible energy-efficiency demonstration. This is a task plan, not an assertion that code already exists.
+**Version:** 1.2 provisional public-benchmark workflow · **Date:** 13 October 2026 (Malaysia)
+**Companion:** `EnergiOS_PRD.md` · **Owner:** Backend engineer
+**Goal:** Deliver FastAPI + Supabase + evaluated real-data energy analytics on Vercel, connected to the actual frontend. This ordered plan does not claim its capabilities are built or can fit within two days without the data gate.
 
-## Build rule and release gate
+## Authority, build rule and release gate
 
-Build the vertical slice in this order: **synthetic hourly reading → persisted asset/floor history → reproducible alert → human-readable evidence → assumption-based HVAC scenario → frontend display → deployed live test**. Do not start a multi-agent system or rooftop solar simulator until this slice is complete.
+The PRD controls product scope, API intent and claims. This plan controls task order. Code, tests, real data and deployment evidence determine completion. Inspect the repository and `git status` before each task, preserve teammate work, and implement only the next unchecked P0 task unless explicitly directed otherwise. Do not begin P1/P2 features automatically.
 
-Release gate: a judge can load the Vercel frontend, select a demo building, see its actual API-fed floor readings and alert, inspect the alert evidence, calculate a scenario, and understand which data is simulated and which outputs are estimates. The API and UI must use the same IDs, units, timezone conversion and labels.
+The organiser's real-data requirement, reported by the user, supersedes the synthetic-demo workflow. **Do not load Task 3's deterministic synthetic seed into the submitted Supabase database.** Synthetic, fabricated or AI-generated operational data must never power submitted ML training, frontend charts or demo. Preserve Task 3 files as historical internal test-fixture evidence only.
 
-## 0. Preflight (first 60–90 minutes)
+When authorised Sime Darby data is unavailable, an explicitly approved, licensed and traceable public measured dataset may temporarily support backend and energy-model work. BDG2 v1.0 is the approved provisional fallback. It is **not Sime Darby or Elmina Lakeside Mall data** and supports whole-building public-benchmark claims only. Keep its source identity visible and leave unsupported township, floor, room, equipment, HVAC-cause, tariff and verified-savings outputs unavailable.
 
-1. Confirm the shared Git repository, its folder structure and frontend framework with teammates. Use one repo with `backend/` and `frontend/`; if a frontend app exists, preserve its structure. Decide repository ownership and Vercel import access before deployment work. Vercel Hobby currently does **not** import Git-organisation-owned repositories. Also check its non-commercial personal-use rule against the competition's IP/commercialisation terms; ask Vercel Support if eligibility is unclear.
-2. Create a Supabase project **for synthetic demo data only**. Record the project URL/secret in a password manager or local env and Vercel settings, not a chat, screenshot or commit. Confirm the free plan's current limits.
-3. Create a minimal FastAPI app exporting `app` in `backend/app.py`; include `/health` and `/docs`. Pin Python 3.12 and package versions. Deploy **this tiny app first** as a separate Vercel project whose Root Directory is `backend/`. Test the public `/health` and `/docs` URLs. This is the earliest test of framework detection and Python Function compatibility.
-4. Set a frontend Vercel project Root Directory to `frontend/` when the frontend is ready. Set its `VITE_API_BASE_URL` (Vite) or matching framework-specific public API URL. Do not assume the variable name until the frontend framework is confirmed.
-5. Agree on the `/v1` JSON contract in the PRD and provide the actual deployed backend URL plus one sample response to the frontend teammate. Any change is communicated and documented.
+Build the hackathon vertical slice in this order: authorised data/dictionary → inspection and permission gate → minimal additive provenance migration plus validated bounded real import → evaluated forecast and detected anomalies → small DB-backed API response → real frontend/deployment tests. Cost/CO₂, opportunity ranking, human review and the grounded chatbot remain gated follow-on work and are not part of the current task.
 
-**Stop condition:** If a minimal FastAPI deployment fails, resolve the Vercel build error before adding database or ML libraries. Do not switch hosts silently. If Git import is blocked by organisation ownership, do not move/copy the repository without its owners' approval; obtain an eligible Vercel team/plan or ask the team to choose another authorised deployment path. Vercel Services does not override Hobby's repository ownership or commercial-use restrictions.
+Release gate: permitted real observations, correctly labelled forecasts/detections/estimates, source-backed opportunity evidence and human review work against actual APIs and the real frontend. The chatbot explains approved results without inventing facts. Conditional equipment-level features and verified savings require their own real evidence; carbon neutrality is not guaranteed.
 
-## Project setup checklist (carry forward)
+## Existing evidence (historical; preserve)
 
-This translates the attached 20-step workflow into the Codex/GitHub workflow for EnergiOS. “Planned” means documented but not yet implemented; it must not be reported as complete.
-
-| Screenshot item | EnergiOS status | Required action |
+| Work | Evidence/status | Limit for submitted MVP |
 | --- | --- | --- |
-| Write PRD; state value, pain and ICP | **Done in planning** | PRD defines the pain, primary/secondary users, product promise and release gate. Revalidate the real operating gap with a Sime Darby mentor. |
-| Export PRD as Markdown and load it into coding agent | **Done / repeat at build start** | `EnergiOS_PRD.md` and this plan are Markdown. The building Codex session must read both before editing code. |
-| Write `CLAUDE.md` | **Not applicable as named** | Create root `AGENTS.md` for Codex instead. It must summarise mandatory scope, commands, tests, API contract authority, “synthetic vs estimated” labels and prohibited claims. If another teammate uses Claude Code, generate `CLAUDE.md` from the same rules and keep the two aligned. |
-| Install coding-agent plugins | **Not done; optional** | Do not install plugins by habit. Use only reviewed, task-relevant tools; pin versions and document why each is needed. None is required to start the FastAPI backend. |
-| Connect GitHub | **Not done** | Confirm authorised repository/owner, default branch and collaborator access. Never create, move or make a repo public without team approval. Check Vercel plan eligibility first. |
-| Add `.gitignore` | **Planned, not implemented** | Ignore `.env*` except `.env.example`, Python caches/virtualenvs, test caches, local Vercel state, IDE files, model artifacts and generated data not intended for Git. Verify secrets are absent before first push. |
-| Generate brand document | **Not done; frontend/brand owner** | Create a one-page EnergiOS brand/UI brief after the team confirms visual direction: audience, tone, colour tokens, typography, logo rules, chart colours and “Synthetic data / Estimated impact” badges. |
-| Lock technology stack | **Done in planning** | FastAPI + Python 3.12, Supabase PostgreSQL, lightweight Python analytics, React/Three.js frontend and Vercel. Pin actual versions when scaffolding. |
-| Build design system | **Not done; frontend owner with backend support** | Define reusable UI tokens/components and chart states. Backend must provide stable status/severity/provenance values; it does not own visual components. |
-| Split PRD into tasks | **Done in planning** | Day 1/Day 2 tables, P0/P1/P2 scope and acceptance evidence are the task baseline. Convert them to GitHub issues/checklist only after the repository is confirmed. |
-| Database and authentication | **Planned, not implemented** | Implement schema/RLS first. Public demo reads and stateless scenario preview require no user login; protected writes use a backend-only admin token for the prototype. Do not build full user authentication unless the demo genuinely needs it. |
-| Move keys to environment variables | **Planned, not implemented** | Create `.env.example`; put real values only in local/Vercel environment settings. Never expose Supabase secret/service credentials in frontend variables. |
-| Separate staging and production | **Missing; required before final deployment** | Use Vercel Preview for staging and Production for the submitted URL, with environment-specific API origins/secrets. Prefer a separate Supabase staging project if available; otherwise keep Preview read-only or reseedable and never let preview tests mutate production demo state. |
-| Write README | **Not done** | Document purpose, built/simulated/planned boundary, stack, local setup, environment-variable names, seed command, tests, deployment, `/docs`, demo flow and limitations. |
-| Plan folder structure | **Done in planning** | Use the proposed layout below, but reconcile it with the actual repository before creating files. |
-| Add error tracking | **Partially planned** | P0: structured logs with request/correlation ID and safe exception responses; verify Vercel runtime logs. Optional after core flow: Sentry or equivalent free tier. Do not delay the demo to install it. |
-| State what the product will not do | **Done** | PRD has explicit out-of-scope, safety and non-claim sections. Keep them in README and pitch. |
-| Commit small and often | **Not yet applicable; required during build** | One coherent change per commit; run relevant tests before commit. Suggested sequence: scaffold, schema, seed, read API, alert rule, scenario preview, security, deployment, docs. Never commit secrets or bundle unrelated teammate changes. |
+| Phase 0 FastAPI scaffold | Python 3.12 app, locked dependencies, health/docs/OpenAPI; public backend previously tested at `https://energios-backend.vercel.app`. | Only `/health` is implemented in OpenAPI. Separate Preview and DB-backed API remain unverified. |
+| Task 2 schema/RLS | Five-table SQL and offline tests exist. User reported hosted results: RLS true, anon/authenticated access false, service read true, no policies on all five tables. Notes committed locally in `251a765a121819a534b37db44f520dfdb80afcbc`. | User-reported catalogue evidence, not a demonstrated real backend read. Existing schema permits only `synthetic_demo` provenance; real import is blocked pending reviewed migration. |
+| Task 3 internal fixture | Four fictional assets, seven meters, 4,704 hourly readings over 28 days, one Floor 2 after-hours event and `synthetic_demo`; eight Python and ten PostgreSQL tests passed offline. Files remain in the working tree. | Historical internal tests only. No hosted seed insertion occurred. Cannot power submitted database, ML training, charts, demo or product. |
+| Frontend inspection | Last accessible inspection found no frontend code. | Compatibility remains unverified; framework/API expectations/CORS origin cannot be invented. |
+| Public measured benchmark | BDG2 v1.0 official metadata, weather and cleaned electricity files were inspected read-only; source/citation/licence, hashes and limitations are in `docs/bdg2-data-assessment.md`. | No database import or model training. Not Sime Darby/Elmina data; no township, floor, room, equipment, schedule, HVAC-cause, Malaysian tariff or verified-savings claims. |
+| Real-data features | The bounded BDG2 import, evaluated model and four read-only routes are verified locally against an isolated database harness. | Hosted import/data routes, frontend integration, ranking, intervention/review tracking and chatbot remain unverified or planned. |
 
-**Do not mark setup complete merely because it appears in this table.** “Done in planning” means the specification exists. Implementation items become done only after their stated evidence is produced and checked.
+Read `docs/schema-verification.md`, `docs/seed-verification.md` and `docs/preflight-status.md` as dated evidence. This plan and the PRD supersede their older synthetic seed-loading instructions for submission. Do not delete those notes/files or execute their fixture SQL in the submitted database.
 
-## Day 1 — data and API (target: 6–8 focused hours)
+## Next unchecked P0 task and order
 
-| Order | Task | Evidence of done |
+**Next P0 task: review and apply the already tested migration/import to an explicitly approved Supabase target, configure backend-only credentials, and deploy/smoke-test the four data routes before frontend integration.** Hosted Supabase remains unchanged in the current task. Do not expose credentials, import synthetic fixtures, or start frontend, chatbot, tariff or live-control work.
+
+The following replaces the original Day 1/Day 2 synthetic workflow. Steps 1–2 are complete only for the provisional BDG2 benchmark; they remain open for future Sime Darby data. Do not skip to import or APIs.
+
+| P0 order | Task | Acceptance evidence / stop condition |
 | --- | --- | --- |
-| 1 | Set up `backend/app.py`, `backend/requirements.txt` or `pyproject.toml`, `backend/src/` modules and `backend/tests/`. Add `.env.example` with names only and ignore actual `.env` files. | Local `/health` and `/docs`; locked dependency versions. |
-| 2 | Create versioned SQL schema for the five PRD tables. Primary/foreign keys, nonnegative kWh constraint, unique meter/timestamp and alert deduplication key. Enable RLS on exposed tables; no blanket `anon` grants. | Tables and policies inspected; a read through backend succeeds; direct anonymous write is denied. |
-| 3 | Write deterministic seed generator and manifest: four fictional assets, focus building with three floor submeters, ~four weeks hourly data, one after-hours event; optional building-total meter consistent with floor sum. Load through a local script or protected batch ingestion. | Re-run does not duplicate rows; sample meter/asset totals reconcile. |
-| 4 | Implement asset, bounded readings, summary and alert read endpoints from Supabase; validate IDs/date ranges, limit responses, return explicit missing-data state. | OpenAPI contract and tests for normal, unknown asset, invalid dates and missing intervals. |
-| 5 | Wire frontend to actual endpoint shapes as soon as available, before the 3D scene is polished. | One building and its meter values render from deployed/local API, not a frontend hardcoded object. |
+| 1 | [x] Approve and pin a provisional public measured dataset for hackathon benchmark use. | BDG2 v1.0 official Zenodo/GitHub source, CC BY 4.0 data licence, citation, tagged commit and file hashes documented. Public-benchmark label and non-Sime/Elmina boundary required. |
+| 2 | [x] Inspect BDG2 metadata, weather and cleaned electricity files read-only. | `docs/bdg2-data-assessment.md` records structure, local timestamps, interval kWh, missing/duplicate/zero values, building-level mapping, usable-cohort criteria and unsupported claims. |
+| 3 | [x] Write and review the non-destructive provenance/schema and bounded import plan. | `docs/bdg2-provenance-schema-import-plan.md` defines additive fields/tables, the four-meter Hog cohort, a 70,176-cell scan cap, UTC/DST and quality policies, idempotency, validation, RLS and rollback. No migration/import ran. |
+| 4 | [x] Implement the minimal additive provenance migration and import the bounded BDG2 cohort in an isolated database. | One source table, one import-run table, direct source/run identifiers, essential uniqueness/checks and preserved existing RLS/data. Verified import: four assets, four meters, 70,152 readings, 8 missing source values, 16 quarantined DST values, zero invalid/zero values and an identical replay. Hosted Supabase remains unchanged. |
+| 5 | [x] Train and evaluate the smallest reproducible forecast and schedule-independent anomaly detector. | The real four-meter BDG2 cohort uses chronological train/validation/test periods and rolling 24-hour forecasts. Held-out model MAE/RMSE are 24.223073/37.903324 kWh versus 27.180704/47.311611 for the previous-day baseline across 14,081 comparable readings. Validation-only MAD thresholds label 144 test observations as unusual patterns; no schedule or cause claim is made. |
+| 6 | [x] Build a small DB-backed API for real readings plus validated forecast/anomaly results. | `/assets`, `/assets/{id}/readings`, `/forecast` and `/anomalies` use only a completed `bdg2_v1` database import, backend-held credentials and validated analytics. IDs, date ranges and limits are bounded; missing credentials/data fail explicitly. Route/contract tests pass against an isolated database containing the 70,152 verified readings. |
+| 7 | [ ] Calculate cost from documented tariff rules and CO₂ from an approved official emission factor. | Applicable source/date/version, units/components and assumptions, independently recomputed examples. Tariff is not an ML prediction target; absent inputs mean unavailable outputs. |
+| 8 | [ ] Add opportunity ranking and human review only where source-backed inputs exist. | Agreed ranking factors/weights for estimated savings, cost, carbon and confidence; review states, authorised action records and evidence. No invented savings/confidence/equipment advice. |
+| 9 | [ ] Add chatbot only after backend data/results exist; keep API keys server-side. | Traceable approved data/forecast/alert/calculation references, access enforcement, unknown-data refusal and no secret leakage or autonomous control. |
+| 10 | [ ] Test actual frontend integration after frontend code is available. | Inspect latest accessible frontend commit, compare requests/fields/units/statuses to PRD/OpenAPI, report mismatches and preserve teammate work; real permitted data/labels and actual deployed/browser calls pass. |
 
-**Day-1 checkpoint:** If the deployed API cannot serve DB-backed readings, defer all ML work. The 3D teammate may proceed against the committed sample JSON contract but must replace mocks before release.
+Within an authorised step, implement the smallest reviewable slice, run relevant tests and report exact changes/unfinished work. Failed data/security/deployment gates stop subsequent tasks. An unavailable dependency is not permission to invent data, silently change scope or switch hosts.
 
-## Day 2 — insight, scenario and verification (target: 6–8 focused hours)
+## Dataset request and inspection
 
-| Order | Task | Evidence of done |
-| --- | --- | --- |
-| 1 | Implement after-hours comparison rule, sample-size check, two thresholds, evidence JSON and idempotent alert write. Add protected bounded `POST /v1/analysis/run`. | Seeded anomaly creates exactly one alert on repeated runs; ordinary and missing readings do not trigger it. |
-| 2 | Implement stateless `POST /v1/scenarios/preview` for the public synthetic demo, with Pydantic bounds, capped savings, MYR/CO₂e formulas, assumptions echoed and explicit `estimated` status. Never require an admin secret in the browser. | Unit tests cover zero/negative tariff, impossible savings, no payback and rounding; frontend preview succeeds without a secret. |
-| 3 | Implement protected `POST /v1/readings`; if time remains, add protected scenario storage and alert acknowledgement. Keep the demo admin token backend-side and enforce request-size/batch limits. | Unauthorised writes fail; authorised write becomes visible on read. |
-| 4 | Add P1 24-hour forecast only if P0 gates pass. Compare seasonal-naive baseline with an optional lightweight scikit-learn model on chronological holdout; record MAE and training window. | Forecast fields show method/provenance and no unsupported accuracy claim; insufficient history returns explicit state. |
-| 5 | Deploy backend to Vercel; set backend-only Supabase secret and admin token; configure known-origin CORS. Test deployed endpoints, reconnect frontend and exercise the entire journey. | Cold first request and warm request both succeed; no secret appears in logs, payload or frontend bundle. |
-| 6 | Prepare a 2–3 minute operator walkthrough within the team's 5-minute required video. Capture demo labels and calculation assumptions in slides/script. | Recording shows one complete scenario and distinguishes synthetic/estimated/proposed. |
+**Essential ML inputs:**
 
-**Day-2 checkpoint:** P0 works end to end. If forecasting or scikit-learn adds build/bundle or validation problems, disable the P1 route with a clear “not available” state; keep the verified anomaly + scenario slice. A claimed ML model is never a condition for a working demo.
+1. Historical timestamped electricity readings: timestamp, meter ID, kWh, and kW if available.
+2. Meter mapping: what building, floor, zone, or equipment each meter measures, plus units and reading interval.
+3. Operating schedule for schedule-based or after-hours detection: opening hours, holidays, closures, and unusual operating periods.
 
-## Proposed repo layout (adapt to the existing repo)
+**Helpful when available:**
 
-```text
-repo/
-  backend/
-    app.py                  # FastAPI entrypoint, app instance, route registration
-    pyproject.toml          # Python version and pinned dependencies/lockfile
-    .env.example            # variable names only
-    src/
-      config.py             # env validation and CORS settings
-      models.py             # Pydantic request/response schemas
-      repository.py         # Supabase access, bounded queries
-      analytics.py          # deterministic alert/baseline/optional forecast
-      scenarios.py          # deterministic energy/cost/carbon calculations
-      seed.py               # repeatable synthetic fixture, not a live meter bridge
-    sql/
-      001_demo_schema.sql   # schema + RLS, reviewed before application
-    tests/
-      test_api.py
-      test_analytics.py
-      test_scenarios.py
-  frontend/                  # owned by frontend teammate
-  docs/
-    EnergiOS_PRD.md          # copy/update companion PRD if repo is available
-    EnergiOS_Backend_Implementation_Plan.md
-```
+4. Timestamped weather: outdoor temperature and humidity.
+5. HVAC/BMS runtime, schedule, or energy data.
 
-When the team provides the actual repository, place these files there and reconcile with any existing conventions. Do not create a second competing app or change unrelated code.
+Request **12–24 months** of real history where possible; **6 months is the minimum acceptable hackathon starting point**. Historical readings plus correct building/meter mapping can support an initial forecast benchmark; schedule-based/after-hours detection remains blocked without actual schedules. Validate coverage/quality before training; optional weather/BMS does not replace the target/mapping evidence.
 
-## Operational contract and calculations
+For BDG2, use the official v1.0 release and retain the source identity `bdg2_v1`, CC BY 4.0 attribution, tagged commit and selected-file checksums. The inspected electricity file contains whole-building hourly interval energy in `kWh_sum` with naive timestamps in each site's local timezone. Do not treat it as kW, a cumulative register or an Elmina meter. The weather file is optional context and contains documented gaps/duplicates. Other meter-type files are inventoried but not yet profiled for ingestion.
 
-Implement the paths and schemas exactly as written in PRD §6. For `GET /v1/assets/{id}/summary`, provide the aggregation method (`building_total_meter` or `sum_available_floor_meters`) and completeness count. For `/readings`, cap the queried range and maximum returned points. For alerts, expose window, observed/baseline kWh, rule code, comparator count and thresholds. Display floor-specific data only when floor meters exist.
+Inspect source version/checksum through an approved private channel, column definitions, timezone, units/scales, interval boundaries, duplicates, negative/outlier values, cumulative register resets/rollovers, gaps and mapping resolution. Preserve original semantics and transformations. Never fill unknown readings with invented values or infer rooms/floors/equipment from a building meter. Inspection reports must not expose restricted raw rows or keys.
 
-Minimum test fixture:
+## Schema, import and operational contract
 
-- 4 fictional assets; 1 focus asset with 3 metered floors.
-- 28 days × 24 hourly intervals as a starting point; trim if free capacity or frontend latency warrants it.
-- 1 injected after-hours excess on 1 floor and an internally consistent building total if that meter exists.
-- Baseline excludes injected interval. Repeated analysis yields one alert.
-- Scenario defaults are **illustrative, configurable**, not claimed tariffs/emissions factors. Save effective inputs alongside results.
+Existing `backend/sql/001_demo_schema.sql` remains the preserved baseline. The minimal additive migration adds source/import identity and only the validation required for the verified four-building cohort; it deliberately omits composite foreign-key architecture, triggers, views, cascading deletes and production-scale rollback machinery. Preserve primary/foreign keys, non-negative interval kWh, meter/time uniqueness, alert deduplication, existing data and RLS. Do not relabel fixtures as real or bypass constraints.
 
-The backend should never calculate “verified savings” from the injected anomaly. A projected savings number is only a scenario based on the given avoidable load, affected hours and realisation fraction.
+Future real import requires approved backend access, privately configured environment variables, validated bounds and permission checks. Choose one documented pinned persistence strategy. Never request or print secrets in chat/logs or expose them in Git/frontend. No automatic seed/import on app startup, web requests or deployment imports.
 
-## Security and deployment checklist
+Follow PRD §6 route intent and agree exact measured-data field/access contracts after the gate. Only implemented routes belong in OpenAPI. Normalise timestamps to UTC while preserving source-local timestamp/timezone and documenting DST handling; expose explicit kWh/kW, quality and provenance. Missing intervals remain missing; DB errors fail explicitly. Use authoritative building totals without inventing or adding floors. Restricted corporate readings are not automatically publishable; BDG2 display must retain its public-benchmark label and attribution.
 
-- [ ] Supabase URL and secret are stored only in backend local environment/Vercel backend settings. No secrets in Git, client JS, screenshots or demo video.
-- [ ] RLS enabled on all exposed tables and least-privilege policy/grant decision reviewed. Public writes are denied. Backend secret use is restricted to demo-only synthetic data.
-- [ ] Protected writes validate admin token with secure comparison and reject absent/invalid tokens; use request bounds and no unbounded batch upload. The public stateless scenario preview has tight numeric/payload bounds and no database write.
-- [ ] CORS includes exact deployed frontend origin and localhost for development, not `*` with credentials.
-- [ ] Seed and tests do not automatically run during normal web requests or deployment imports. No background daemon/in-memory durable state on Vercel.
-- [ ] Python build is within current Function bundle limits; `/health` and a representative DB-backed endpoint respond after a cold start.
-- [ ] API returns only fictional/synthetic data; errors never leak stack traces, secret values or database credentials.
-- [ ] Deployed frontend uses the right production backend URL. Try the demo in a private/incognito browser without local services running.
+ML predicts energy consumption or supported demand; tariff rules calculate cost. Chronological holdout and simple baseline comparison precede forecast claims. BDG2 benchmark results do not establish Sime Darby/Elmina performance. Schedule-based anomalies need actual operating schedules, which BDG2 does not provide; detections never prove HVAC cause. Cost/carbon estimates require documented applicable tariffs and an approved official factor. Ranking inputs/weights/confidence criteria remain to be agreed.
 
-## Verification matrix and handoff
+Human review distinguishes observed, forecast, detected, estimated, proposed, approved and verified results. Intervention tracking records actual authorised action. Verified savings require a documented intervention, baseline and post-action measurements with relevant adjustments. Carbon neutrality is a long-term ambition, never a guarantee.
 
-| Check | Expected result |
+## Conditional capabilities and lean triage
+
+Digital twin, room/floor performance, indoor/outdoor conditions, HVAC/BMS, solar, batteries, EV coordination and verified savings are conditional on real authorised measurements, actual plans/mapping and approval. None is already built. Whole-building data supports building-level claims only. Live control is outside this MVP and needs separate explicit authorisation.
+
+The former 20-item checklist remains triage, not a mandate:
+
+| Area | Current workflow decision |
 | --- | --- |
-| `pytest` on API, analytics and scenario units | All pass locally. |
-| OpenAPI `/docs` | Each `/v1` endpoint and schema matches PRD; no phantom functionality. |
-| DB seed twice | Stable counts and unchanged meter/time uniqueness. |
-| Run analysis twice | One alert, same ID or deduplicated result. |
-| Missing meter / incomplete floor | Clear unavailable/partial status, never a fabricated zero. |
-| Invalid or unauthorised POST | Validation or 401/403 response; database unchanged. |
-| Cold deployed call + frontend flow | No timeouts, CORS problems, wrong API URL or mocked numbers. |
-| Scenario math spot-check | Independently recomputed kWh × tariff and kWh × emissions factor agree. |
+| PRD, plan, AGENTS | Maintain real-data scope/task order; actual evidence determines completion. |
+| Git and teammate work | Shared repo exists; inspect status/preserve work. Coherent commits only when authorised; no commit/push in this task. |
+| Ignore rules/environment names | Existing `.gitignore` and blank `.env.example`; no restricted raw data or real values in Git. |
+| Backend/persistence/hosting stack | Preserve pinned scaffold, Supabase and separate Vercel roots; no deployment/architecture change here. |
+| Frontend brand/design | Frontend owner; no code found. Formal design-system document deferred unless requested. |
+| Authentication/data access | Implement access required by approved use before release; no automatic full-auth project or blanket public access. |
+| Staging | Separate Preview remains unverified; separate staging infrastructure deferred unless requested. Never mutate production real data through tests. |
+| Sentry, plugins/MCP, multi-agent setup | Deferred unless requested; do not displace the real-data gate. |
+| README/status notes | Existing docs are historical where incompatible; update other files in a separately authorised task. Old seed steps are not submission instructions. |
+| Forecast/chatbot | Explicit agreed P0 scope, gated by real data and approved backend results. |
+| Investment/equipment features | Conditional on real data and separately authorised scope; no automatic P1/P2 work. |
 
-**Backend handoff to teammates:** Deployed base URL, `/docs` URL, sample JSON, seed manifest, exact assumptions, known limitations, which functions are truly implemented, and a two-minute script for the anomaly → recommendation → scenario sequence. Never hand over secret keys.
+## Deployment and verification checklist
 
-## Open decisions and change discipline
+- [x] Provisional BDG2 source, licence, permitted public-benchmark use and limitations are documented; no synthetic operational data is authorised for submitted database/training/charts/demo.
+- [x] Minimal provenance migration and bounded import are non-destructive and tested in isolated PGlite; hosted application remains separately review-gated.
+- [x] Isolated post-import checks confirm RLS remains enabled, no public-client policies exist and public writes remain denied.
+- [ ] Supabase/admin/chatbot keys and restricted data stay out of frontend, Git history, logs and chat; errors/public payloads are sanitised.
+- [ ] Imports, analysis and review writes require bounded authorised backend access; missing data/errors fail explicitly.
+- [ ] Forecast holdout/baseline metrics and anomaly evidence use real sources; tariffs/carbon factors are approved/documented, never invented.
+- [ ] Actual frontend requests, units, statuses and origins are checked against PRD/implemented OpenAPI.
+- [ ] `/health` remains exactly `{"status":"ok","version":"1"}` and `/docs` lists implemented routes only; actual deployed calls pass before new deployment claims.
+- [ ] Vercel roots stay `backend/` and `frontend/`; recheck build/plan constraints when deploying. Hobby eligibility remains unconfirmed; no paid change or architecture switch without approval.
+- [ ] Submitted pitch/demo shows permitted real results and forecast/detected/estimated labels without unsupported verified savings.
 
-The user's locked stack is **FastAPI + Supabase + Python analytics/scikit-learn where justified + Vercel**. Frontend framework, Vercel repository import and Hobby eligibility are not yet confirmed. The plan picks **two Vercel projects** because it isolates Python and frontend builds; Vercel Services is an approved architecture alternative only if the team deliberately changes that choice and plan eligibility remains satisfied. Do not invent credentials, real datasets, tariff rates, carbon factors, corporate floor plans, precision targets or external integrations.
+| Verification | Required result |
+| --- | --- |
+| Source inspection | Dictionary, permission, minimum history, timezone/units/semantics and mapping verified before import. |
+| Repeated real import | Stable source-scoped counts/keys, explicit duplicate/conflict handling and preserved lineage. |
+| API tests | Normal/unknown asset, invalid IDs/dates, bounds, gaps and permitted/restricted access handled explicitly. |
+| Forecast evaluation | Time-based split, simple baseline comparison, reproducible model/metric, no synthetic training or future leakage. |
+| Repeated detection | Real evidence deduplicates; ordinary/missing data does not become invented findings. |
+| Cost/carbon checks | Documented tariff rules/official factor independently reproduce estimates. |
+| Chatbot checks | Approved references, correct explanations, unsupported-data refusal, access checks and no exposed keys. |
+| Deployment/frontend | Actual endpoints and real frontend tested; no hardcoded operational mocks or unverified compatibility claim. |
+| Verified savings, if supported later | Documented intervention, baseline, post-action data and method; otherwise unavailable. |
 
-Before each coding step, the next Codex session should read the PRD and this plan, inspect the repository and its `AGENTS.md`/existing code, implement the smallest next unchecked task, run its tests, and update the documentation when reality differs. A passing local test is not a passing Vercel deployment. The 23 October submission still requires the team's pitch deck and video/demo link in addition to the backend.
+Internal synthetic fixtures may exercise isolated software tests. Their success is not proof of real-data readiness, model performance or submitted product success. Keep them separate from submitted database, ML training and display.
+
+## Handoff and pending decisions
+
+Handoff provides approved source/dictionary references without restricted rows, permitted audience, actual endpoint/OpenAPI shapes, units/timezone/completeness, evaluated forecasts/detections/calculations, versions, limitations and deployment/frontend evidence. Never send keys or describe conditional features as complete.
+
+BDG2 clears the source/licence/history gate for provisional whole-building electricity benchmarking only. The minimal migration and four-building Hog import passed in isolated PGlite with `tzdata==2026.5`; source hashes, UTC/DST handling, counts, units, provenance and idempotent replay match the bounded manifest. The deterministic energy-history model emits 24 hourly values, improves aggregate held-out MAE and RMSE over the previous-day baseline, and labels only validation-thresholded unusual patterns; details and limitations are in `docs/bdg2-model-evaluation.md`. The four read-only routes pass locally against an isolated database populated from the verified import and expose no synthetic fallback. Hosted PostgreSQL 17.11 remains unchanged and has no Supabase branch, so deployed data routes remain unavailable until a separately approved import/configuration task. Operating schedules, floor/room/equipment mapping, Sime Darby/Elmina identity, applicable Malaysian tariffs, official emission factor, actual township maps/plans and intervention evidence remain unavailable. Ranking, review workflow and chatbot decisions remain deferred.
+
+This completed task authorises no hosted migration, deployment change, frontend work, credential disclosure, commit or push. The next implementation request should explicitly approve the target database/import and deployment verification before frontend integration.

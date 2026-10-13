@@ -26,7 +26,13 @@ def test_docs_reference_the_served_openapi_contract():
     assert schema_response.status_code == 200
     schema = schema_response.json()
     assert schema["info"]["version"] == "1"
-    assert set(schema["paths"]) == {"/health"}
+    assert set(schema["paths"]) == {
+        "/health",
+        "/assets",
+        "/assets/{asset_id}/readings",
+        "/assets/{asset_id}/forecast",
+        "/assets/{asset_id}/anomalies",
+    }
     health_schema = schema["components"]["schemas"]["HealthResponse"]
     assert health_schema["properties"]["status"]["const"] == "ok"
     assert health_schema["properties"]["version"]["const"] == "1"
@@ -37,4 +43,13 @@ def test_planned_features_are_unavailable():
         assert client.get("/v1/assets").status_code == 404
         assert client.post("/v1/scenarios/preview", json={}).status_code == 404
         assert client.post("/health", json={}).status_code == 405
+
+
+def test_database_routes_fail_explicitly_without_backend_credentials(monkeypatch):
+    for name in ("SUPABASE_URL", "SUPABASE_SECRET_KEY"):
+        monkeypatch.delenv(name, raising=False)
+    with TestClient(app) as client:
+        response = client.get("/assets")
+    assert response.status_code == 503
+    assert response.json() == {"detail": "Database-backed BDG2 data is unavailable"}
 

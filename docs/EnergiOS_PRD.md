@@ -1,153 +1,163 @@
 # EnergiOS — Product Requirements Document
 
-**Version:** 1.0 planning baseline · **Date:** 13 October 2026 (Malaysia)  
+**Version:** 1.2 provisional public-benchmark scope · **Date:** 13 October 2026 (Malaysia)
 **Theme:** Sime Darby Property University Hackathon 2026 — PLANET / Energy Efficiency  
-**Release target:** Working prototype and 5-minute demo for the 23 October 2026, 11:59 p.m. submission  
-**Status:** Design decisions for a prototype, not claims about Sime Darby Property's internal systems
+**Release target:** Working MVP and 5-minute demo for the 23 October 2026, 11:59 p.m. submission
+**Status:** Agreed requirements; planned capabilities are not completion claims
 
-## 1. Product decision
+## 1. Product decision and data authority
 
-EnergiOS is a **township energy opportunity workflow**: ingest available meter readings, identify a potentially avoidable consumption pattern, show where it occurred, compare a practical intervention, and record the basis of the estimated benefit. The prototype focuses on **one managed commercial building with an after-hours HVAC-related anomaly**. A small set of other synthetic assets makes the township map and portfolio comparison meaningful.
+EnergiOS monitors energy consumption across township assets and helps operators identify, locate, prioritise and review energy opportunities. The agreed MVP shows energy consumption, estimated electricity cost, estimated CO₂ emissions and load trends; predicts future energy consumption from real history; detects unusual consumption; and explains approved data/results through a grounded chatbot. Human review and intervention tracking support later comparison against a baseline.
 
-This is not a claim that Sime Darby Property has no centralised energy platform. Its 2025 Sustainability Report describes a centralised digital platform for portfolio energy monitoring and also identifies visibility limitations for some assets. The **specific gap in floor-level integration and operational actionability is a hypothesis to validate** with an asset/facilities team. No real Sime Darby meter data or internal integration is assumed available.
+The user reports that the organiser has confirmed the submitted MVP must use **real, reliable, traceable data**. Synthetic, fabricated, AI-generated or invented operational data is prohibited in the submitted database, ML training, frontend charts and demo. Forecasts and calculations derived from authorised observations are analytical outputs, never observed readings. This requirement supersedes version 1.0's synthetic-demo assumptions and older seed-loading instructions.
 
-**Problem statement:** Energy data gaps make township-wide savings harder to unlock. Incomplete visibility across certain properties can make it harder to find inefficiencies, compare interventions and realise potential electricity savings.
+Real Sime Darby data has not yet been received or inspected in this repository. Confirm permission to use, retain and publish it before import or demo exposure. Do not assume an asset inventory, meter coverage, tariff, carbon factor, building plan or internal integration exists.
 
-**Product promise:** Given authorised, sufficiently granular data, EnergiOS helps an operator move from an unusual reading to a traceable, human-approved efficiency action and an honest savings estimate.
+Until that source is available, the project owner has approved the official **Building Data Genome Project 2 (BDG2) v1.0** release as a provisional public measured benchmark. BDG2 is **not Sime Darby data and is not Elmina Lakeside Mall data**. It may support source-labelled whole-building backend ingestion and energy-model benchmarking; it cannot support claims about the mall, township, floors, rooms, equipment, HVAC causes, Malaysian tariffs, Malaysian carbon factors, interventions or verified savings. User-facing output derived from it must say `Public benchmark data — Building Data Genome Project 2 v1.0`.
 
-## 2. User, job and success
+The earlier sustainability-report context describes existing centralised monitoring and visibility limitations for some assets. It does not prove that all systems are disconnected or establish a particular floor-level integration gap. The actual operator workflow and integration need remain to be validated.
 
-**Primary user:** Facilities/energy operator responsible for monitoring managed assets. **Secondary user:** Asset/sustainability manager who prioritises investments. These are proposed users; interviews and access rights remain to be validated.
+## 2. Users, journey and success
 
-**Core job:** “Which monitored building or floor needs investigation, what evidence supports the alert, and is a proposed action worth taking?”
+**Primary user:** Facilities/energy operator. **Secondary user:** Asset/sustainability manager. Proposed users, responsibilities and access remain to be validated.
 
-The demonstrable journey is:
+**Core job:** Which monitored asset needs investigation, what evidence supports the finding, and which opportunity should be reviewed?
 
-1. Operator sees a map with four **fictional, clearly labelled demo assets** and a recent alert.
-2. Operator selects the commercial building and inspects a 3D floor view. Floor-level readings are displayed **only for floors with synthetic submeters**; the 3D geometry is a navigation aid, not a physically accurate energy model.
-3. Backend flags after-hours consumption above a comparable historical baseline and shows observed kWh, expected kWh, time window, and data provenance. It does **not** assert that HVAC caused it.
-4. Operator opens a proposed “review HVAC schedule” scenario. The interface shows editable assumptions, potential kWh/RM/CO₂e savings, and any implementation cost or payback where applicable.
-5. Manager reviews the proposal; the public demo leaves the alert open. Optional acknowledgement requires authorised backend access. No equipment setting is changed by the product. “Post-action measured savings” remains unavailable until actual subsequent data and a defensible adjusted baseline exist.
+1. View permitted township assets, observed energy and load trends, with labelled cost/carbon estimates.
+2. Locate issues on an approved township map. Drill into a selected building/floor only where actual plans and meter mappings support that resolution.
+3. Inspect a forecast or detected anomaly with time window, units, provenance, baseline/comparison and model/rule evidence.
+4. Compare opportunities ranked by estimated savings, cost, carbon impact and confidence, with documented inputs and limitations.
+5. Review a proposed action, record approval and an actual intervention, then compare later measurements against a documented baseline where available.
+6. Ask a grounded chatbot to explain approved data, forecasts, alerts and calculations with source references and refusal of unsupported claims.
 
-**Prototype success gates:** The entire journey works against deployed API responses; one seeded anomaly is reproducibly detected; the frontend can distinguish observed data from assumed savings; the prototype/code link and a 5-minute demo are ready for submission. Scores or savings are **not** claimed as validated corporate results.
+Success requires approved real-data lineage, evaluated forecasts, traceable detections/calculations, actual API-fed frontend results and tested deployment. Missing data is a blocker, never permission to substitute synthetic observations. Verified savings and carbon neutrality are not submission promises.
 
 ## 3. Scope and priorities
 
 | Priority | Capability | Acceptance condition |
 | --- | --- | --- |
-| P0 | Asset and meter catalogue | Four demo assets appear; one commercial building has three explicitly metered floors. |
-| P0 | Energy ingestion and history | Deterministic synthetic hourly kWh readings are stored with timestamps, units and provenance; duplicate meter/time writes are handled safely. |
-| P0 | Portfolio and floor summaries | Backend returns per-asset totals without counting building and floor meters twice; UI can drill into a metered floor. |
-| P0 | Reproducible anomaly and alert | One seeded after-hours event generates one deduplicated alert with comparison window, baseline and evidence. |
-| P0 | Action and savings preview | One public, stateless and bounded HVAC schedule calculation for synthetic data produces transparent calculations and “estimated, not verified” labels; no privileged key enters the browser. |
-| P0 | Frontend API contract and deployment | Documented JSON responses, `/docs`, deployed health check and end-to-end frontend smoke test. |
-| P1 | Short-horizon energy forecast | 24-hour hourly kWh forecast with comparison against a seasonal-naive baseline and error reported on a holdout; no model-accuracy claim if validation fails. |
-| P1 | Protected scenario storage and alert acknowledgement | A backend-authorised operator can save a scenario and mark an alert acknowledged; neither mutation is required for the public demo. |
-| P2 | Solar/lighting investment comparison | Only if P0/P1 work; solar is separately labelled **supply substitution**, not energy-efficiency savings. |
-| P2 | LLM explanation or multi-agent review | Not required for release. Never allow generated text to invent a cause, tariff, factor or savings number. |
+| P0 gate | Authorised real dataset and dictionary | Receive authorised corporate data or an explicitly approved public measured fallback; confirm licence/permitted publication use and inspect essential inputs before import, training, APIs or frontend claims. |
+| P0 | Asset/meter catalogue and history | Source-backed IDs/mapping, timestamps, units, interval semantics, provenance and validated idempotent import. |
+| P0 | Energy summaries, cost/CO₂ estimates and load trends | Real observations, explicit completeness, documented applicable tariff rules and approved official emission factor. |
+| P0 | Township issue location | Approved map/asset positions and meter mapping; unavailable for BDG2 and any source without verified township identity/location. |
+| P0 | Energy-consumption forecast | Real-history training, chronological holdout and simple baseline comparison; model version, horizon, error and limitations are reported. |
+| P0 | Unusual-consumption detection | Measured readings, documented comparison basis/thresholds and deduplicated evidence. Schedule-based or after-hours findings require actual schedules; no unsupported cause claims. |
+| P0, source gated | Opportunity ranking and human review | Source-backed candidates ranked by estimated savings, cost, carbon impact and confidence; proposed/approved states and actual intervention tracking. |
+| P0, results gated | Grounded chatbot | Explains approved backend data/results with traceable references; server-side keys and access enforcement; no invented facts. |
+| P0 | API/frontend integration and deployment | Implemented OpenAPI matches real frontend requests; permitted real data and honest labels render; deployed endpoints are tested. |
+| Conditional | Digital twin and building/floor/room performance | Actual authorised plans, geometry, meter mappings and measurements support the displayed resolution. Not already built. |
+| Conditional | HVAC/BMS, indoor/outdoor conditions, solar, batteries and EV coordination | Real authorised supporting measurements, equipment mapping and approval. Not already built. |
+| Conditional | Verified savings | Documented intervention, baseline and sufficient post-action measurements with relevant adjustments. Not already built. |
+| P1/P2, explicit request only | Additional models, investment simulations or multi-agent systems | Supporting data and a separately agreed task; no automatic expansion. |
 
-**Explicitly out of scope for this prototype:** Real household/TNB/BMS connections, live control of HVAC, exact site coordinates, real-time guarantees, autonomous remediation, authenticated corporate production use, proven RM-million savings, and verified post-intervention savings. No invisible fallback to invented readings when the database is unavailable.
+The 20-item checklist is triage, not a mandate to build every item. Full authentication implementation, separate staging infrastructure, Sentry, plugins/MCP setup and a formal design-system document are deferred unless needed/requested. Appropriate real-data access control remains a release gate. Autonomous remediation and live equipment control are outside this MVP and require separate explicit approval.
 
-## 4. Locked technical choices
+## 4. Locked technology and present implementation
 
-- **Backend:** Python 3.12, FastAPI and Pydantic; one stateless ASGI app. Its source will live at `backend/app.py` exporting `app = FastAPI(...)`.
-- **Persistence:** Supabase PostgreSQL; the backend is the sole database-facing application component for this prototype. Use the official Python client or another documented, pinned Postgres access path; do not mix two persistence strategies casually.
-- **Analytics:** NumPy/Pandas and scikit-learn **only where a tested model beats or usefully supplements a simple baseline**. Deterministic formulas/rules own billing, carbon and initial alert logic. Do not run model training in a normal GET request.
-- **Hosting:** Two Vercel projects linked to one repository, with `backend/` and `frontend/` configured as their respective project Root Directories. The frontend calls the deployed backend base URL. This keeps Python dependency builds separate from the React/Three.js build. Both remain on Vercel; no Render/Railway is required.
-- **UI:** The frontend team chooses its React build framework; Three.js renders the visual drill-down. The backend returns data and identifiers, not 3D meshes.
-- **Updates:** The frontend polls a small alerts/summary endpoint for the demo or refreshes on interaction. There is no persistent in-process polling worker or WebSocket requirement.
+- **Backend:** Python 3.12, FastAPI and Pydantic; `backend/app.py` exports `app`.
+- **Persistence:** Supabase PostgreSQL; backend is the sole database-facing application component. Choose one documented pinned access strategy when implementation is authorised. No browser service credentials.
+- **Analytics:** Python/scikit-learn where justified; time-based evaluation and a simple baseline precede model claims. Tariff/carbon calculations use deterministic documented rules. No training in normal GET requests.
+- **Hosting:** One shared repository with separate Vercel projects rooted at `backend/` and `frontend/`; architecture remains unchanged.
+- **UI:** Frontend team owns its React framework and any Three.js presentation. Backend supplies real source-backed data/IDs, not fabricated 3D geometry or readings.
+- **Updates:** Bounded polling/refresh; no persistent worker or WebSocket requirement.
 
-Vercel documents FastAPI as a single Function with supported entrypoints, including root `app.py`. The backend must be tested on a Vercel preview before the deployment architecture is treated as proven. Keep libraries and payloads small; check function build, cold-start latency, and the current Hobby limits before any expansion.
+Health/docs/OpenAPI and four read-only, unversioned BDG2 routes are now implemented locally. The data routes require a completed verified import and backend-only database credentials; they return an explicit unavailable response without them. The tiny backend at `https://energios-backend.vercel.app` was previously tested before these routes existed, so no deployed data endpoint is claimed. Separate Preview verification and Vercel Hobby eligibility remain unconfirmed. Prior best-effort deployment permission did not confirm eligibility.
 
-## 5. Data contract
+## 5. Exact real-data and ML input requirements
 
-All timestamps are UTC ISO 8601 (`...Z`), displayed in `Asia/Kuala_Lumpur` in the UI. Energy readings are **interval energy in kWh**, not instantaneous kW. Money is MYR. Display no false precision: kWh to one decimal and estimates to sensible rounded MYR.
+**Essential:**
 
-| Table | Essential fields and rules |
+1. Historical timestamped electricity readings: timestamp, meter ID, kWh, and kW if available.
+2. Meter mapping: what building, floor, zone, or equipment each meter measures, plus units and reading interval.
+3. Operating schedule for schedule-based or after-hours detection: opening hours, holidays, closures, and unusual operating periods.
+
+**Helpful when available:**
+
+4. Timestamped weather: outdoor temperature and humidity.
+5. HVAC/BMS runtime, schedule, or energy data.
+
+Request **12–24 months of real historical data** where possible; **6 months is the minimum acceptable hackathon starting point**. Historical readings plus correct building/meter mapping can support an initial consumption forecast benchmark; actual coverage, gaps, consistency and holdout evaluation determine whether it is usable. Operating schedules are required for schedule-based or after-hours detection. Weather/BMS inputs are helpful additions, not substitutes for required target/mapping evidence.
+
+Preserve source identity/version, permitted use/publication restrictions, checksum or equivalent lineage, dictionary, units, timezone, reading interval, interval/cumulative semantics, meter scope and limitations. Keep restricted raw data outside Git, frontend bundles, logs and chat. Demand in kW is a separate measured input; any interval-average value derived from kWh requires valid interval semantics and an explicit derived label, not an instantaneous demand claim.
+
+## 6. Data model and API contract
+
+Retain the five-table conceptual model, but require a reviewed **non-destructive provenance/schema migration plan** after measured-dataset inspection. Existing `backend/sql/001_demo_schema.sql` permits only `synthetic_demo` provenance and 60-minute readings: it is **not compatible with BDG2 import as-is**. Do not relabel fixtures as measured, bypass constraints or execute a migration in this documentation task. The plan must define a source-scoped provenance value such as `public_benchmark`, preserve `bdg2_v1` source identity and checksums, and retain original local timezone plus any UTC conversion evidence.
+
+| Table | Planned real-data direction |
 | --- | --- |
-| `assets` | `id`, `name`, `asset_type`, optional **schematic** map coordinates, `floor_area_m2`, `timezone`, `data_status`; fictional labels and non-real map positions. |
-| `meters` | `id`, `asset_id`, `floor_label` nullable, `meter_role` (`building_total` or `floor`), `source_kind`, `is_active`. A floor can have a measured value only with an associated meter. |
-| `energy_readings` | `meter_id`, `recorded_at`, `interval_minutes=60`, `consumption_kwh >= 0`, `provenance='synthetic_demo'`; unique (`meter_id`, `recorded_at`). |
-| `alerts` | `id`, `meter_id`, `window_start`, `window_end`, `observed_kwh`, `baseline_kwh`, `rule_code`, `severity`, `status`, `evidence_json`, `created_at`; unique key for meter/window/rule so re-analysis does not duplicate. |
-| `scenarios` | P1 storage: `id`, `asset_id`, optional `alert_id`, `action_code`, `assumptions_json`, `results_json`, `created_at`; label all stored results as estimates. P0 preview is stateless. |
+| `assets` | Source-backed identity/type, approved map reference/position, documented area where available, timezone and quality/provenance limitations. |
+| `meters` | Source meter ID, asset/building/floor/zone/equipment scope, units, interval and mapping evidence; no invented submeters. |
+| `energy_readings` | Real timestamped energy, optional measured demand, original semantics/lineage and reviewed normalisation; non-negative interval kWh and unique meter/timestamp keys. |
+| `alerts` | Meter/window/rule deduplication, observed/baseline energy, status, evidence and rule/source versions; detected findings, not confirmed causes. |
+| `scenarios` | Source-backed action inputs, assumptions/results and estimate labels. Review/intervention tracking needs a later reviewed design; the existing schema does not prove it is implemented. |
 
-**Aggregation rule:** If an asset has an authoritative `building_total` meter, use it for asset-level consumption; floor meters are diagnostic breakdowns and are not added to that total. If it has only floor meters, their sum may be used and labelled “sum of available metered floors,” not “complete building total.” Missing periods stay missing, not zero. The seed generator should make building and floor readings internally consistent.
+Normalised API timestamps use UTC ISO 8601 (`...Z`), with original source timezone/transformation retained. UI uses the applicable asset timezone, including `Asia/Kuala_Lumpur` where appropriate. Energy is interval kWh, demand is kW, money is MYR and carbon units are explicit. Preserve source precision; display rounding must not imply accuracy. Validate cumulative registers before differencing; resets, rollovers and ambiguous periods need explicit handling. Missing readings stay missing.
 
-**Synthetic seed:** Fixed random seed and a recorded generator version, about four weeks of hourly readings for four assets; three metered floors for the focus building; one deliberate after-hours anomaly. Realistic-looking values are still fictional. Seed only an appropriately sized subset for the demo and verify the free database capacity. Keep a manifest of asset names, meter IDs, anomaly interval and expected alert.
+**Aggregation:** Use an authoritative building-total meter for asset energy; never add its diagnostic floors again. Sum available floors only where mapping supports it and label partial coverage. Whole-building data supports building-level analytics only. Room, floor, HVAC, solar, battery, EV and indoor-condition claims require actual supporting measurements and mapping.
 
-## 6. API contract, version 1
+The owner explicitly approved the following smallest unversioned read contract for the BDG2 prototype. No accessible frontend code exists to compare against it yet. Real data is not automatically public because a demo is accessible; these routes use backend-held credentials and expose only the approved public benchmark cohort. Other `/v1` directions remain planned.
 
-All responses use stable IDs, units and provenance. Validation errors are ordinary 4xx responses; database failures return a clear 5xx rather than fabricated data. List endpoints paginate or cap their time range and row count. Backend owns `/v1` paths; the frontend receives its base URL through an environment variable.
-
-| Method/path | Output or purpose | Access |
+| Method/path | Purpose/status | Access direction |
 | --- | --- | --- |
-| `GET /health` | `{ "status": "ok", "version": "1" }`; separate DB check may report unavailable. | Public |
-| `GET /v1/assets` | Asset IDs, names, types, schematic map positions, latest status. | Public **synthetic demo only** |
-| `GET /v1/assets/{id}/summary` | Timestamped asset total kWh, provenance, completeness and metered-floor summary. | Public demo |
-| `GET /v1/assets/{id}/readings?from=...&to=...&meter_id=...` | Bounded hourly `{ recorded_at, consumption_kwh, meter_id, provenance }` series. | Public demo |
-| `GET /v1/alerts` | Active/recent alerts with asset and meter IDs, severity, observed/baseline kWh and status. | Public demo |
-| `POST /v1/readings` | Validated batch ingestion; upsert by meter/time, return accepted/duplicate/rejected counts. | Protected admin token |
-| `POST /v1/analysis/run` | Analyse a specified bounded asset/time window, persist deduplicated alerts and return findings. | Protected admin token |
-| `POST /v1/scenarios/preview` | Validate small, bounded synthetic-data assumptions; calculate without writing; return every input, formula output and caveat. | Public demo |
-| `POST /v1/scenarios` | P1: calculate and store an authorised scenario using the same validated calculator. | Protected admin token |
-| `PATCH /v1/alerts/{id}` | Change status from `open` to `acknowledged` with timestamp. | Protected admin token |
-| `GET /v1/assets/{id}/forecast` | P1: 24 hourly predictions, method, train/test period and holdout metric, or an explicit `insufficient_data` response. | Public demo |
+| `GET /health` | Implemented; exactly `{"status":"ok","version":"1"}`. | Public |
+| `GET /assets` | Implemented locally; bounded catalogue for the four verified BDG2 whole-building assets, including meter, units and provenance. | Backend-mediated public benchmark read |
+| `GET /assets/{id}/readings?from=...&to=...&limit=...` | Implemented locally; bounded observed interval-kWh history with UTC/source timestamps, quality and provenance. | Backend-mediated public benchmark read |
+| `GET /assets/{id}/forecast` | Implemented locally; 24 hourly forecast values plus method, split, held-out metrics, provenance and limitations. | Backend-mediated public benchmark read |
+| `GET /assets/{id}/anomalies?from=...&to=...&limit=...` | Implemented locally; validation-thresholded `unusual_consumption_pattern` detections with no cause claim. | Backend-mediated public benchmark read |
+| `GET /v1/assets/{id}/summary` | Planned consumption, completeness, cost/CO₂ estimates and load trends with sources. | Approved data audience |
+| `GET /v1/alerts` | Planned detected findings, status and evidence/lineage. | Approved data audience |
+| `POST /v1/readings` | Planned bounded real import with accepted/duplicate/rejected counts and explicit conflicts. | Protected backend operation |
+| `POST /v1/analysis/run` | Planned real-data rule evaluation and deduplicated findings. | Protected backend operation |
+| `POST /v1/scenarios/preview` | Planned source-backed stateless estimate with inputs and caveats. | Approved audience; no privileged browser key |
+| `POST /v1/scenarios`, `PATCH /v1/alerts/{id}` | Planned authorised review/storage where supported; state/timestamp contract needs review. | Protected backend operation |
 
-**Example alert shape (fields, not real results):**
+Opportunity ranking, intervention tracking and chatbot route shapes are not yet agreed or implemented. Do not invent endpoints or advertise phantom functionality. The old synthetic alert example/fixture must not become production frontend data or a submitted demo response.
 
-```json
-{
-  "id": "alert-uuid",
-  "asset_id": "asset-uuid",
-  "meter_id": "meter-uuid",
-  "window_start": "2026-10-08T12:00:00Z",
-  "window_end": "2026-10-08T13:00:00Z",
-  "observed_kwh": 120.0,
-  "baseline_kwh": 60.0,
-  "rule_code": "AFTER_HOURS_EXCESS",
-  "status": "open",
-  "provenance": "synthetic_demo",
-  "interpretation": "Unusual after-hours use; investigate HVAC schedule. Cause not confirmed."
-}
-```
+## 7. Analytics, calculations and labels
 
-The exact example numbers are illustrative. IDs and expected readings must come from the committed seed manifest once built. Do not write frontend components against an invented endpoint or field: generate/OpenAPI-check the backend contract first.
+**Forecast:** ML predicts energy consumption or demand when measured inputs support that target. **Tariff is not an ML prediction target**; documented tariff rules calculate cost. Train on authorised measured history with valid mapping; use schedules/weather only when available and justified. Use a time-based split, prevent future-data leakage and compare with a simple seasonal-naive baseline. Record source, train/test periods, units, metric, model/version, horizon and limitations. A BDG2 benchmark result is not evidence of performance at Sime Darby or Elmina Lakeside Mall. Do not promise accuracy before evaluation.
 
-## 7. Analytics and financial rules
+**Detection:** Compare measured intervals with a documented comparable-hours baseline and, for after-hours claims, an actual schedule. Exclude the target interval from its reference, require sufficient comparisons, and record absolute/relative thresholds, quality exclusions and rule version. Deduplicate meter/window/rule findings. Detected unusual consumption prompts investigation; it does not establish waste or HVAC causation. BDG2 has no inspected operating schedule, so after-hours detection is unavailable for this fallback.
 
-**Alert P0:** Compare an hourly reading with the median of comparable hours on prior days of the same operating category, excluding the alert hour. Require a minimum comparison sample and explicit after-hours schedule. Trigger only if both an absolute excess and a configurable relative threshold are exceeded; store the thresholds and sample count in `evidence_json`. Test normal, missing, duplicate, and anomalous data. An anomaly is a prompt to investigate, **not proof of waste or HVAC causation**.
+**Cost/carbon:** Calculate electricity cost from documented applicable tariff rules, including demand, time bands or fixed components only where supported. Calculate CO₂ from an approved official emission factor for the relevant region, period and accounting basis. Preserve source/date/version, units, scope, assumptions and limitations. A simple kWh multiplier is valid only where the approved rule supports it. Missing tariff/factor means unavailable output; never invent a default or ask the chatbot to supply one.
 
-**Forecast P1:** First compute a seasonal-naive same-hour reference; evaluate an optional simple scikit-learn model on a chronological holdout against that reference (for example MAE in kWh). Serve the simpler approach if the trained model adds no supported value. A four-week synthetic set demonstrates the pipeline, not generalisable predictive performance; label it accordingly.
+**Ranking and review:** Rank source-backed opportunities by estimated savings, cost, carbon impact and confidence with explicit evidence. Formula/weights and confidence method remain to be agreed; no fabricated score. Distinguish proposed, approved and implemented interventions with authorised records/timestamps. Savings estimates expose assumptions and are not verified savings.
 
-**Scenario P0:** `potential_kwh_saved = affected_hours × estimated_avoidable_kwh_per_hour × realisation_fraction`, bounded between zero and relevant baseline consumption. `potential_RM_saved = potential_kwh_saved × assumed_effective_RM_per_kwh`. `potential_kgCO2e_avoided = potential_kwh_saved × assumed_grid_kgCO2e_per_kwh`. Simple payback in years applies only when one-time cost > 0 and positive annual net savings are defined; otherwise `null`/“not applicable.” Return the tariff and emissions-factor **input, unit, source/date if known, and assumption label**. Never silently hard-code a Sime Darby tariff or government emissions factor. Solar outputs must separate reduced grid purchases from reduced total energy use.
+**Verified savings:** Require a documented intervention, baseline and post-action measurements with relevant weather/operating adjustments and a stated comparison method. Conditional and unbuilt. Carbon neutrality is a long-term ambition; EnergiOS cannot guarantee it or equate an estimate with neutrality.
 
-**No verified savings claim:** A post-action measurement module is future work unless there is real intervention and post-period data with weather/operating adjustments. Demo “after” curves may be shown only as simulated scenarios.
+**Grounded chatbot:** Add only after approved backend readings/results exist. Explain approved observations, forecasts, alerts and calculations with traceable references and caller access enforcement. Keep API keys server-side. Refuse missing/unsupported facts; never generate operational readings, invent causes, override numerical calculations or control equipment.
 
-## 8. Safety, operations and honest demo labels
+Clearly label **observed**, **forecast**, **detected**, **estimated**, **proposed**, **approved** and **verified** results. Verified requires the relevant documented result evidence, not merely a successful API request.
 
-- Synthetic-only public endpoints, including the stateless scenario preview, are permitted for an open hackathon link. Bound preview input size and numeric ranges and use platform rate protections if needed. Any move to real asset, tenant or household data requires access approval, stronger authentication/authorisation, minimisation and a privacy review.
-- Enable RLS on every exposed Supabase table; do not grant blanket public row access. Keep the Supabase **secret/service credential exclusively in Vercel backend environment variables**. Do not commit `.env` files or expose the credential through frontend-prefixed variables. The app validates its own protected write token and request size; no one can use the public dashboard to mutate readings or alerts.
-- CORS allow-list only the known frontend deployment origin(s) and localhost during development. Use HTTPS in deployment. Log failures without secrets or personal data.
-- All changes to equipment remain human-approved and outside the prototype. Generated advice, if later added, may explain already computed evidence but may not supply financial inputs or call control endpoints.
-- Every demo screen labels source as **Synthetic demonstration data**, and financial/carbon figures as **Assumption-based estimates**. The pitch distinguishes built, simulated, and proposed integrations.
+## 8. Security and conditional claims
 
-## 9. Questions that require confirmation, not agent invention
+- Preserve RLS and deny direct public writes; keep privileged Supabase/admin/chatbot credentials backend-only. Approved real-data access and permitted publication are release gates; unmet requirements block public exposure.
+- Keep restricted data/keys out of Git history, client bundles, screenshots, logs and chat. Sanitise errors and expose only permitted data/lineage metadata.
+- Use exact known CORS origins, bounded queries/payloads and authorised write/review operations.
+- Digital twin, room/floor performance, indoor/outdoor conditions, HVAC, solar, batteries, EV coordination and verified savings require real authorised data/plans/mapping and approval. None is already built.
+- No unsupported equipment control, integrations, real-time guarantees or corporate savings claims. Do not substitute invented data when a source or database is unavailable.
 
-1. Which specific Sime Darby managed asset and existing monitoring workflow would a pilot enhance? Is the target integration gap real, and who owns it?
-2. Are building/floor submeters, HVAC schedules, operating hours, occupancy and historical meter exports available under authorisation?
-3. What tariff structure, baseline method and approved emissions factor should a pilot use? Who approves assumptions?
-4. Is the team repository personal or an organisation repository, and can both Vercel projects import it on the chosen plan?
-5. Who on the team owns frontend, 3D asset, design, business case, and demo video? Backend scope here should not silently absorb those roles.
-6. Vercel Hobby restricts use to non-commercial personal deployments. Because the organiser's briefing describes transfer of submitted IP and possible commercialisation, the team should check the competition terms and ask Vercel whether this particular hackathon demo is eligible for Hobby; do not assume free-tier eligibility for later commercial use.
+## 9. Existing evidence and blockers
 
-If an answer is unavailable, keep the corresponding capability explicitly simulated or deferred. **No coding agent may convert an open question into a claimed fact.**
+- Hosted Supabase security verification passed **as user-reported evidence**: five tables with `rls_enabled=true`, `anon_access=false`, `authenticated_access=false`, `service_read=true`, `policy_count=0`. Notes committed locally in `251a765a121819a534b37db44f520dfdb80afcbc`. This is catalogue evidence, not a demonstrated real backend read or agent-run hosted anonymous write attempt.
+- Task 3 created a deterministic internal fixture: four fictional assets, seven meters, 4,704 hourly readings across 28 days, one Floor 2 after-hours event and `synthetic_demo` provenance. Eight Python and ten PostgreSQL tests passed offline. **No hosted seed insertion occurred.**
+- Task 3 files and verification notes are preserved unchanged as historical internal test-fixture evidence only. They cannot power the submitted database, ML training, frontend charts, demo or product. Earlier seed-loading instructions are superseded by this scope.
+- No accessible frontend code was found in the latest local or remote-tree inspection; compatibility remains unverified. The four unversioned BDG2 read routes are locally implemented but not deployed against a hosted imported database. Summary/cost/carbon, ranking, review/intervention tracking and chatbot routes remain planned.
+- BDG2 v1.0 is approved only as a provisional public measured benchmark. The pinned official source and read-only profile are documented in `docs/bdg2-data-assessment.md`; no BDG2 rows have been imported into Supabase and no model has been trained.
 
-## 10. Sources and authority
+**Next P0 task:** Produce a reviewed, non-destructive provenance/schema and import plan for the selected BDG2 electricity cohort. Preserve existing tables/RLS, define `public_benchmark` lineage, local-time-to-UTC handling, missing/duplicate policy, idempotent keys, capacity bounds and rollback/validation. Do not run the migration or import until that plan is approved.
 
-- Organiser briefing: uploaded 23-slide ZIP, especially PLANET theme slide, submission requirements, judging slide and IP/terms slide. Submission deadline: **23 October 2026 at 11:59 p.m.** Required: up to 10 main pitch slides, 5-minute video/live demo link, prototype/code/GitHub link.
-- [Sime Darby Property Sustainability Report 2025](https://www.simedarbyproperty.com/sites/default/files/2026-04/SDP%20SR2025%20%28Mobile%29.pdf): evidence of existing centralised monitoring and some visibility limitations; **not** evidence that every system is disconnected or millions are lost.
-- [Vercel FastAPI deployment](https://vercel.com/docs/frameworks/backend/fastapi), [Python runtime](https://vercel.com/docs/functions/runtimes/python), and [monorepo project roots](https://vercel.com/docs/monorepos): implementation constraints to recheck at build time.
-- [Vercel Fair Use Guidelines](https://vercel.com/docs/limits/fair-use-guidelines) and [platform limits](https://vercel.com/docs/limits): Hobby-use and organisation-owned repository caveats.
-- [Supabase securing data](https://supabase.com/docs/guides/database/secure-data): RLS and backend-only secret guidance.
+Pending decisions: Sime Darby dataset delivery/permission/publication, BDG2 cohort selection and data-volume budget, applicable tariff rules, approved official emission factor, actual township mapping/plans, provenance migration, forecast horizon/evaluation criteria, ranking inputs/weights, review/access rules, chatbot provider/knowledge permissions, frontend contract/origins and Vercel Hobby eligibility.
 
-**Change control:** This PRD governs the prototype. If the team changes an endpoint, data unit, scope boundary, or deployment topology, update this file, the implementation plan and the frontend contract together before claiming completion.
+## 10. Sources and change control
+
+- Scope authority: user's report of organiser confirmation and agreed scope update on 13 October 2026. No real operational dataset was supplied with that confirmation.
+- Provisional public benchmark: Building and Urban Data Science Group, [Building Data Genome Project 2 v1.0](https://doi.org/10.5281/zenodo.3887306), 10 June 2020. The Zenodo record declares `CC BY 4.0`; retain attribution. The tagged Git repository also contains an MIT licence for its software and associated documentation.
+- Dataset citation: Miller, C. et al. “The Building Data Genome Project 2, energy meter data from the ASHRAE Great Energy Predictor III competition.” *Scientific Data* 7, 368 (2020), [doi:10.1038/s41597-020-00712-x](https://doi.org/10.1038/s41597-020-00712-x).
+- Historical evidence: `docs/schema-verification.md`, `docs/seed-verification.md`, `docs/preflight-status.md`. This version governs current scope and supersedes incompatible historical seed instructions.
+- Existing organiser briefing: PLANET theme, up to ten pitch slides, five-minute video/live demo and prototype/code link; submission deadline above.
+- Existing contextual source: [Sime Darby Property Sustainability Report 2025](https://www.simedarbyproperty.com/sites/default/files/2026-04/SDP%20SR2025%20%28Mobile%29.pdf).
+- Engineering references retained for future rechecking: [Vercel FastAPI](https://vercel.com/docs/frameworks/backend/fastapi), [Python runtime](https://vercel.com/docs/functions/runtimes/python), [monorepos](https://vercel.com/docs/monorepos), [fair use](https://vercel.com/docs/limits/fair-use-guidelines), [platform limits](https://vercel.com/docs/limits), [Supabase securing data](https://supabase.com/docs/guides/database/secure-data).
+
+The PRD governs scope/claims/API intent; the plan governs task order. Code, tests, real data and deployment evidence determine completion. Coordinate document/frontend contract updates when scope, API shapes, stack or deployment architecture changes. This documentation-only update authorises no code edit, import, migration, training, credential handling, deployment, commit or push.
