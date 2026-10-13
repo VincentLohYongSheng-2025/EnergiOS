@@ -1,0 +1,1225 @@
+<!DOCTYPE html>
+<html class="h-full bg-background" lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <title>EnergyOS - Asset Diagnostics & Anomaly Triage</title>
+
+  <!-- Typography & Icons matching homepage.html and energy.html -->
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+  <link href="https://fonts.googleapis.com" rel="preconnect">
+  <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    @layer base {
+      html, body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+      }
+      main > :first-child {
+        margin-top: 0 !important;
+      }
+    }
+
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(0, 105, 72, 0.2);
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(0, 105, 72, 0.4);
+    }
+
+    /* Terminal scrollbar */
+    .terminal-scroll::-webkit-scrollbar {
+      width: 4px;
+    }
+    .terminal-scroll::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 4px;
+    }
+
+    /* Pulsing anomaly marker animation */
+    @keyframes pulseRing {
+      0% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+      }
+      70% {
+        transform: scale(1.15);
+        box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
+      }
+      100% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+      }
+    }
+
+    .anomaly-dot {
+      animation: pulseRing 1.8s infinite;
+    }
+
+    /* Custom Tooltip */
+    #chart-tooltip {
+      position: absolute;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.15s ease, transform 0.15s ease;
+      z-index: 50;
+      transform: translate(-50%, -115%);
+    }
+
+    /* Toast Notification */
+    #toast-notification {
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
+    }
+    #toast-notification.show {
+      transform: translate(-50%, 0) !important;
+      opacity: 1 !important;
+    }
+  </style>
+
+  <!-- Tailwind CDN & Theme Config (identical to homepage.html and energy.html) -->
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "primary-fixed": "#85f8c4",
+            "on-primary-fixed-variant": "#005137",
+            "inverse-surface": "#213145",
+            "primary-fixed-dim": "#68dba9",
+            "tertiary-container": "#00855d",
+            "on-error": "#ffffff",
+            "surface-tint": "#006c4a",
+            "inverse-primary": "#68dba9",
+            "secondary-fixed": "#97f5cc",
+            "surface": "#f8f9ff",
+            "error": "#ba1a1a",
+            "surface-container-high": "#dce9ff",
+            "on-secondary-container": "#007353",
+            "on-secondary-fixed": "#002115",
+            "on-tertiary-fixed-variant": "#005236",
+            "primary": "#006948",
+            "on-background": "#0b1c30",
+            "on-tertiary-fixed": "#002113",
+            "on-tertiary": "#ffffff",
+            "surface-bright": "#f8f9ff",
+            "on-tertiary-container": "#f5fff6",
+            "tertiary-fixed": "#6ffbbe",
+            "on-primary": "#ffffff",
+            "background": "#f8f9ff",
+            "secondary-container": "#97f5cc",
+            "on-surface-variant": "#3d4a42",
+            "error-container": "#ffdad6",
+            "on-surface": "#0b1c30",
+            "on-primary-fixed": "#002114",
+            "primary-container": "#00855d",
+            "outline": "#6d7a72",
+            "surface-container-lowest": "#ffffff",
+            "surface-container": "#e5eeff",
+            "on-error-container": "#93000a",
+            "surface-container-low": "#eff4ff",
+            "tertiary-fixed-dim": "#4edea3",
+            "surface-dim": "#cbdbf5",
+            "on-primary-container": "#f5fff7",
+            "on-secondary": "#ffffff",
+            "secondary-fixed-dim": "#7bd8b1",
+            "on-secondary-fixed-variant": "#00513a",
+            "tertiary": "#006947",
+            "surface-container-highest": "#d3e4fe",
+            "outline-variant": "#bccac0",
+            "secondary": "#006c4e",
+            "inverse-on-surface": "#eaf1ff",
+            "surface-variant": "#d3e4fe"
+          },
+          fontFamily: {
+            "label-sm": ["Space Grotesk"],
+            "metric-numeral": ["Space Grotesk"],
+            "display-lg": ["Manrope"],
+            "body-lg": ["Manrope"],
+            "headline-lg": ["Manrope"],
+            "body-sm": ["Manrope"],
+            "title-md": ["Manrope"],
+            "headline-md": ["Manrope"],
+            "label-md": ["Space Grotesk"],
+            "headline-sm": ["Manrope"],
+            "label-xs": ["Space Grotesk"],
+            "body-md": ["Manrope"]
+          }
+        }
+      }
+    };
+  </script>
+</head>
+
+<body class="bg-background font-body-md text-on-surface antialiased h-full flex flex-col overflow-x-hidden">
+
+  <!-- ========================================================================
+       TOP HEADER: EnergyOS BRAND + CENTERED AI DYNAMIC ISLAND + USER PROFILE
+       ======================================================================== -->
+  <header class="fixed top-0 left-0 w-full h-16 z-40 bg-surface-container-lowest/90 backdrop-blur-xl border-b border-slate-200/60 shadow-[0_1px_8px_rgba(0,0,0,0.03)] flex items-center justify-between px-4 lg:px-6">
+    <div class="flex items-center gap-3 shrink-0">
+      <a href="homepage.html" class="flex items-center gap-2 text-decoration-none group" title="Return to Overview">
+        <div class="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary font-bold group-hover:bg-primary group-hover:text-on-primary transition-all">
+          <span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">bolt</span>
+        </div>
+        <span class="font-headline-sm text-headline-sm text-primary tracking-tight font-bold">EnergyOS</span>
+      </a>
+    </div>
+
+    <!-- Center Spacer -->
+    <div class="flex-1 pointer-events-none"></div>
+
+    <!-- Right: Minimal Status & Profile Avatar -->
+    <div class="flex items-center gap-3 shrink-0">
+      <div class="hidden sm:flex items-center gap-1.5 bg-surface-container-low px-2.5 py-1 rounded-lg border border-slate-200/50">
+        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+        <span class="font-label-xs text-xs text-on-surface font-metric-numeral">14:45 MYT</span>
+      </div>
+      <div class="flex items-center gap-2 pl-1 border-l border-slate-200">
+        <div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-on-primary ring-2 ring-emerald-500/20 font-bold">
+          <span class="material-symbols-outlined text-[18px]">person</span>
+        </div>
+        <div class="hidden xl:flex flex-col text-left">
+          <span class="font-body-sm text-xs font-semibold text-on-surface leading-none">Tuan Iskandar</span>
+          <span class="font-label-xs text-[10px] text-outline leading-tight">Township Mgr</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ========================================================================
+       AI DYNAMIC ISLAND (EXPANDS ON CLICK)
+       ======================================================================== -->
+  <div class="fixed top-2.5 left-1/2 -translate-x-1/2 z-50 pointer-events-auto transition-all duration-300 flex items-center" id="dynamic-island-wrapper">
+    <div onclick="expandAiIsland()" class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-950 text-white shadow-2xl border border-slate-700/80 ring-1 ring-white/10 hover:border-slate-500/80 transition-all duration-300 cursor-pointer select-none max-w-[490px]" id="island-collapsed">
+      <div class="flex items-center gap-2 shrink-0">
+        <div class="relative flex items-center justify-center w-6 h-6 rounded-full bg-slate-800 border border-slate-700">
+          <span class="w-2 h-2 rounded-full bg-rose-400 animate-pulse"></span>
+        </div>
+        <div class="flex items-center gap-1.5">
+          <span class="font-label-xs text-[11px] font-semibold text-slate-200 tracking-wide">AI Triage</span>
+          <span class="text-[9px] px-1.5 py-0.2 rounded-full bg-rose-950 text-rose-300 border border-rose-800 font-bold" id="island-alert-count">3 ANOMALIES</span>
+        </div>
+      </div>
+      <div class="h-3.5 w-[1px] bg-slate-700/80 shrink-0 hidden md:block"></div>
+      <div class="flex items-center gap-1.5 min-w-0 text-[11px] text-slate-300 font-medium leading-snug truncate">
+        <span class="material-symbols-outlined text-rose-400 text-[14px] shrink-0">warning</span>
+        <span class="truncate">MALL-MAIN-01: +47.4% surge detected at 14:00</span>
+      </div>
+      <div class="flex items-center gap-1 shrink-0 ml-auto">
+        <button onclick="event.stopPropagation(); expandAiIsland();" class="p-1 rounded-full text-slate-400 hover:text-white hover:bg-slate-800 transition-colors flex items-center justify-center" title="Open Triage Diagnostics" type="button">
+          <span class="material-symbols-outlined text-[16px]">open_in_full</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- EXPANDED AI CHATBOX MODAL -->
+    <div class="flex-col w-[92vw] max-w-[580px] rounded-2xl text-white shadow-[0_20px_60px_rgba(0,0,0,0.9)] border border-slate-700 ring-1 ring-white/10 overflow-hidden bg-slate-950 duration-300 ease-out transition-all hidden" id="island-expanded">
+      <div class="flex items-center justify-between px-4 py-3 border-b border-slate-800 bg-slate-900">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-emerald-400">
+            <span class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="font-headline-sm text-sm font-bold text-white tracking-tight">AI Copilot &bull; Anomaly Diagnostics Engine</span>
+              <span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-bold">Online</span>
+            </div>
+            <span class="text-[11px] text-slate-400">Automated Isolation Forest + Prophet residual triage</span>
+          </div>
+        </div>
+        <button onclick="collapseAiIsland()" class="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors" title="Minimize" type="button">
+          <span class="material-symbols-outlined text-[20px]">close_fullscreen</span>
+        </button>
+      </div>
+      <div class="p-4 space-y-3 max-h-[60vh] overflow-y-auto bg-slate-950" id="island-chat-body">
+        <div class="p-3 rounded-xl bg-slate-900 border border-slate-800">
+          <span class="text-[11px] font-bold uppercase tracking-wider text-rose-400 flex items-center gap-1.5">
+            <span class="material-symbols-outlined text-[14px]">crisis_alert</span>
+            <span>Critical Anomaly Advisory</span>
+          </span>
+          <p class="text-[12.5px] text-slate-200 mt-1 leading-snug">
+            MALL-MAIN-01 breached upper 2.5&sigma; bound by +46.7 kWh. Recommended action: Check Central Atrium Chiller Loop 2 for compressor bypass valve lock.
+          </p>
+          <div class="flex items-center gap-2 mt-2.5">
+            <button onclick="acknowledgeAnomaly('ANOM-402'); collapseAiIsland();" class="px-3 py-1 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-[#062419] font-bold text-xs transition-all flex items-center gap-1">
+              <span class="material-symbols-outlined text-[14px]">done_all</span> Acknowledge
+            </button>
+            <button onclick="collapseAiIsland();" class="px-3 py-1 rounded-lg border border-slate-700 hover:bg-slate-800 text-slate-300 text-xs transition-colors">Dismiss</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       MAIN APPLICATION SHELL: SIDEBAR + MAIN CONTENT
+       ======================================================================== -->
+  <div class="flex-1 flex pt-16 min-h-0 overflow-hidden">
+
+    <!-- LEFT VERTICAL SIDEBAR -->
+    <aside class="bg-surface-container-lowest border-r border-slate-200/70 flex flex-col justify-between shrink-0 transition-all duration-300 z-30 select-none w-64" id="app-sidebar">
+      <div class="flex flex-col py-4 px-3 space-y-1">
+        <div class="px-3 pb-3 mb-1 border-b border-slate-100 flex items-center justify-between">
+          <span class="font-label-xs text-xs font-bold uppercase text-outline tracking-wider">Navigation</span>
+          <button class="p-1 rounded text-outline hover:text-on-surface hover:bg-surface-container transition-colors" id="sidebar-toggle-btn" title="Toggle Sidebar">
+            <span class="material-symbols-outlined text-[18px]">menu_open</span>
+          </button>
+        </div>
+        <nav class="space-y-1" id="sidebar-nav">
+          <!-- Overview -->
+          <a class="sidebar-item flex items-center gap-3 px-3 py-2.5 rounded-xl font-label-md text-sm font-medium text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" href="homepage.html">
+            <span class="material-symbols-outlined text-[20px]">dashboard</span>
+            <span>Overview</span>
+          </a>
+          <!-- Energy Arbitrage -->
+          <a class="sidebar-item flex items-center gap-3 px-3 py-2.5 rounded-xl font-label-md text-sm font-medium text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" href="energy.html">
+            <span class="material-symbols-outlined text-[20px]">swap_vert</span>
+            <span>Energy Arbitrage</span>
+            <span class="ml-auto text-[10px] px-1.5 py-0.5 rounded-full bg-emerald-100 text-primary font-bold">AUTO</span>
+          </a>
+          <!-- Digital Twin -->
+          <a class="sidebar-item flex items-center gap-3 px-3 py-2.5 rounded-xl font-label-md text-sm font-medium text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" href="digital-twin.html">
+            <span class="material-symbols-outlined text-[20px]">apartment</span>
+            <span>Digital Twin</span>
+          </a>
+          <!-- Asset Diagnostics (ACTIVE GREEN STATE) -->
+          <a class="sidebar-item active flex items-center gap-3 px-3 py-2.5 rounded-xl font-label-md text-sm font-semibold bg-primary text-on-primary shadow-sm shadow-primary/20 transition-all" href="asset-diagnostics.html">
+            <span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">health_and_safety</span>
+            <span>Asset Diagnostics</span>
+            <span class="ml-auto text-[10px] px-1.5 py-0.5 rounded-full bg-rose-500 text-white font-bold" id="sidebar-badge-count">3</span>
+          </a>
+          <!-- Carbon Analytics -->
+          <a class="sidebar-item flex items-center gap-3 px-3 py-2.5 rounded-xl font-label-md text-sm font-medium text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" href="homepage.html#carbon-analytics">
+            <span class="material-symbols-outlined text-[20px]">co2</span>
+            <span>Carbon Analytics</span>
+          </a>
+          <!-- Settings -->
+          <a class="sidebar-item flex items-center gap-3 px-3 py-2.5 rounded-xl font-label-md text-sm font-medium text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" href="#">
+            <span class="material-symbols-outlined text-[20px]">settings</span>
+            <span>Settings</span>
+          </a>
+        </nav>
+      </div>
+
+      <!-- Bottom Sidebar Section -->
+      <div class="p-3 border-t border-slate-100 space-y-2">
+        <div class="bg-surface-container-low p-2.5 rounded-xl flex items-center gap-2.5 border border-slate-200/50">
+          <div class="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+            <span class="material-symbols-outlined text-[18px]">location_city</span>
+          </div>
+          <div class="flex flex-col min-w-0 flex-1">
+            <span class="font-label-xs text-[10px] text-outline uppercase font-semibold">Active Township</span>
+            <span class="font-body-sm text-[12px] font-bold text-on-surface truncate">Bandar Eco Sanctuary</span>
+            <span class="text-[10px] text-emerald-700 font-medium">Phase 1 &amp; 2 Online</span>
+          </div>
+        </div>
+        <div class="px-2.5 py-1.5 rounded-lg bg-secondary-container/40 flex items-center justify-between text-xs font-label-xs">
+          <span class="flex items-center gap-1.5 text-primary font-bold">
+            <span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span> SCADA Stream
+          </span>
+          <span class="text-on-surface-variant text-[10px]">100% Locked</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- MAIN SCROLLABLE CONTENT CANVAS -->
+    <main class="flex-1 overflow-y-auto bg-background min-h-0">
+      <div class="w-full max-w-[1600px] mx-auto px-4 md:px-8 py-6 flex flex-col gap-6">
+
+        <!-- SUB-NAV HEADER -->
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-2 border-b border-slate-200/60">
+          <div>
+            <div class="flex items-center gap-2.5">
+              <h1 class="font-headline-sm text-xl md:text-2xl font-bold text-on-surface tracking-tight">Asset Diagnostics &amp; Anomaly Triage</h1>
+              <span class="px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-800 border border-rose-200 font-label-xs text-xs font-bold flex items-center gap-1">
+                <span class="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span> 3 Anomalies Active
+              </span>
+            </div>
+            <p class="font-body-sm text-xs text-outline mt-0.5">Automated detection of unusual energy consumption patterns, residual drift, and model confidence tracking.</p>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <button onclick="triggerManualScan()" class="px-3 py-1.5 rounded-xl border border-slate-200 bg-surface-container-lowest hover:bg-surface-container text-on-surface font-label-xs text-xs font-bold shadow-xs transition-all flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-[16px] text-primary">sync</span>
+              <span>Re-run Daemon Scan</span>
+            </button>
+            <button onclick="showToast('Exported SCADA Anomaly Audit Log (CSV)');" class="px-3 py-1.5 rounded-xl bg-primary hover:bg-[#00553a] text-on-primary font-label-xs text-xs font-bold shadow-xs transition-all flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-[16px]">download</span>
+              <span>Export Audit</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- ====================================================================
+             TOP ROW: THREE KPI CARDS (Soft shadows, rounded corners)
+             ==================================================================== -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+          
+          <!-- CARD 1: SYSTEM HEALTH -->
+          <div class="bg-surface-container-lowest rounded-2xl p-5 border border-slate-200/70 shadow-sm flex flex-col justify-between hover:shadow-md transition-all">
+            <div class="flex items-center justify-between">
+              <span class="font-label-xs text-xs font-bold uppercase text-outline tracking-wider flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-[18px] text-rose-600">health_and_safety</span>
+                <span>System Health</span>
+              </span>
+              <span class="px-2 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200 font-label-xs text-[10px] font-bold">1 Critical &bull; 2 Warn</span>
+            </div>
+
+            <div class="my-3">
+              <div class="flex items-baseline gap-2">
+                <span class="font-headline-lg text-3xl font-extrabold text-on-surface font-metric-numeral" id="kpi-anomalies-val">3</span>
+                <span class="font-body-sm text-xs text-rose-600 font-bold">Active Anomalies</span>
+              </div>
+              <p class="font-body-sm text-xs text-outline mt-1">Mean deviation: <span class="font-bold text-rose-700">+42.8%</span> vs baseline across 48 meters</p>
+            </div>
+
+            <!-- Health Bar -->
+            <div>
+              <div class="flex justify-between text-[11px] font-label-xs text-outline mb-1 font-semibold">
+                <span>Fleet Nominal Health</span>
+                <span class="text-on-surface font-bold">93.8%</span>
+              </div>
+              <div class="w-full h-2 rounded-full bg-slate-100 overflow-hidden flex">
+                <div class="h-full bg-emerald-500 rounded-l-full" style="width: 93.8%;"></div>
+                <div class="h-full bg-rose-500 rounded-r-full" style="width: 6.2%;"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- CARD 2: FORECAST ACCURACY (MAE / RMSE) -->
+          <div class="bg-surface-container-lowest rounded-2xl p-5 border border-slate-200/70 shadow-sm flex flex-col justify-between hover:shadow-md transition-all">
+            <div class="flex items-center justify-between">
+              <span class="font-label-xs text-xs font-bold uppercase text-outline tracking-wider flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-[18px] text-primary">query_stats</span>
+                <span>Forecast Accuracy</span>
+              </span>
+              <!-- Prominent Green 'High Conf.' Badge -->
+              <span class="px-2.5 py-0.5 rounded-full bg-emerald-100 text-primary border border-emerald-300 font-label-xs text-[11px] font-extrabold flex items-center gap-1 shadow-xs">
+                <span class="material-symbols-outlined text-[13px]">verified</span> High Conf.
+              </span>
+            </div>
+
+            <div class="my-3">
+              <div class="grid grid-cols-2 gap-3">
+                <div class="bg-surface-container-low p-2.5 rounded-xl border border-slate-200/50">
+                  <span class="font-label-xs text-[10px] text-outline font-semibold uppercase">MAE Metric</span>
+                  <div class="font-metric-numeral text-xl font-extrabold text-primary">1.84 <span class="text-xs font-normal text-outline">kWh</span></div>
+                </div>
+                <div class="bg-surface-container-low p-2.5 rounded-xl border border-slate-200/50">
+                  <span class="font-label-xs text-[10px] text-outline font-semibold uppercase">RMSE Metric</span>
+                  <div class="font-metric-numeral text-xl font-extrabold text-on-surface">2.41 <span class="text-xs font-normal text-outline">kWh</span></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex items-center justify-between pt-1 border-t border-slate-100 text-[11px] font-label-xs text-outline">
+              <span class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-primary"></span> R&sup2; Score: <strong class="text-on-surface font-bold">0.962</strong></span>
+              <span>Model: <strong class="text-on-surface font-bold">Prophet v4.2</strong></span>
+            </div>
+          </div>
+
+          <!-- CARD 3: LIVE API STATUS -->
+          <div class="bg-surface-container-lowest rounded-2xl p-5 border border-slate-200/70 shadow-sm flex flex-col justify-between hover:shadow-md transition-all">
+            <div class="flex items-center justify-between">
+              <span class="font-label-xs text-xs font-bold uppercase text-outline tracking-wider flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-[18px] text-primary">api</span>
+                <span>Live API Status</span>
+              </span>
+              <span class="flex items-center gap-1 font-label-xs text-[11px] text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> 99.98% Uptime
+              </span>
+            </div>
+
+            <div class="my-3 space-y-1.5 font-label-xs text-xs">
+              <div class="flex items-center justify-between p-1.5 rounded-lg bg-surface-container-low border border-slate-200/40">
+                <span class="font-mono text-outline text-[11px]">/v1/assets</span>
+                <span class="font-metric-numeral font-bold text-emerald-700">24 ms &bull; OK</span>
+              </div>
+              <div class="flex items-center justify-between p-1.5 rounded-lg bg-surface-container-low border border-slate-200/40">
+                <span class="font-mono text-outline text-[11px]">/v1/readings</span>
+                <span class="font-metric-numeral font-bold text-emerald-700">31 ms &bull; OK</span>
+              </div>
+              <div class="flex items-center justify-between p-1.5 rounded-lg bg-surface-container-low border border-slate-200/40">
+                <span class="font-mono text-outline text-[11px]">/v1/forecast</span>
+                <span class="font-metric-numeral font-bold text-emerald-700">42 ms &bull; OK</span>
+              </div>
+            </div>
+
+            <div class="text-[11px] font-label-xs text-outline flex items-center justify-between">
+              <span>Ingestion: <strong class="text-on-surface font-bold">1,420 msgs/min</strong></span>
+              <span class="text-emerald-700 font-semibold">0 dropped packets</span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ====================================================================
+             MIDDLE SECTION: TIME-SERIES LINE CHART ('Meter Readings & Anomalies')
+             Solid line for hourly electricity readings, high-contrast red scatter points for anomalies
+             ==================================================================== -->
+        <div class="bg-surface-container-lowest rounded-2xl p-6 border border-slate-200/70 shadow-sm relative">
+          
+          <!-- Chart Header & Interactive Controls -->
+          <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-slate-100">
+            <div>
+              <div class="flex items-center gap-2">
+                <h2 class="font-headline-sm text-base md:text-lg font-bold text-on-surface">Meter Readings &amp; Anomalies</h2>
+                <span class="px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 font-label-xs text-[10px] font-bold">Historical Hourly &bull; SCADA Feed</span>
+              </div>
+              <p class="font-body-sm text-xs text-outline mt-0.5">Historical hourly electricity readings (kWh) with automated anomaly detection overlay and residual threshold boundaries.</p>
+            </div>
+
+            <!-- Selectors -->
+            <div class="flex items-center gap-2.5 flex-wrap">
+              <!-- Asset Selector Dropdown -->
+              <div class="flex items-center gap-1.5 bg-surface-container-low px-2.5 py-1.5 rounded-xl border border-slate-200">
+                <span class="material-symbols-outlined text-[16px] text-outline">tune</span>
+                <select id="asset-select" onchange="switchAssetSeries(this.value)" class="bg-transparent font-body-sm text-xs font-bold text-on-surface focus:outline-none cursor-pointer border-none p-0 pr-6">
+                  <option value="MALL-MAIN-01" selected>MALL-MAIN-01 (Commercial Mall Feeder)</option>
+                  <option value="RETAIL-HVAC-02">RETAIL-HVAC-02 (Central Chiller Trunk)</option>
+                  <option value="TECH-DATA-01">TECH-DATA-01 (Innovation Server Node)</option>
+                  <option value="SMART-HOMES-FEED-A">SMART-HOMES-FEED-A (Residential Microgrid)</option>
+                </select>
+              </div>
+
+              <!-- Time Horizon Buttons -->
+              <div class="flex bg-surface-container-low p-1 rounded-xl border border-slate-200 font-label-xs text-xs font-semibold">
+                <button onclick="setTimeRange('24h')" id="btn-range-24h" class="px-2.5 py-1 rounded-lg bg-surface-container-lowest text-primary font-bold shadow-xs">24 Hours</button>
+                <button onclick="setTimeRange('7d')" id="btn-range-7d" class="px-2.5 py-1 rounded-lg text-outline hover:text-on-surface transition-colors">7 Days</button>
+                <button onclick="setTimeRange('30d')" id="btn-range-30d" class="px-2.5 py-1 rounded-lg text-outline hover:text-on-surface transition-colors">30 Days</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Chart Legend & Indicators -->
+          <div class="flex items-center justify-between py-3 text-xs font-label-xs flex-wrap gap-2">
+            <div class="flex items-center gap-5">
+              <div class="flex items-center gap-2">
+                <span class="w-4 h-1 rounded-full bg-primary"></span>
+                <span class="font-semibold text-on-surface">Hourly Electricity Readings (kWh)</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="w-4 h-0.5 border-t-2 border-dashed border-slate-400"></span>
+                <span class="text-outline">AI Expected Baseline</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="w-3 h-3 rounded-full bg-rose-500 border-2 border-white shadow-xs inline-block"></span>
+                <span class="font-bold text-rose-600">Unusual Anomaly Marker</span>
+              </div>
+            </div>
+            <div class="text-[11px] text-outline font-metric-numeral">
+              <span>Threshold: <strong class="text-on-surface font-bold">&plusmn;2.5&sigma; Residual Limit</strong></span>
+            </div>
+          </div>
+
+          <!-- SVG Interactive Chart Canvas -->
+          <div class="relative w-full h-[320px] select-none" id="chart-viewport">
+            <svg id="timeseries-svg" class="w-full h-full overflow-visible" preserveAspectRatio="none">
+              <!-- Dynamically populated via renderTimeSeriesChart() -->
+            </svg>
+
+            <!-- Custom Floating Hover Tooltip -->
+            <div id="chart-tooltip" class="bg-slate-950 text-white rounded-xl p-3 shadow-2xl border border-slate-800 text-xs min-w-[200px]">
+              <div class="flex items-center justify-between border-b border-slate-800 pb-1.5 mb-1.5">
+                <span class="font-mono text-[10px] text-slate-400" id="tt-timestamp">14:00 MYT</span>
+                <span class="px-1.5 py-0.5 rounded text-[9px] font-bold" id="tt-badge">ANOMALY</span>
+              </div>
+              <div class="space-y-1 font-label-xs">
+                <div class="flex justify-between"><span class="text-slate-400">Actual Reading:</span><span class="font-bold text-white" id="tt-reading">145.2 kWh</span></div>
+                <div class="flex justify-between"><span class="text-slate-400">Forecast Baseline:</span><span class="text-slate-300" id="tt-baseline">98.5 kWh</span></div>
+                <div class="flex justify-between border-t border-slate-800/80 pt-1"><span class="text-rose-400 font-bold">Deviation:</span><span class="font-bold text-rose-400" id="tt-deviation">+46.7 kWh (+47.4%)</span></div>
+              </div>
+              <div class="mt-2 pt-1 border-t border-slate-800 text-[10px] text-slate-400 leading-tight" id="tt-diagnosis">Spurious afternoon peak surge detected.</div>
+            </div>
+          </div>
+
+          <!-- Bottom Summary Metrics Strip -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-4 mt-2 border-t border-slate-100 font-label-xs text-xs">
+            <div class="bg-surface-container-low p-2.5 rounded-xl border border-slate-200/50">
+              <span class="text-[10px] text-outline font-semibold uppercase">Peak Meter Demand</span>
+              <div class="font-metric-numeral text-sm font-bold text-on-surface" id="stat-peak">145.2 kWh <span class="text-[10px] text-rose-600 font-normal">(14:00)</span></div>
+            </div>
+            <div class="bg-surface-container-low p-2.5 rounded-xl border border-slate-200/50">
+              <span class="text-[10px] text-outline font-semibold uppercase">24h Mean Consumption</span>
+              <div class="font-metric-numeral text-sm font-bold text-on-surface" id="stat-mean">92.4 kWh</div>
+            </div>
+            <div class="bg-surface-container-low p-2.5 rounded-xl border border-slate-200/50">
+              <span class="text-[10px] text-outline font-semibold uppercase">Gross Cumulative Energy</span>
+              <div class="font-metric-numeral text-sm font-bold text-primary" id="stat-total">2,217.6 kWh</div>
+            </div>
+            <div class="bg-surface-container-low p-2.5 rounded-xl border border-slate-200/50">
+              <span class="text-[10px] text-outline font-semibold uppercase">Anomaly Density</span>
+              <div class="font-metric-numeral text-sm font-bold text-rose-600" id="stat-density">4.1% <span class="text-[10px] text-outline font-normal">(3 / 72 samples)</span></div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ====================================================================
+             BOTTOM SECTION: TWO COLUMNS (ANOMALY TRIAGE LOG + REAL-TIME DAEMON TERMINAL)
+             ==================================================================== -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+          <!-- LEFT COLUMN: ANOMALY TRIAGE LOG TABLE (7 Cols) -->
+          <div class="lg:col-span-7 bg-surface-container-lowest rounded-2xl p-5 border border-slate-200/70 shadow-sm flex flex-col justify-between">
+            <div>
+              <!-- Header -->
+              <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-3">
+                <div class="flex items-center gap-2">
+                  <div class="w-7 h-7 rounded-lg bg-rose-100 text-rose-700 flex items-center justify-center font-bold">
+                    <span class="material-symbols-outlined text-[18px]">rule</span>
+                  </div>
+                  <div>
+                    <h3 class="font-headline-sm text-sm font-bold text-on-surface">Anomaly Triage Log</h3>
+                    <span class="font-label-xs text-[10px] text-outline">Actionable unusual pattern incidents</span>
+                  </div>
+                </div>
+                <!-- Filter Tabs -->
+                <div class="flex items-center gap-1 font-label-xs text-[11px]">
+                  <button onclick="filterTriageTable('ALL')" id="tab-all" class="px-2 py-0.5 rounded-md bg-slate-100 text-on-surface font-bold">All (3)</button>
+                  <button onclick="filterTriageTable('CRITICAL')" id="tab-crit" class="px-2 py-0.5 rounded-md hover:bg-slate-100 text-rose-700 font-semibold">Critical (1)</button>
+                  <button onclick="filterTriageTable('WARNING')" id="tab-warn" class="px-2 py-0.5 rounded-md hover:bg-slate-100 text-amber-700 font-semibold">Warning (2)</button>
+                </div>
+              </div>
+
+              <!-- Table -->
+              <div class="overflow-x-auto">
+                <table class="w-full text-left font-body-sm text-xs">
+                  <thead>
+                    <tr class="text-[10.5px] font-label-xs uppercase text-outline border-b border-slate-100">
+                      <th class="py-2 px-2 font-bold">Timestamp</th>
+                      <th class="py-2 px-2 font-bold">Asset Meter</th>
+                      <th class="py-2 px-2 font-bold">Unusual Pattern</th>
+                      <th class="py-2 px-2 font-bold">Deviation</th>
+                      <th class="py-2 px-2 font-bold">Severity</th>
+                      <th class="py-2 px-2 font-bold text-right">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-slate-100 font-body-sm" id="triage-table-body">
+                    <!-- Populated dynamically via JS -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="pt-3 mt-3 border-t border-slate-100 flex items-center justify-between text-[11px] font-label-xs text-outline">
+              <span>Automated triage audit trail preserved</span>
+              <button onclick="showToast('Opened incident ticketing integration (Jira/ServiceNow)');" class="text-primary font-bold hover:underline flex items-center gap-0.5">
+                <span>Configure Webhooks</span>
+                <span class="material-symbols-outlined text-[13px]">arrow_forward</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- RIGHT COLUMN: DARK-THEMED TERMINAL WINDOW (5 Cols) -->
+          <div class="lg:col-span-5 bg-slate-950 rounded-2xl text-slate-200 border border-slate-800 shadow-md flex flex-col overflow-hidden font-mono text-xs">
+            
+            <!-- Terminal Header -->
+            <div class="px-4 py-3 bg-slate-900 border-b border-slate-800 flex items-center justify-between select-none">
+              <div class="flex items-center gap-2">
+                <div class="flex items-center gap-1.5">
+                  <span class="w-3 h-3 rounded-full bg-rose-500/80 inline-block"></span>
+                  <span class="w-3 h-3 rounded-full bg-amber-500/80 inline-block"></span>
+                  <span class="w-3 h-3 rounded-full bg-emerald-500/80 inline-block"></span>
+                </div>
+                <span class="text-[11px] font-bold text-slate-300 ml-2">daemon@energyos: ~/anomaly_triage --stream</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="text-[9.5px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center gap-1 font-bold">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> LIVE
+                </span>
+                <button onclick="clearTerminal()" class="text-slate-400 hover:text-white transition-colors" title="Clear Console">
+                  <span class="material-symbols-outlined text-[16px]">mop</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Terminal Output Stream -->
+            <div class="p-4 space-y-1.5 h-[270px] overflow-y-auto terminal-scroll text-[11px] leading-relaxed select-text" id="terminal-stream">
+              <div class="text-slate-500">[14:40:02.102] INITIALIZING ANOMALY TRIAGE DAEMON v2.8 (IsolationForest + ProphetResidualEngine)</div>
+              <div class="text-slate-500">[14:40:02.148] Kafka consumer connected: topic='energyos.scada.readings.v1' (broker: 10.0.12.44:9092)</div>
+              <div class="text-emerald-400">[14:41:00.000] [SCAN_CYCLE] Processed 48 asset meters. Threshold set to &plusmn;2.50&sigma; (Confidence: 98.2%)</div>
+              <div class="text-slate-400">[14:42:15.312] [INFO] Baseline model sync: MAE=1.84 kWh, RMSE=2.41 kWh across Bandar Eco Sanctuary.</div>
+              <div class="text-amber-400">[14:43:00.180] [WARN] RETAIL-HVAC-02 residual drift: +34.2% (118.0 kWh vs expected 87.9 kWh). Severity=WARNING</div>
+              <div class="text-slate-400">[14:44:00.021] [INFO] TECH-DATA-01 baseline anomaly flagged for night baseline creep: +28.6%.</div>
+              <div class="text-rose-400 font-bold">[14:45:00.540] [CRITICAL ANOMALY] MALL-MAIN-01 spiked to 145.2 kWh (+47.4% deviation). Triggering telemetry triage alert.</div>
+            </div>
+
+            <!-- Terminal Footer Controls -->
+            <div class="p-2.5 bg-slate-900 border-t border-slate-800 flex items-center justify-between text-[10.5px]">
+              <div class="flex items-center gap-2">
+                <button onclick="toggleTerminalStream()" id="btn-pause-stream" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold transition-colors">Pause Stream</button>
+                <button onclick="copyTerminalLogs()" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors">Copy Logs</button>
+              </div>
+              <span class="text-slate-500">Z-Score &gt; 2.5 &bull; Isolation Score &lt; -0.32</span>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+    </main>
+
+  </div>
+
+  <!-- TOAST NOTIFICATION -->
+  <div id="toast-notification" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-slate-900 text-white px-4 py-2.5 rounded-full shadow-2xl flex items-center gap-2 font-body-sm text-xs font-semibold opacity-0 pointer-events-none translate-y-8">
+    <span class="material-symbols-outlined text-[18px] text-emerald-400">check_circle</span>
+    <span id="toast-text">Action executed successfully</span>
+  </div>
+
+  <!-- ========================================================================
+       JAVASCRIPT LOGIC & TIME-SERIES SVG CHART CONTROLLER
+       ======================================================================== -->
+  <script>
+    // Asset series datasets with hourly readings (kWh), baseline forecasts, and anomalies
+    const ASSET_DATA = {
+      'MALL-MAIN-01': {
+        name: 'MALL-MAIN-01 (Commercial Mall Main Feeder)',
+        meterId: 'BDG2-MTR-01',
+        peak: '145.2 kWh',
+        peakTime: '14:00',
+        mean: '92.4 kWh',
+        total: '2,217.6 kWh',
+        density: '4.1% (3/72)',
+        hours: [
+          { time: '00:00', actual: 48.0, baseline: 46.5, isAnomaly: false },
+          { time: '01:00', actual: 44.5, baseline: 45.0, isAnomaly: false },
+          { time: '02:00', actual: 43.0, baseline: 44.0, isAnomaly: false },
+          { time: '03:00', actual: 42.5, baseline: 43.0, isAnomaly: false },
+          { time: '04:00', actual: 45.0, baseline: 44.5, isAnomaly: false },
+          { time: '05:00', actual: 52.0, baseline: 50.0, isAnomaly: false },
+          { time: '06:00', actual: 68.0, baseline: 65.0, isAnomaly: false },
+          { time: '07:00', actual: 82.5, baseline: 80.0, isAnomaly: false },
+          { time: '08:00', actual: 98.0, baseline: 95.0, isAnomaly: false },
+          { time: '09:00', actual: 112.0, baseline: 108.0, isAnomaly: false },
+          { time: '10:00', actual: 125.0, baseline: 120.0, isAnomaly: false },
+          { time: '11:00', actual: 130.5, baseline: 126.0, isAnomaly: false },
+          { time: '12:00', actual: 138.0, baseline: 132.0, isAnomaly: false },
+          { time: '13:00', actual: 134.0, baseline: 130.0, isAnomaly: false },
+          { time: '14:00', actual: 145.2, baseline: 98.5, isAnomaly: true, deviation: '+47.4%', severity: 'CRITICAL', note: 'Spurious afternoon peak surge' },
+          { time: '15:00', actual: 122.0, baseline: 118.0, isAnomaly: false },
+          { time: '16:00', actual: 118.5, baseline: 115.0, isAnomaly: false },
+          { time: '17:00', actual: 112.0, baseline: 110.0, isAnomaly: false },
+          { time: '18:00', actual: 105.0, baseline: 102.0, isAnomaly: false },
+          { time: '19:00', actual: 95.0, baseline: 92.0, isAnomaly: false },
+          { time: '20:00', actual: 88.0, baseline: 85.0, isAnomaly: false },
+          { time: '21:00', actual: 76.0, baseline: 74.0, isAnomaly: false },
+          { time: '22:00', actual: 64.0, baseline: 62.0, isAnomaly: false },
+          { time: '23:00', actual: 52.0, baseline: 50.0, isAnomaly: false }
+        ]
+      },
+      'RETAIL-HVAC-02': {
+        name: 'RETAIL-HVAC-02 (Central Chiller Trunk)',
+        meterId: 'BDG2-MTR-02',
+        peak: '118.0 kWh',
+        peakTime: '11:00',
+        mean: '78.6 kWh',
+        total: '1,886.4 kWh',
+        density: '2.8% (2/72)',
+        hours: [
+          { time: '00:00', actual: 35.0, baseline: 34.0, isAnomaly: false },
+          { time: '01:00', actual: 32.0, baseline: 32.0, isAnomaly: false },
+          { time: '02:00', actual: 30.0, baseline: 30.0, isAnomaly: false },
+          { time: '03:00', actual: 28.0, baseline: 29.0, isAnomaly: false },
+          { time: '04:00', actual: 30.0, baseline: 30.0, isAnomaly: false },
+          { time: '05:00', actual: 42.0, baseline: 40.0, isAnomaly: false },
+          { time: '06:00', actual: 58.0, baseline: 55.0, isAnomaly: false },
+          { time: '07:00', actual: 75.0, baseline: 72.0, isAnomaly: false },
+          { time: '08:00', actual: 88.0, baseline: 84.0, isAnomaly: false },
+          { time: '09:00', actual: 96.0, baseline: 92.0, isAnomaly: false },
+          { time: '10:00', actual: 104.0, baseline: 98.0, isAnomaly: false },
+          { time: '11:00', actual: 118.0, baseline: 87.9, isAnomaly: true, deviation: '+34.2%', severity: 'WARNING', note: 'Thermal compressor bypass runaway' },
+          { time: '12:00', actual: 108.0, baseline: 102.0, isAnomaly: false },
+          { time: '13:00', actual: 102.0, baseline: 98.0, isAnomaly: false },
+          { time: '14:00', actual: 98.0, baseline: 95.0, isAnomaly: false },
+          { time: '15:00', actual: 95.0, baseline: 92.0, isAnomaly: false },
+          { time: '16:00', actual: 90.0, baseline: 88.0, isAnomaly: false },
+          { time: '17:00', actual: 84.0, baseline: 82.0, isAnomaly: false },
+          { time: '18:00', actual: 78.0, baseline: 75.0, isAnomaly: false },
+          { time: '19:00', actual: 70.0, baseline: 68.0, isAnomaly: false },
+          { time: '20:00', actual: 62.0, baseline: 60.0, isAnomaly: false },
+          { time: '21:00', actual: 54.0, baseline: 52.0, isAnomaly: false },
+          { time: '22:00', actual: 46.0, baseline: 44.0, isAnomaly: false },
+          { time: '23:00', actual: 38.0, baseline: 36.0, isAnomaly: false }
+        ]
+      },
+      'TECH-DATA-01': {
+        name: 'TECH-DATA-01 (Innovation Server Node)',
+        meterId: 'BDG2-MTR-03',
+        peak: '68.4 kWh',
+        peakTime: '03:00',
+        mean: '54.2 kWh',
+        total: '1,300.8 kWh',
+        density: '1.4% (1/72)',
+        hours: [
+          { time: '00:00', actual: 52.0, baseline: 50.0, isAnomaly: false },
+          { time: '01:00', actual: 51.0, baseline: 49.0, isAnomaly: false },
+          { time: '02:00', actual: 50.0, baseline: 48.0, isAnomaly: false },
+          { time: '03:00', actual: 68.4, baseline: 53.2, isAnomaly: true, deviation: '+28.6%', severity: 'WARNING', note: 'Night batch training compute creep' },
+          { time: '04:00', actual: 52.0, baseline: 50.0, isAnomaly: false },
+          { time: '05:00', actual: 53.0, baseline: 51.0, isAnomaly: false },
+          { time: '06:00', actual: 54.0, baseline: 52.0, isAnomaly: false },
+          { time: '07:00', actual: 55.0, baseline: 53.0, isAnomaly: false },
+          { time: '08:00', actual: 56.0, baseline: 54.0, isAnomaly: false },
+          { time: '09:00', actual: 57.0, baseline: 55.0, isAnomaly: false },
+          { time: '10:00', actual: 58.0, baseline: 56.0, isAnomaly: false },
+          { time: '11:00', actual: 58.5, baseline: 56.5, isAnomaly: false },
+          { time: '12:00', actual: 59.0, baseline: 57.0, isAnomaly: false },
+          { time: '13:00', actual: 58.0, baseline: 56.0, isAnomaly: false },
+          { time: '14:00', actual: 57.5, baseline: 55.5, isAnomaly: false },
+          { time: '15:00', actual: 57.0, baseline: 55.0, isAnomaly: false },
+          { time: '16:00', actual: 56.0, baseline: 54.0, isAnomaly: false },
+          { time: '17:00', actual: 55.0, baseline: 53.0, isAnomaly: false },
+          { time: '18:00', actual: 54.5, baseline: 52.5, isAnomaly: false },
+          { time: '19:00', actual: 54.0, baseline: 52.0, isAnomaly: false },
+          { time: '20:00', actual: 53.0, baseline: 51.0, isAnomaly: false },
+          { time: '21:00', actual: 52.5, baseline: 50.5, isAnomaly: false },
+          { time: '22:00', actual: 52.0, baseline: 50.0, isAnomaly: false },
+          { time: '23:00', actual: 51.5, baseline: 49.5, isAnomaly: false }
+        ]
+      },
+      'SMART-HOMES-FEED-A': {
+        name: 'SMART-HOMES-FEED-A (Residential Microgrid)',
+        meterId: 'BDG2-MTR-04',
+        peak: '88.5 kWh',
+        peakTime: '19:00',
+        mean: '48.1 kWh',
+        total: '1,154.4 kWh',
+        density: '0.0% (0/72)',
+        hours: [
+          { time: '00:00', actual: 28.0, baseline: 27.5, isAnomaly: false },
+          { time: '01:00', actual: 24.0, baseline: 24.0, isAnomaly: false },
+          { time: '02:00', actual: 22.0, baseline: 22.0, isAnomaly: false },
+          { time: '03:00', actual: 21.0, baseline: 21.0, isAnomaly: false },
+          { time: '04:00', actual: 22.0, baseline: 22.0, isAnomaly: false },
+          { time: '05:00', actual: 30.0, baseline: 29.0, isAnomaly: false },
+          { time: '06:00', actual: 48.0, baseline: 46.0, isAnomaly: false },
+          { time: '07:00', actual: 62.0, baseline: 60.0, isAnomaly: false },
+          { time: '08:00', actual: 55.0, baseline: 54.0, isAnomaly: false },
+          { time: '09:00', actual: 42.0, baseline: 41.0, isAnomaly: false },
+          { time: '10:00', actual: 38.0, baseline: 37.0, isAnomaly: false },
+          { time: '11:00', actual: 36.0, baseline: 35.0, isAnomaly: false },
+          { time: '12:00', actual: 39.0, baseline: 38.0, isAnomaly: false },
+          { time: '13:00', actual: 38.0, baseline: 37.0, isAnomaly: false },
+          { time: '14:00', actual: 40.0, baseline: 39.0, isAnomaly: false },
+          { time: '15:00', actual: 42.0, baseline: 41.0, isAnomaly: false },
+          { time: '16:00', actual: 48.0, baseline: 46.0, isAnomaly: false },
+          { time: '17:00', actual: 60.0, baseline: 58.0, isAnomaly: false },
+          { time: '18:00', actual: 78.0, baseline: 75.0, isAnomaly: false },
+          { time: '19:00', actual: 88.5, baseline: 86.0, isAnomaly: false },
+          { time: '20:00', actual: 82.0, baseline: 80.0, isAnomaly: false },
+          { time: '21:00', actual: 68.0, baseline: 66.0, isAnomaly: false },
+          { time: '22:00', actual: 50.0, baseline: 49.0, isAnomaly: false },
+          { time: '23:00', actual: 36.0, baseline: 35.0, isAnomaly: false }
+        ]
+      }
+    };
+
+    // Triage Incidents Database
+    let triageIncidents = [
+      {
+        id: 'ANOM-402',
+        time: '14:00 MYT',
+        asset: 'MALL-MAIN-01',
+        meter: 'Meter #402',
+        pattern: 'Spurious Afternoon Spike',
+        reading: '145.2 kWh',
+        baseline: '98.5 kWh',
+        deviation: '+47.4%',
+        severity: 'CRITICAL',
+        acknowledged: false
+      },
+      {
+        id: 'ANOM-218',
+        time: '11:00 MYT',
+        asset: 'RETAIL-HVAC-02',
+        meter: 'Meter #218',
+        pattern: 'Thermal Compressor Runaway',
+        reading: '118.0 kWh',
+        baseline: '87.9 kWh',
+        deviation: '+34.2%',
+        severity: 'WARNING',
+        acknowledged: false
+      },
+      {
+        id: 'ANOM-105',
+        time: '03:00 MYT',
+        asset: 'TECH-DATA-01',
+        meter: 'Meter #105',
+        pattern: 'Night Base Load Drift',
+        reading: '68.4 kWh',
+        baseline: '53.2 kWh',
+        deviation: '+28.6%',
+        severity: 'WARNING',
+        acknowledged: false
+      }
+    ];
+
+    let currentAssetKey = 'MALL-MAIN-01';
+    let currentFilter = 'ALL';
+    let isTerminalStreaming = true;
+    let streamTimer = null;
+
+    // ------------------------------------------------------------------------
+    // RENDER TIME-SERIES SVG CHART
+    // ------------------------------------------------------------------------
+    function renderTimeSeriesChart() {
+      const svg = document.getElementById('timeseries-svg');
+      const data = ASSET_DATA[currentAssetKey];
+      if (!data) return;
+
+      const series = data.hours;
+      const width = svg.clientWidth || 900;
+      const height = svg.clientHeight || 320;
+      const padLeft = 45;
+      const padRight = 25;
+      const padTop = 25;
+      const padBottom = 40;
+
+      const chartW = width - padLeft - padRight;
+      const chartH = height - padTop - padBottom;
+
+      // Find max reading to scale Y-axis
+      let maxY = 160;
+      series.forEach(d => {
+        if (d.actual > maxY) maxY = Math.ceil(d.actual / 20) * 20;
+      });
+
+      // SVG Builders
+      let svgHtml = '';
+
+      // Y-axis grid lines and labels
+      const yTicks = 4;
+      for (let i = 0; i <= yTicks; i++) {
+        const val = Math.round((maxY / yTicks) * i);
+        const yPos = padTop + chartH - (i / yTicks) * chartH;
+        svgHtml += `
+          <line x1="${padLeft}" y1="${yPos}" x2="${width - padRight}" y2="${yPos}" stroke="#e2e8f0" stroke-width="1" stroke-dasharray="3,3" />
+          <text x="${padLeft - 8}" y="${yPos + 4}" fill="#64748b" font-size="10" font-family="Space Grotesk" text-anchor="end">${val}</text>
+        `;
+      }
+
+      // X-axis timestamps (every 3 hours)
+      series.forEach((d, idx) => {
+        const xPos = padLeft + (idx / (series.length - 1)) * chartW;
+        if (idx % 3 === 0 || idx === series.length - 1) {
+          svgHtml += `
+            <text x="${xPos}" y="${height - padBottom + 20}" fill="#64748b" font-size="10" font-family="Space Grotesk" text-anchor="middle">${d.time}</text>
+            <line x1="${xPos}" y1="${height - padBottom}" x2="${xPos}" y2="${height - padBottom + 4}" stroke="#cbd5e1" stroke-width="1" />
+          `;
+        }
+      });
+
+      // Shaded Confidence Corridor (nominal baseline +/- 2.5 sigma)
+      let upperPath = `M ${padLeft} ${padTop + chartH - ((series[0].baseline * 1.15) / maxY) * chartH}`;
+      let lowerPath = '';
+      series.forEach((d, idx) => {
+        const xPos = padLeft + (idx / (series.length - 1)) * chartW;
+        const yUpper = padTop + chartH - ((d.baseline * 1.18) / maxY) * chartH;
+        upperPath += ` L ${xPos} ${yUpper}`;
+      });
+      for (let idx = series.length - 1; idx >= 0; idx--) {
+        const d = series[idx];
+        const xPos = padLeft + (idx / (series.length - 1)) * chartW;
+        const yLower = padTop + chartH - ((d.baseline * 0.85) / maxY) * chartH;
+        upperPath += ` L ${xPos} ${yLower}`;
+      }
+      upperPath += ' Z';
+      svgHtml += `<path d="${upperPath}" fill="#006948" fill-opacity="0.04" />`;
+
+      // Baseline Forecast Path (Dashed gray/blue line)
+      let baselinePath = `M ${padLeft} ${padTop + chartH - (series[0].baseline / maxY) * chartH}`;
+      series.forEach((d, idx) => {
+        const xPos = padLeft + (idx / (series.length - 1)) * chartW;
+        const yPos = padTop + chartH - (d.baseline / maxY) * chartH;
+        baselinePath += ` L ${xPos} ${yPos}`;
+      });
+      svgHtml += `<path d="${baselinePath}" fill="none" stroke="#94a3b8" stroke-width="1.8" stroke-dasharray="5,4" />`;
+
+      // Actual Electricity Readings Path (Solid Vibrant Primary Green)
+      let actualPath = `M ${padLeft} ${padTop + chartH - (series[0].actual / maxY) * chartH}`;
+      series.forEach((d, idx) => {
+        const xPos = padLeft + (idx / (series.length - 1)) * chartW;
+        const yPos = padTop + chartH - (d.actual / maxY) * chartH;
+        actualPath += ` L ${xPos} ${yPos}`;
+      });
+      svgHtml += `<path d="${actualPath}" fill="none" stroke="#006948" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />`;
+
+      // Scatter Point Markers
+      series.forEach((d, idx) => {
+        const xPos = padLeft + (idx / (series.length - 1)) * chartW;
+        const yPos = padTop + chartH - (d.actual / maxY) * chartH;
+
+        if (d.isAnomaly) {
+          // HIGH-CONTRAST RED SCATTER POINT WITH PULSING RING
+          svgHtml += `
+            <g class="cursor-pointer" onmouseenter="showTooltip(${idx}, ${xPos}, ${yPos})" onmouseleave="hideTooltip()">
+              <circle cx="${xPos}" cy="${yPos}" r="12" fill="#ef4444" fill-opacity="0.25" class="animate-ping" />
+              <circle cx="${xPos}" cy="${yPos}" r="6.5" fill="#ef4444" stroke="#ffffff" stroke-width="2.5" shadow="0 2px 8px rgba(239,68,68,0.8)" />
+            </g>
+          `;
+        } else {
+          // Standard hover target point
+          svgHtml += `
+            <circle cx="${xPos}" cy="${yPos}" r="3.5" fill="#006948" stroke="#ffffff" stroke-width="1.5" class="cursor-pointer hover:r-5 transition-all opacity-70 hover:opacity-100" onmouseenter="showTooltip(${idx}, ${xPos}, ${yPos})" onmouseleave="hideTooltip()" />
+          `;
+        }
+      });
+
+      svg.innerHTML = svgHtml;
+
+      // Update stat cards
+      document.getElementById('stat-peak').innerHTML = `${data.peak} <span class="text-[10px] text-rose-600 font-normal">(${data.peakTime})</span>`;
+      document.getElementById('stat-mean').textContent = data.mean;
+      document.getElementById('stat-total').textContent = data.total;
+      document.getElementById('stat-density').textContent = data.density;
+    }
+
+    // ------------------------------------------------------------------------
+    // TOOLTIP HOVER INTERACTION
+    // ------------------------------------------------------------------------
+    function showTooltip(idx, x, y) {
+      const data = ASSET_DATA[currentAssetKey].hours[idx];
+      const tt = document.getElementById('chart-tooltip');
+      const badge = document.getElementById('tt-badge');
+
+      document.getElementById('tt-timestamp').textContent = `${data.time} MYT (Today)`;
+      document.getElementById('tt-reading').textContent = `${data.actual.toFixed(1)} kWh`;
+      document.getElementById('tt-baseline').textContent = `${data.baseline.toFixed(1)} kWh`;
+
+      const diff = data.actual - data.baseline;
+      const pct = ((diff / data.baseline) * 100).toFixed(1);
+      const sign = diff >= 0 ? '+' : '';
+
+      document.getElementById('tt-deviation').textContent = `${sign}${diff.toFixed(1)} kWh (${sign}${pct}%)`;
+
+      if (data.isAnomaly) {
+        badge.textContent = `${data.severity || 'ANOMALY'}`;
+        badge.className = "px-1.5 py-0.5 rounded text-[9px] font-bold bg-rose-500 text-white";
+        document.getElementById('tt-diagnosis').textContent = data.note || 'Unusual consumption spike detected.';
+      } else {
+        badge.textContent = "NOMINAL";
+        badge.className = "px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-500/20 text-emerald-300";
+        document.getElementById('tt-diagnosis').textContent = 'Readings within expected ±2.5σ bounds.';
+      }
+
+      tt.style.left = `${x}px`;
+      tt.style.top = `${y}px`;
+      tt.style.opacity = '1';
+    }
+
+    function hideTooltip() {
+      const tt = document.getElementById('chart-tooltip');
+      tt.style.opacity = '0';
+    }
+
+    // ------------------------------------------------------------------------
+    // ASSET & TIME RANGE SWITCHING
+    // ------------------------------------------------------------------------
+    function switchAssetSeries(assetKey) {
+      currentAssetKey = assetKey;
+      renderTimeSeriesChart();
+      showToast(`Loaded ${ASSET_DATA[assetKey].name}`);
+    }
+
+    function setTimeRange(range) {
+      document.querySelectorAll('#btn-range-24h, #btn-range-7d, #btn-range-30d').forEach(b => {
+        b.className = "px-2.5 py-1 rounded-lg text-outline hover:text-on-surface transition-colors";
+      });
+      const activeBtn = document.getElementById(`btn-range-${range}`);
+      if (activeBtn) {
+        activeBtn.className = "px-2.5 py-1 rounded-lg bg-surface-container-lowest text-primary font-bold shadow-xs";
+      }
+      showToast(`Adjusted historical window to ${range.toUpperCase()}`);
+    }
+
+    // ------------------------------------------------------------------------
+    // ANOMALY TRIAGE LOG TABLE
+    // ------------------------------------------------------------------------
+    function renderTriageTable() {
+      const tbody = document.getElementById('triage-table-body');
+      let filtered = triageIncidents;
+      if (currentFilter === 'CRITICAL') filtered = triageIncidents.filter(i => i.severity === 'CRITICAL');
+      if (currentFilter === 'WARNING') filtered = triageIncidents.filter(i => i.severity === 'WARNING');
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="py-6 text-center text-outline">No active anomalies in this category.</td></tr>`;
+        return;
+      }
+
+      let html = '';
+      filtered.forEach(item => {
+        const isCrit = item.severity === 'CRITICAL';
+        html += `
+          <tr class="hover:bg-surface-container-low/60 transition-colors">
+            <td class="py-2.5 px-2 font-mono text-[11px] text-outline font-semibold">${item.time}</td>
+            <td class="py-2.5 px-2 font-bold text-on-surface">
+              <div>${item.asset}</div>
+              <div class="font-mono text-[10px] text-outline font-normal">${item.meter}</div>
+            </td>
+            <td class="py-2.5 px-2 font-medium text-on-surface">${item.pattern}</td>
+            <td class="py-2.5 px-2 font-mono font-bold ${isCrit ? 'text-rose-600' : 'text-amber-700'}">${item.deviation}</td>
+            <td class="py-2.5 px-2">
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${isCrit ? 'bg-rose-100 text-rose-800 border border-rose-200' : 'bg-amber-100 text-amber-800 border border-amber-200'}">
+                ${item.severity}
+              </span>
+            </td>
+            <td class="py-2.5 px-2 text-right">
+              ${item.acknowledged ? 
+                `<span class="inline-flex items-center gap-1 text-emerald-700 font-bold text-[11px]"><span class="material-symbols-outlined text-[14px]">check_circle</span> Acknowledged</span>` :
+                `<button onclick="acknowledgeAnomaly('${item.id}')" class="px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-primary border border-emerald-300 font-bold text-[11px] transition-all shadow-xs">Acknowledge</button>`
+              }
+            </td>
+          </tr>
+        `;
+      });
+
+      tbody.innerHTML = html;
+    }
+
+    function filterTriageTable(filterKey) {
+      currentFilter = filterKey;
+      document.querySelectorAll('#tab-all, #tab-crit, #tab-warn').forEach(btn => {
+        btn.classList.remove('bg-slate-100', 'text-on-surface', 'font-bold');
+        btn.classList.add('text-outline', 'font-semibold');
+      });
+      if (filterKey === 'ALL') document.getElementById('tab-all').className = "px-2 py-0.5 rounded-md bg-slate-100 text-on-surface font-bold";
+      if (filterKey === 'CRITICAL') document.getElementById('tab-crit').className = "px-2 py-0.5 rounded-md bg-rose-100 text-rose-800 font-bold";
+      if (filterKey === 'WARNING') document.getElementById('tab-warn').className = "px-2 py-0.5 rounded-md bg-amber-100 text-amber-800 font-bold";
+      renderTriageTable();
+    }
+
+    function acknowledgeAnomaly(anomalyId) {
+      const item = triageIncidents.find(i => i.id === anomalyId);
+      if (item) {
+        item.acknowledged = true;
+        renderTriageTable();
+
+        // Update active count
+        const unack = triageIncidents.filter(i => !i.acknowledged).length;
+        document.getElementById('kpi-anomalies-val').textContent = unack;
+        document.getElementById('sidebar-badge-count').textContent = unack;
+        document.getElementById('island-alert-count').textContent = `${unack} ANOMALIES`;
+
+        // Append to daemon terminal
+        logToTerminal(`[AUDIT] Incident ${anomalyId} acknowledged by user Tuan Iskandar. Triage ticket logged.`, 'INFO');
+
+        showToast(`Incident ${anomalyId} acknowledged &bull; Ticket dispatch updated`);
+      }
+    }
+
+    // ------------------------------------------------------------------------
+    // REAL-TIME DAEMON TERMINAL ENGINE
+    // ------------------------------------------------------------------------
+    function logToTerminal(msg, level) {
+      const term = document.getElementById('terminal-stream');
+      const timeStr = new Date().toTimeString().split(' ')[0] + '.' + Math.floor(Math.random() * 900 + 100);
+      const div = document.createElement('div');
+
+      if (level === 'CRITICAL') div.className = "text-rose-400 font-bold";
+      else if (level === 'WARN') div.className = "text-amber-400";
+      else if (level === 'INFO') div.className = "text-emerald-400";
+      else div.className = "text-slate-400";
+
+      div.textContent = `[${timeStr}] [${level || 'INFO'}] ${msg}`;
+      term.appendChild(div);
+      term.scrollTop = term.scrollHeight;
+    }
+
+    function toggleTerminalStream() {
+      isTerminalStreaming = !isTerminalStreaming;
+      const btn = document.getElementById('btn-pause-stream');
+      if (isTerminalStreaming) {
+        btn.textContent = "Pause Stream";
+        btn.classList.remove('bg-emerald-800');
+        showToast("Daemon stream resumed");
+      } else {
+        btn.textContent = "Resume Stream";
+        btn.classList.add('bg-emerald-800');
+        showToast("Daemon stream paused");
+      }
+    }
+
+    function clearTerminal() {
+      document.getElementById('terminal-stream').innerHTML = '<div class="text-slate-500">Console cleared. Streaming active.</div>';
+    }
+
+    function copyTerminalLogs() {
+      const text = document.getElementById('terminal-stream').innerText;
+      navigator.clipboard.writeText(text);
+      showToast("Terminal logs copied to clipboard");
+    }
+
+    function triggerManualScan() {
+      showToast("Executing live SCADA anomaly triage scan across 48 meters...");
+      logToTerminal("Manual scan initiated via operator dashboard...", "INFO");
+      setTimeout(() => {
+        logToTerminal("IsolationForest inference complete: 48 meters evaluated, 0 new anomalies detected.", "INFO");
+      }, 700);
+    }
+
+    // Periodic simulation of live daemon logs
+    function startDaemonLogSimulation() {
+      const mockEvents = [
+        { msg: "SCADA telemetry sample heartbeat: 48/48 meters online. Packet loss=0.00%.", level: "INFO" },
+        { msg: "Substation 33kV Phase Balance check: R=242V, S=240V, T=241V (Nominal).", level: "INFO" },
+        { msg: "Evaluating Prophet residual delta for SMART-HOMES-FEED-A: residual within 1.2%.", level: "INFO" },
+        { msg: "Peak tariff window active. AI dispatch monitoring HVAC compressor ramp rates.", level: "INFO" }
+      ];
+      let idx = 0;
+      streamTimer = setInterval(() => {
+        if (!isTerminalStreaming) return;
+        const ev = mockEvents[idx % mockEvents.length];
+        idx++;
+        logToTerminal(ev.msg, ev.level);
+      }, 7500);
+    }
+
+    // ------------------------------------------------------------------------
+    // DYNAMIC ISLAND CONTROLLER
+    // ------------------------------------------------------------------------
+    function expandAiIsland() {
+      document.getElementById('island-collapsed').classList.add('hidden');
+      document.getElementById('island-expanded').classList.remove('hidden');
+    }
+
+    function collapseAiIsland() {
+      document.getElementById('island-expanded').classList.add('hidden');
+      document.getElementById('island-collapsed').classList.remove('hidden');
+    }
+
+    function showToast(text) {
+      const toast = document.getElementById('toast-notification');
+      document.getElementById('toast-text').innerHTML = text;
+      toast.classList.add('show');
+      setTimeout(() => { toast.classList.remove('show'); }, 2600);
+    }
+
+    // ------------------------------------------------------------------------
+    // INITIALIZATION
+    // ------------------------------------------------------------------------
+    document.addEventListener('DOMContentLoaded', () => {
+      renderTimeSeriesChart();
+      renderTriageTable();
+      startDaemonLogSimulation();
+
+      window.addEventListener('resize', () => {
+        renderTimeSeriesChart();
+      });
+    });
+  </script>
+</body>
+</html>

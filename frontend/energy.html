@@ -1,0 +1,1253 @@
+<!DOCTYPE html><html lang="en" style="min-height: 100%; position: relative;" class="stitch-anim-fade-in"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Energy Arbitrage &amp; Microgrid Financials - EnergyOS</title>
+<!-- Tailwind CSS CDN -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Google Fonts: Manrope -->
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet"><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<!-- Lucide Icons -->
+<script src="https://unpkg.com/lucide@latest"></script>
+<script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Manrope', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            emerald: {
+              50: '#ecfdf5',
+              100: '#d1fae5',
+              200: '#a7f3d0',
+              300: '#6ee7b7',
+              400: '#34d399',
+              500: '#10b981',
+              600: '#059669',
+              700: '#047857',
+              800: '#065f46',
+              900: '#064e3b',
+              950: '#022c22',
+            }
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    body {
+      font-family: 'Manrope', sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    /* Custom tooltip on interactive nodes */
+    .group:hover .tooltip-target {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+    /* Custom subtle scrollbar for terminal */
+    .terminal-scrollbar::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .terminal-scrollbar::-webkit-scrollbar-track {
+      background: #090d16;
+    }
+    .terminal-scrollbar::-webkit-scrollbar-thumb {
+      background: #1e293b;
+      border-radius: 9999px;
+    }
+    .terminal-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: #334155;
+    }
+  </style>
+</head><body class="bg-slate-50 text-slate-800 min-h-screen flex antialiased selection:bg-emerald-100 selection:text-emerald-900 overflow-x-hidden overflow-y-auto"><svg aria-hidden="true" class="inline-defs-container" style="position:absolute;width:0;height:0;overflow:hidden"></svg>
+<!-- ========================================================================= -->
+<!-- FLOATING MINIMALIST AI DYNAMIC ISLAND (TOP CENTER)                         -->
+<!-- ========================================================================= -->
+<div class="fixed top-3 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center pointer-events-auto" id="dynamic-island-container">
+<!-- Collapsed Pill (Minimalist Obsidian / Dark Slate finish with emerald indicator) -->
+<div class="cursor-pointer group flex items-center gap-3 px-4 py-2 bg-slate-900/95 hover:bg-slate-900 border border-slate-700/80 hover:border-slate-600 rounded-full shadow-xl shadow-slate-950/20 backdrop-blur-md transition-all duration-200 select-none" id="dynamic-island-pill" onclick="toggleIslandExpand()">
+<div class="flex items-center gap-2">
+<span class="relative flex h-2 w-2">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+</span>
+<span class="text-xs font-semibold text-slate-200 tracking-wide">AI Copilot</span>
+<span class="h-3 w-px bg-slate-700"></span>
+</div>
+<div class="flex items-center gap-2 text-xs text-slate-300 font-normal">
+<span class="text-slate-400">Grid stable. Next tariff spike in 2 hours. Pre-charging BESS.</span>
+</div>
+<div class="flex items-center gap-1.5 pl-1 text-[11px] font-mono text-emerald-400 bg-emerald-950/70 border border-emerald-800/60 px-2 py-0.5 rounded-full">
+<span class="">AUTO</span>
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="chevron-down" aria-hidden="true" class="lucide lucide-chevron-down w-3 h-3 text-slate-400 group-hover:text-white transition-colors"><path d="m6 9 6 6 6-6"></path></svg>
+</div>
+</div>
+<!-- Expanded Floating Console Modal (Solid non-transparent dark slate background) -->
+<div class="mt-2 w-[560px] bg-slate-950 border border-slate-800 rounded-2xl shadow-2xl shadow-slate-950/60 overflow-hidden transition-all duration-300 z-50 text-slate-200 hidden" id="dynamic-island-modal">
+<!-- Modal Header -->
+<div class="px-5 py-3.5 bg-slate-900/90 border-b border-slate-800 flex items-center justify-between">
+<div class="flex items-center gap-2.5">
+<div class="w-7 h-7 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="bot" aria-hidden="true" class="lucide lucide-bot w-4 h-4"><path d="M12 8V4H8"></path><rect width="16" height="12" x="4" y="8" rx="2"></rect><path d="M2 14h2"></path><path d="M20 14h2"></path><path d="M15 13v2"></path><path d="M9 13v2"></path></svg>
+</div>
+<div>
+<div class="text-xs font-bold text-white flex items-center gap-2">
+              EcoGrid Neural Arbitrage 4.2
+              <span class="text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 px-1.5 py-0.2 rounded font-mono">AUTONOMOUS</span>
+</div>
+<div class="text-[11px] text-slate-400">Confidence: 98.6% • Latency: 120ms</div>
+</div>
+</div>
+<button class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors" onclick="toggleIslandExpand()">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="x" aria-hidden="true" class="lucide lucide-x w-4 h-4"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+</button>
+</div>
+<!-- Supervisory Alert Content -->
+<div class="p-5 space-y-4 text-xs">
+<div class="p-3.5 bg-slate-900 border border-slate-800 rounded-xl space-y-2">
+<div class="flex items-center justify-between text-slate-300">
+<span class="font-semibold text-white flex items-center gap-1.5">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="zap" aria-hidden="true" class="lucide lucide-zap w-3.5 h-3.5 text-amber-400"><path d="M15.914 4a1.5 1.5 0 00-2.474-1.561l-9 9A1.5 1.5 0 005.5 14h4.002a.5.5 0 01.471.666L8.086 20a1.5 1.5 0 002.475 1.56l9-9A1.5 1.5 0 0018.5 10h-3.997a.5.5 0 01-.472-.667z"></path></svg>
+              Pre-Peak Arbitrage Strategy in Effect
+            </span>
+<span class="text-[10px] font-mono text-slate-400">Dispatch Window: 14:00 - 17:00</span>
+</div>
+<p class="text-slate-300 leading-relaxed">
+            TNB Peak Surge tariff of <strong class="text-amber-300">RM 0.58/kWh</strong> approaches in 2 hours. Substation battery storage (BESS-01 &amp; BESS-02) is currently pre-charging at off-peak rates (<strong class="text-emerald-300">RM 0.22/kWh</strong>) utilizing surplus solar feed-in to maximize evening discharge delta.
+          </p>
+<div class="flex gap-2 pt-1">
+<button class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg font-medium text-[11px] flex items-center gap-1.5 transition-colors" onclick="triggerApproveToast()">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="check" aria-hidden="true" class="lucide lucide-check w-3.5 h-3.5"><path d="M20 6 9 17l-5-5"></path></svg> Keep Autonomous Protocol
+            </button>
+<button class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg font-medium text-[11px] transition-colors" onclick="toggleIslandExpand()">
+              Manual Override
+            </button>
+</div>
+</div>
+<!-- Chat Stream snippet -->
+<div class="space-y-2 text-slate-300 pt-1">
+<div class="flex gap-2 items-start">
+<span class="text-[10px] font-mono text-emerald-400 uppercase pt-0.5">COPILOT:</span>
+<span class="text-slate-300">Predicted savings for today’s 14:00 arbitrage discharge: <strong class="text-white">RM 1,420</strong> across Commercial Mall &amp; Boulevard chillers.</span>
+</div>
+</div>
+<!-- Quick prompt chips -->
+<div class="flex flex-wrap gap-1.5 pt-1">
+<button class="px-2.5 py-1 bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 rounded-md text-[11px] text-slate-300 transition-colors">
+            Explain peak shaving logic
+          </button>
+<button class="px-2.5 py-1 bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 rounded-md text-[11px] text-slate-300 transition-colors">
+            Simulate 1-hour cloud cover
+          </button>
+<button class="px-2.5 py-1 bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 rounded-md text-[11px] text-slate-300 transition-colors">
+            Show TNB Tariff Schedule
+          </button>
+</div>
+<!-- Command Input -->
+<div class="pt-2">
+<div class="flex items-center gap-2 bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 focus-within:border-emerald-500">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="terminal" aria-hidden="true" class="lucide lucide-terminal w-4 h-4 text-slate-500"><path d="M12 19h8"></path><path d="m4 17 6-6-6-6"></path></svg>
+<input class="bg-transparent border-none text-xs text-white placeholder-slate-500 focus:outline-none w-full" placeholder="Ask township copilot or adjust dispatch strategy..." type="text">
+<button class="text-slate-400 hover:text-emerald-400 p-1">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="mic" aria-hidden="true" class="lucide lucide-mic w-4 h-4"><path d="M12 19v3"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><rect x="9" y="2" width="6" height="13" rx="3"></rect></svg>
+</button>
+<button class="bg-emerald-600 hover:bg-emerald-500 text-white p-1 rounded-lg">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="arrow-right" aria-hidden="true" class="lucide lucide-arrow-right w-3.5 h-3.5"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- ========================================================================= -->
+<!-- LEFT SIDEBAR: FIXED NAVIGATION                                             -->
+<!-- ========================================================================= -->
+<aside class="w-64 bg-white border-r border-slate-200/80 flex flex-col fixed inset-y-0 left-0 z-40 select-none shadow-xs transition-all duration-300" id="main-sidebar" style="top: 0px; left: 0px; height: 100vh; overflow-y: auto; z-index: 40; position: fixed !important;">
+<!-- Brand Logo Header -->
+<div class="h-16 px-5 border-b border-slate-100 flex items-center justify-between overflow-hidden">
+<a href="homepage.html" class="flex items-center gap-3 min-w-0 group cursor-pointer" title="Back to Overview">
+<div class="w-9 h-9 rounded-xl bg-emerald-100/80 text-emerald-700 flex items-center justify-center shrink-0 shadow-2xs group-hover:bg-emerald-200 transition-colors">
+<span class="material-symbols-outlined text-[22px]">bolt</span>
+</div>
+<span class="sidebar-label text-base font-bold text-slate-800 tracking-tight whitespace-nowrap overflow-hidden transition-all duration-200">EnergyOS</span>
+</a>
+</div>
+<!-- Toggle Minimize / Maximize Button Rail -->
+<div class="px-3.5 pt-3 pb-1">
+<button class="w-full flex items-center gap-3 px-2 py-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100/80 rounded-xl transition-colors" id="sidebar-toggle-btn" onclick="toggleSidebarCollapse()" title="Toggle sidebar">
+<span class="material-symbols-outlined text-[20px] shrink-0" id="sidebar-toggle-icon">menu_open</span>
+<span class="sidebar-label text-xs font-semibold tracking-wide text-slate-500 truncate transition-all duration-200">Collapse Menu</span>
+</button>
+</div>
+<!-- Navigation Menu -->
+<nav class="flex-1 px-3 py-2 space-y-1.5 overflow-y-auto overflow-x-hidden">
+<!-- Overview (Normal unselected item) -->
+<a class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium text-sm transition-all group" href="homepage.html" title="Overview">
+<span class="material-symbols-outlined text-[20px] text-slate-500 group-hover:text-slate-800 shrink-0">grid_view</span>
+<span class="sidebar-label truncate transition-all duration-200">Overview</span>
+</a>
+<!-- Energy Arbitrage (Active Selected Item: solid dark emerald green pill) -->
+<a class="flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-[#065f46] text-white font-bold text-sm shadow-sm transition-all group" href="energy.html" title="Energy Arbitrage">
+<div class="flex items-center gap-3 min-w-0">
+<span class="material-symbols-outlined text-[20px] text-white shrink-0">swap_vert</span>
+<span class="sidebar-label truncate transition-all duration-200 text-white">Energy Arbitrage</span>
+</div>
+<span class="sidebar-label text-[10px] font-bold bg-[#97f5cc] text-[#005137] px-2 py-0.5 rounded-md font-mono shrink-0">AUTO</span>
+</a>
+<!-- Digital Twin -->
+<a class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium text-sm transition-all group" href="digital-twin.html" title="Digital Twin">
+<span class="material-symbols-outlined text-[20px] text-slate-500 group-hover:text-slate-800 shrink-0">domain</span>
+<span class="sidebar-label truncate transition-all duration-200">Digital Twin</span>
+</a>
+<!-- Asset Diagnostics -->
+<a class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium text-sm transition-all group" href="asset-diagnostics.html" title="Asset Diagnostics">
+<span class="material-symbols-outlined text-[20px] text-slate-500 group-hover:text-slate-800 shrink-0">shield</span>
+<span class="sidebar-label truncate transition-all duration-200">Asset Diagnostics</span>
+</a>
+<!-- Carbon Analytics -->
+<a class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium text-sm transition-all group" href="homepage.html#carbon-analytics" title="Carbon Analytics">
+<span class="material-symbols-outlined text-[20px] text-slate-500 group-hover:text-slate-800 shrink-0">co2</span>
+<span class="sidebar-label truncate transition-all duration-200">Carbon Analytics</span>
+</a>
+<!-- Settings -->
+<a class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium text-sm transition-all group" href="#" title="Settings">
+<span class="material-symbols-outlined text-[20px] text-slate-500 group-hover:text-slate-800 shrink-0">settings</span>
+<span class="sidebar-label truncate transition-all duration-200">Settings</span>
+</a>
+</nav>
+<!-- Bottom Cards Section (Active Township + SCADA Synchronized) -->
+<div class="p-3 border-t border-slate-100 space-y-2 overflow-hidden">
+<!-- Active Township Card -->
+<div class="p-2.5 bg-[#eff4ff] border border-[#d3e4fe] rounded-xl flex items-center justify-between gap-2.5 transition-all cursor-pointer hover:bg-blue-100/60" id="sidebar-township-card" title="Bandar Eco Sanctuary (Phase 1 &amp; 2 Online)">
+<div class="flex items-center gap-2.5 min-w-0">
+<div class="w-9 h-9 rounded-lg bg-emerald-100 text-emerald-800 flex items-center justify-center shrink-0 border border-emerald-200/60">
+<span class="material-symbols-outlined text-[20px]">corporate_fare</span>
+</div>
+<div class="sidebar-label min-w-0">
+<span class="block text-[9px] font-bold text-slate-400 tracking-wider uppercase truncate">ACTIVE TOWNSHIP</span>
+<div class="text-xs font-bold text-slate-800 truncate">Bandar Eco Sanctuary</div>
+<span class="block text-[10px] text-emerald-700 font-medium truncate">Phase 1 &amp; 2 Online</span>
+</div>
+</div>
+<span class="sidebar-label material-symbols-outlined text-slate-400 text-[18px] shrink-0">unfold_more</span>
+</div>
+<!-- SCADA Synchronized Pill -->
+<div class="px-3 py-2 bg-[#d1fae5]/80 border border-emerald-200/70 text-emerald-900 rounded-xl flex items-center justify-between gap-1 text-xs font-semibold shadow-2xs transition-all" id="sidebar-scada-pill" title="SCADA Synchronized: 100% Locked">
+<div class="flex items-center gap-2 min-w-0">
+<span class="relative flex h-2 w-2 shrink-0">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-600"></span>
+</span>
+<span class="sidebar-label text-[11px] font-bold tracking-tight truncate">SCADA Synchronized</span>
+</div>
+<span class="sidebar-label text-[10px] font-mono font-medium text-emerald-800 shrink-0 bg-white/70 px-1.5 py-0.5 rounded">100% Locked</span>
+</div>
+</div>
+</aside>
+<!-- ========================================================================= -->
+<!-- MAIN CONTENT AREA (Padded to right of sidebar)                            -->
+<!-- ========================================================================= -->
+<main class="flex-1 ml-64 p-8 pt-16 max-w-7xl mx-auto space-y-6 transition-all duration-300 min-h-screen pb-16">
+<!-- HEADER BAR: PAGE TITLE & ACTIONS -->
+<header class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2 border-b border-slate-200/60">
+<div>
+<div class="flex items-center gap-2 text-xs font-semibold text-emerald-700 uppercase tracking-wider mb-1">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="activity" aria-hidden="true" class="lucide lucide-activity w-3.5 h-3.5"><path d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2"></path></svg>
+<span class="">Microgrid Financial Optimization</span>
+</div>
+<h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">
+          Energy Arbitrage &amp; Microgrid Financials
+        </h1>
+<p class="text-xs text-slate-500 mt-0.5">
+          Real-time tariff band dispatch, predictive solar curve absorption, and autonomous BESS peak-shaving ledger.
+        </p>
+</div>
+<!-- Top Right Controls -->
+<div class="flex items-center gap-3 self-start md:self-auto">
+<div class="flex items-center gap-2 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-medium text-slate-700 shadow-xs">
+<span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+<span class="">Next Arbitrage Dispatch:</span>
+<strong class="font-mono text-slate-900">14:00 MYT (in 1h 45m)</strong>
+</div>
+<button class="flex items-center gap-2 px-3.5 py-1.5 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 hover:text-slate-900 text-xs font-semibold rounded-lg shadow-xs transition-colors" onclick="showToast('Exporting microgrid financial ledger audit...')">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="download" aria-hidden="true" class="lucide lucide-download w-3.5 h-3.5 text-slate-400"><path d="M12 15V3"></path><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><path d="m7 10 5 5 5-5"></path></svg>
+<span class="">Export Audit</span>
+</button>
+</div>
+</header>
+<!-- ========================================================================= -->
+<!-- SECTION 2: KPI BANNER (4 MINIMALIST WHITE CARDS)                          -->
+<!-- ========================================================================= -->
+<section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+<!-- CARD 1: Total Cost Avoided (Today) -->
+<div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs hover:border-slate-300 transition-all">
+<div class="flex items-center justify-between text-xs font-medium text-slate-500 mb-2">
+<span class="">Total Cost Avoided (Today)</span>
+<span class="p-1.5 rounded-lg bg-emerald-50 text-emerald-700">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="banknote" aria-hidden="true" class="lucide lucide-banknote w-4 h-4"><rect width="20" height="12" x="2" y="6" rx="2"></rect><circle cx="12" cy="12" r="2"></circle><path d="M6 12h.01M18 12h.01"></path></svg>
+</span>
+</div>
+<div class="flex items-baseline gap-2">
+<span class="text-3xl font-extrabold text-slate-900 tracking-tight">RM 3,450</span>
+</div>
+<div class="mt-2.5 flex items-center gap-1.5 text-xs font-semibold text-emerald-600">
+<span class="inline-flex items-center px-1.5 py-0.5 rounded-md bg-emerald-50 text-emerald-700 text-[11px] font-bold">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="arrow-up-right" aria-hidden="true" class="lucide lucide-arrow-up-right w-3.5 h-3.5 mr-0.5"><path d="M7 7h10v10"></path><path d="M7 17 17 7"></path></svg>
+            +12%
+          </span>
+<span class="text-slate-400 font-normal">vs yesterday benchmark</span>
+</div>
+</div>
+<!-- CARD 2: Current TNB Tariff -->
+<div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs hover:border-slate-300 transition-all">
+<div class="flex items-center justify-between text-xs font-medium text-slate-500 mb-2">
+<span class="">Current TNB Tariff</span>
+<span class="p-1.5 rounded-lg bg-blue-50 text-blue-700">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="gauge" aria-hidden="true" class="lucide lucide-gauge w-4 h-4"><path d="m12 14 4-4"></path><path d="M3.34 19a10 10 0 1 1 17.32 0"></path></svg>
+</span>
+</div>
+<div class="text-xl font-extrabold text-slate-900 tracking-tight">
+          Off-Peak <span class="text-sm font-semibold text-slate-500">(RM 0.22/kWh)</span>
+</div>
+<div class="mt-2.5 flex items-center justify-between text-xs">
+<div class="flex items-center gap-1.5 font-medium text-amber-600">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="clock" aria-hidden="true" class="lucide lucide-clock w-3.5 h-3.5"><circle cx="12" cy="12" r="10"></circle><path d="M12 6v6l4 2"></path></svg>
+<span class="">2 hours until Peak Surge</span>
+</div>
+<span class="text-[11px] font-mono text-slate-400">Surge: RM 0.58</span>
+</div>
+<!-- Progress bar toward peak tariff surge -->
+<div class="w-full bg-slate-100 h-1.5 rounded-full mt-2 overflow-hidden flex">
+<div class="bg-emerald-500 h-full w-[70%]" title="Off-peak window"></div>
+<div class="bg-amber-400 h-full w-[30%]" title="Approaching surge"></div>
+</div>
+</div>
+<!-- CARD 3: AI Forecast Accuracy -->
+<div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs hover:border-slate-300 transition-all">
+<div class="flex items-center justify-between text-xs font-medium text-slate-500 mb-2">
+<span class="">AI Forecast Accuracy</span>
+<span class="p-1.5 rounded-lg bg-emerald-50 text-emerald-700">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="sparkles" aria-hidden="true" class="lucide lucide-sparkles w-4 h-4"><path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z"></path><path d="M20 2v4"></path><path d="M22 4h-4"></path><circle cx="4" cy="20" r="2"></circle></svg>
+</span>
+</div>
+<div class="flex items-baseline gap-2">
+<span class="text-3xl font-extrabold text-slate-900 tracking-tight font-mono">95.2%</span>
+<span class="text-xs font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded">High Conf.</span>
+</div>
+<div class="mt-2.5 text-xs text-slate-500 flex items-center justify-between">
+<span class="">Weather &amp; Demand combined</span>
+<span class="text-[11px] font-mono text-slate-400">±0.08 MW margin</span>
+</div>
+</div>
+<!-- CARD 4: BESS State of Charge -->
+<div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs hover:border-slate-300 transition-all">
+<div class="flex items-center justify-between text-xs font-medium text-slate-500 mb-2">
+<span class="">BESS State of Charge</span>
+<span class="p-1.5 rounded-lg bg-emerald-50 text-emerald-700">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="battery-charging" aria-hidden="true" class="lucide lucide-battery-charging w-4 h-4"><path d="m11 7-3 5h4l-3 5"></path><path d="M14.856 6H16a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-2.935"></path><path d="M22 14v-4"></path><path d="M5.14 18H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h2.936"></path></svg>
+</span>
+</div>
+<div class="flex items-baseline justify-between">
+<span class="text-3xl font-extrabold text-slate-900 tracking-tight font-mono">85%</span>
+<span class="text-xs font-bold text-emerald-700 bg-emerald-100/70 px-2 py-0.5 rounded-md uppercase tracking-wider">
+            Ready
+          </span>
+</div>
+<!-- Flat Battery Visual Progress Indicator -->
+<div class="mt-3 flex items-center gap-2">
+<div class="flex-1 bg-slate-100 h-2.5 rounded-full overflow-hidden p-0.5 border border-slate-200">
+<div class="bg-gradient-to-r from-emerald-500 to-emerald-600 h-full rounded-full w-[85%] transition-all duration-500"></div>
+</div>
+<span class="text-[11px] font-mono text-slate-500">6.4 MWh</span>
+</div>
+</div>
+</section>
+<!-- ========================================================================= -->
+<!-- SECTION 3: MIDDLE DATA (70/30 GRID SPLIT)                                 -->
+<!-- ========================================================================= -->
+<section class="grid grid-cols-1 lg:grid-cols-10 gap-6">
+<!-- LEFT COLUMN (70% = 7 cols): 24-HOUR ENERGY ARBITRAGE FORECAST INTERACTIVE GRAPH -->
+<div class="lg:col-span-7 bg-white p-6 rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between relative overflow-hidden" id="arbitrage-chart-card">
+<!-- Chart Container Header -->
+<div class="space-y-3 pb-3 border-b border-slate-100">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+<!-- Title & Drag badge -->
+<div class="flex items-center flex-wrap gap-2.5">
+<h2 class="text-base font-extrabold text-slate-900 tracking-tight">
+          24-Hour Energy Arbitrage Forecast
+        </h2>
+<div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50/80 border border-emerald-200/70 text-emerald-700 text-[11px] font-medium select-none shadow-2xs">
+<svg class="lucide lucide-move shrink-0 text-emerald-600" fill="none" height="13" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" viewBox="0 0 24 24" width="13" xmlns="http://www.w3.org/2000/svg"><path d="m5 9-3 3 3 3"></path><path d="m9 5 3-3 3 3"></path><path d="m15 19 3 3 3-3"></path><path d="m19 9 3 3-3 3"></path><path d="M2 12h20"></path><path d="M12 2v20"></path></svg>
+<span class="">Drag or scrub anywhere along curve to inspect hourly telemetry</span>
+</div>
+</div>
+<!-- Right controls: Segmented pill toggle -->
+<div class="inline-flex items-center p-1 bg-slate-100/90 rounded-xl border border-slate-200/70 text-xs font-semibold text-slate-600 self-start sm:self-auto shadow-inner">
+<button class="px-3 py-1 bg-white text-slate-900 rounded-lg shadow-sm border border-slate-200/50 transition-all font-bold">
+          Today (Live)
+        </button>
+<button class="px-3 py-1 hover:text-slate-900 text-slate-500 rounded-lg transition-colors">
+          24H View
+        </button>
+<button class="px-3 py-1 hover:text-slate-900 text-slate-500 rounded-lg transition-colors">
+          Cost Arbitrage
+        </button>
+</div>
+</div>
+<!-- Sub-header legend row -->
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-1 text-xs">
+<div class="flex items-center gap-4 flex-wrap">
+<div class="flex items-center gap-1.5 font-medium text-slate-700">
+<span class="w-2.5 h-2.5 rounded-full bg-[#059669]"></span>
+<span class="font-semibold text-slate-800">Solar Generation Forecast (MW)</span>
+</div>
+<div class="flex items-center gap-1.5 font-medium text-slate-600">
+<span class="w-2.5 h-2.5 rounded-full bg-[#475569]"></span>
+<span class="font-medium text-slate-600">Aggregate Demand (MW)</span>
+</div>
+</div>
+<!-- Right side Tariff Schedule pills -->
+<div class="flex items-center gap-2">
+<span class="text-slate-400 text-[11px] font-medium">Tariff Schedule:</span>
+<span class="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200/60">
+          Off-Peak (RM 0.22)
+        </span>
+<span class="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-rose-50 text-rose-700 border border-rose-200/60">
+          Peak Surge (RM 0.58)
+        </span>
+</div>
+</div>
+</div>
+<!-- Interactive Chart Canvas Area -->
+<div class="relative w-full h-[260px] my-2 select-none cursor-crosshair group/chart" id="chart-scrubber-area">
+<svg class="w-full h-full overflow-visible" id="arbitrage-svg" preserveAspectRatio="none" viewBox="0 0 760 220" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<!-- Solar Yield Gradient -->
+<linearGradient id="solarAreaGradient" x1="0" x2="0" y1="0" y2="1">
+<stop offset="0%" stop-color="#059669" stop-opacity="0.28"></stop>
+<stop offset="70%" stop-color="#10b981" stop-opacity="0.10"></stop>
+<stop offset="100%" stop-color="#10b981" stop-opacity="0.00"></stop>
+</linearGradient>
+<!-- Demand subtle gradient -->
+<linearGradient id="demandAreaGradient" x1="0" x2="0" y1="0" y2="1">
+<stop offset="0%" stop-color="#334155" stop-opacity="0.08"></stop>
+<stop offset="100%" stop-color="#334155" stop-opacity="0.00"></stop>
+</linearGradient>
+</defs>
+<!-- Background Grid: subtle horizontal dashed lines -->
+<g class="stroke-slate-200/70" stroke-dasharray="3,3" stroke-width="1">
+<line x1="20" x2="740" y1="20" y2="20"></line>
+<line x1="20" x2="740" y1="65" y2="65"></line>
+<line x1="20" x2="740" y1="110" y2="110"></line>
+<line x1="20" x2="740" y1="155" y2="155"></line>
+<line x1="20" x2="740" y1="185" y2="185"></line>
+</g>
+<!-- Peak Surge band: shaded in soft translucent rose/red tint (13:30 to 17:00 approx x:430 to x:540) -->
+<rect fill="#fee2e2" fill-opacity="0.45" height="170" rx="4" stroke="#fecaca" stroke-dasharray="3,2" stroke-width="1" width="118" x="430" y="15"></rect>
+<!-- Curves -->
+<!-- Solar Area Fill -->
+<!-- Peaks at ~12:30, zero before 06:00 and after 18:30 -->
+<path d="M 20 185 L 180 185 C 230 185, 270 170, 310 120 C 350 70, 385 32, 415 32 C 450 32, 480 80, 510 135 C 535 175, 555 185, 570 185 L 740 185 Z" fill="url(#solarAreaGradient)"></path>
+<!-- Aggregate Demand Curve (Slate Navy) -->
+<path d="M 20 162 C 60 160, 110 155, 160 145 C 220 130, 260 110, 300 102 C 340 98, 380 105, 420 108 C 460 105, 500 88, 540 85 C 590 85, 630 120, 680 145 C 710 160, 730 165, 740 165" fill="none" id="demand-path" stroke="#334155" stroke-linecap="round" stroke-width="2"></path>
+<!-- Solar Generation Curve (Forest Green #047857) -->
+<path d="M 20 185 L 180 185 C 230 185, 270 170, 310 120 C 350 70, 385 32, 415 32 C 450 32, 480 80, 510 135 C 535 175, 555 185, 570 185 L 740 185" fill="none" id="solar-path" stroke="#047857" stroke-linecap="round" stroke-width="2.5"></path>
+<!-- X-Axis Labels (00:00 to 23:00) -->
+<g class="fill-slate-500 font-medium text-[9.5px]" text-anchor="middle">
+<text x="25" y="206">00:00</text>
+<text x="95" y="206">03:00</text>
+<text x="175" y="206">06:00 (Dawn)</text>
+<text x="255" y="206">09:00</text>
+<text x="340" y="206">12:00 (Solar Peak)</text>
+<!-- 14:00 (Discharge) in bold green -->
+<text fill="#047857" font-weight="700" x="450" y="206">14:00 (Discharge)</text>
+<text x="535" y="206">17:00</text>
+<text x="625" y="206">20:00 (Night Grid)</text>
+<text x="715" y="206">23:00</text>
+</g>
+<!-- Dynamic Scrubber Elements Group (Initial position ~21:59 MYT, x: 670) -->
+<g id="scrubber-svg-group" transform="translate(669.9999999999999, 0)">
+<!-- Vertical dashed scrubber tracker line -->
+<line stroke="#047857" stroke-dasharray="3,3" stroke-width="1.5" x1="0" x2="0" y1="15" y2="185"></line>
+<!-- Top Anchor Tracker circle on curve -->
+<circle cx="0" cy="18" fill="#ffffff" id="scrubber-top-dot" r="6" stroke="#047857" stroke-width="2.5"></circle>
+<circle cx="0" cy="18" fill="#047857" r="2.5"></circle>
+<!-- Dot on Demand Curve -->
+<circle cx="0" cy="128.35555555555555" fill="#334155" id="scrubber-demand-dot" r="4.5" stroke="#ffffff" stroke-width="1.5"></circle>
+</g>
+</svg>
+<!-- Bottom Time Badge Pill attached to Scrubber (e.g. "21:59") -->
+<div class="absolute -bottom-1 pointer-events-none transform -translate-x-1/2 z-20 px-2 py-0.5 rounded-full bg-[#065f46] text-white font-mono text-[10px] font-bold shadow-md" id="scrubber-time-badge" style="left: 541.992px;">21:48</div>
+<!-- Floating Tooltip Card (positioned dynamically next to the scrubber line, matching image) -->
+<div class="absolute pointer-events-none z-30 w-[240px] bg-white/95 backdrop-blur-md rounded-2xl p-3 border border-slate-200/90 shadow-xl text-slate-800 transition-all duration-75" id="scrubber-tooltip" style="left: 276.992px; top: 10px;">
+<!-- Header row: Time & Tariff badge -->
+<div class="flex items-center justify-between pb-2 border-b border-slate-100">
+<div class="flex items-center gap-1.5 font-bold text-xs text-slate-900">
+<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+<span class="" id="tooltip-time">21:48 MYT</span>
+</div>
+<span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200/60 font-mono" id="tooltip-tariff">Off-Peak (RM 0.22)</span>
+</div>
+<!-- Row 1: Solar Gen & Total Demand -->
+<div class="grid grid-cols-2 gap-2 py-2 border-b border-slate-100 text-xs">
+<div>
+<div class="flex items-center gap-1 text-[11px] text-slate-500 font-medium">
+<span class="w-1.5 h-1.5 rounded-full bg-[#047857]"></span>
+<span class="">Solar Gen</span>
+</div>
+<div class="font-bold font-mono text-slate-900 mt-0.5" id="tooltip-solar">0.00 MW</div>
+</div>
+<div>
+<div class="flex items-center gap-1 text-[11px] text-slate-500 font-medium">
+<span class="w-1.5 h-1.5 rounded-full bg-slate-600"></span>
+<span class="">Total Demand</span>
+</div>
+<div class="font-bold font-mono text-slate-900 mt-0.5" id="tooltip-demand">1.94 MW</div>
+</div>
+</div>
+<!-- Row 2: Net Grid Import -->
+<div class="flex items-center justify-between py-1.5 text-[11px] text-slate-600">
+<span class="text-slate-500">Net Grid Import:</span>
+<span class="font-semibold text-slate-800 font-mono" id="tooltip-grid">1.94 MW from TNB</span>
+</div>
+<!-- Row 3: Callout box in soft mint container with an icon -->
+<div class="p-2 my-1 bg-[#effdf5] border border-emerald-200/70 rounded-xl flex items-start gap-2 text-xs" id="tooltip-callout-box">
+<div class="w-5 h-5 rounded-md bg-emerald-100 text-emerald-800 flex items-center justify-center shrink-0 mt-0.5">
+<svg class="lucide lucide-map-pin" fill="none" height="12" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" viewBox="0 0 24 24" width="12" xmlns="http://www.w3.org/2000/svg"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+</div>
+<div class="min-w-0">
+<div class="font-bold text-emerald-950 text-[11px] leading-tight truncate" id="tooltip-strategy-title">Commercial Load Dropping</div>
+<div class="text-[10px] text-emerald-800/90 leading-tight mt-0.5 line-clamp-2" id="tooltip-strategy-desc">Mall closes. Retaining chilled inventory with minimal power draw.</div>
+</div>
+</div>
+<!-- Row 4: Interval Economy -->
+<div class="flex items-center justify-between pt-1 text-[11px]">
+<span class="text-slate-500">Interval Economy:</span>
+<span class="font-bold font-mono text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200/50" id="tooltip-economy">+RM 90 saved</span>
+</div>
+</div>
+</div>
+<!-- Four Bottom Summary Cards Under Graph -->
+<div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-3 border-t border-slate-100">
+<!-- Card 1: Total Solar Harvest -->
+<div class="p-3 bg-slate-50/70 rounded-xl border border-slate-200/80">
+<div class="text-[11px] font-medium text-slate-500">Total Solar Harvest</div>
+<div class="text-base font-extrabold text-slate-900 font-mono mt-0.5">34.2 MWh</div>
+<div class="text-[11px] font-semibold text-emerald-700 mt-0.5">94% forecast accuracy</div>
+</div>
+<!-- Card 2: Predicted Grid Import -->
+<div class="p-3 bg-slate-50/70 rounded-xl border border-slate-200/80">
+<div class="text-[11px] font-medium text-slate-500">Predicted Grid Import</div>
+<div class="text-base font-extrabold text-slate-900 font-mono mt-0.5">18.6 MWh</div>
+<div class="text-[11px] font-medium text-slate-500 mt-0.5">Restricted to off-peak</div>
+</div>
+<!-- Card 3: BESS Arbitrage Capacity -->
+<div class="p-3 bg-slate-50/70 rounded-xl border border-slate-200/80">
+<div class="text-[11px] font-medium text-slate-500">BESS Arbitrage Capacity</div>
+<div class="text-base font-extrabold text-slate-900 font-mono mt-0.5">6.4 MWh</div>
+<div class="text-[11px] font-semibold text-emerald-700 mt-0.5">Full round-trip primed</div>
+</div>
+<!-- Card 4: Net Energy Cost Delta -->
+<div class="p-3 bg-slate-50/70 rounded-xl border border-slate-200/80">
+<div class="text-[11px] font-medium text-slate-500">Net Energy Cost Delta</div>
+<div class="text-base font-extrabold text-emerald-700 font-mono mt-0.5">-32.4%</div>
+<div class="text-[11px] font-semibold text-emerald-700 mt-0.5">Optimized vs. baselines</div>
+</div>
+</div>
+</div>
+<!-- RIGHT COLUMN (30% = 3 cols): SAVINGS CONTRIBUTION BY ZONE DONUT CHART -->
+<div class="lg:col-span-3 bg-white p-6 rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between">
+<!-- Card Header -->
+<div class="pb-3 border-b border-slate-100">
+<h2 class="text-base font-extrabold text-slate-900 tracking-tight">
+            Savings Contribution by Zone
+          </h2>
+<p class="text-xs text-slate-500 mt-0.5">
+            Distributed microgrid financial yield breakdown.
+          </p>
+</div>
+<!-- Donut Chart Representation (Clean SVG with precise slice calculations & center text) -->
+<div class="relative flex items-center justify-center my-4">
+<!-- 
+            Donut geometry:
+            Radius = 75, Circumference = 2 * PI * 75 = 471.24
+            Slices:
+            1. Commercial Mall (60%) -> 471.24 * 0.60 = 282.74  (Color: Dark Green #065f46)
+            2. Sports Hub (30%)     -> 471.24 * 0.30 = 141.37  (Color: Emerald #10b981)
+            3. Smart Homes (10%)    -> 471.24 * 0.10 = 47.12   (Color: Mint #6ee7b7)
+          -->
+<svg class="w-48 h-48 transform -rotate-90" viewBox="0 0 200 200">
+<!-- Background ring track -->
+<circle cx="100" cy="100" fill="none" r="75" stroke="#f1f5f9" stroke-width="24"></circle>
+<!-- Slice 1: Commercial Mall (60%, Dark Green #065f46) -->
+<circle class="transition-all hover:opacity-90 cursor-pointer" cx="100" cy="100" fill="none" r="75" stroke="#065f46" stroke-dasharray="280 471.24" stroke-dashoffset="0" stroke-linecap="butt" stroke-width="24"></circle>
+<!-- Slice 2: Sports Hub (30%, Emerald #10b981) -->
+<circle class="transition-all hover:opacity-90 cursor-pointer" cx="100" cy="100" fill="none" r="75" stroke="#10b981" stroke-dasharray="139 471.24" stroke-dashoffset="-282.7" stroke-linecap="butt" stroke-width="24"></circle>
+<!-- Slice 3: Smart Homes (10%, Mint #6ee7b7) -->
+<circle class="transition-all hover:opacity-90 cursor-pointer" cx="100" cy="100" fill="none" r="75" stroke="#6ee7b7" stroke-dasharray="46 471.24" stroke-dashoffset="-424.1" stroke-linecap="butt" stroke-width="24"></circle>
+</svg>
+<!-- Center of the Donut: "RM 3,450 Total Saved" -->
+<div class="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none">
+<span class="text-xs text-slate-400 font-medium">Total Saved</span>
+<span class="text-xl font-extrabold text-slate-900 tracking-tight font-mono">RM 3,450</span>
+<span class="text-[10px] font-semibold text-emerald-600 bg-emerald-50 px-1.5 py-0.2 rounded mt-0.5">
+              Target Exceeded
+            </span>
+</div>
+</div>
+<!-- Below the Chart: Clean Legend as requested -->
+<div class="space-y-2.5 pt-2 border-t border-slate-100">
+<!-- Item 1: Commercial Mall -->
+<div class="flex items-center justify-between text-xs">
+<div class="flex items-center gap-2">
+<span class="w-3 h-3 rounded-full bg-[#065f46]"></span>
+<span class="font-semibold text-slate-800">Commercial Mall</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="font-mono text-slate-500">RM 2,070</span>
+<span class="font-mono font-bold text-slate-900 bg-slate-100 px-1.5 py-0.5 rounded text-[11px]">60%</span>
+</div>
+</div>
+<!-- Item 2: Sports Hub -->
+<div class="flex items-center justify-between text-xs">
+<div class="flex items-center gap-2">
+<span class="w-3 h-3 rounded-full bg-[#10b981]"></span>
+<span class="font-semibold text-slate-800">Sports Hub</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="font-mono text-slate-500">RM 1,035</span>
+<span class="font-mono font-bold text-slate-900 bg-slate-100 px-1.5 py-0.5 rounded text-[11px]">30%</span>
+</div>
+</div>
+<!-- Item 3: Smart Homes -->
+<div class="flex items-center justify-between text-xs">
+<div class="flex items-center gap-2">
+<span class="w-3 h-3 rounded-full bg-[#6ee7b7]"></span>
+<span class="font-semibold text-slate-800">Smart Homes</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="font-mono text-slate-500">RM 345</span>
+<span class="font-mono font-bold text-slate-900 bg-slate-100 px-1.5 py-0.5 rounded text-[11px]">10%</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- ========================================================================= -->
+<!-- SECTION 4: AI STRATEGY & OPERATOR CONTROLS                                -->
+<!-- ========================================================================= -->
+<section class="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-5">
+<!-- Section Title & Subtext -->
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-100">
+<div class="flex items-center gap-2.5">
+<div class="p-2 rounded-xl bg-emerald-50 text-emerald-700">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="sliders-horizontal" aria-hidden="true" class="lucide lucide-sliders-horizontal w-4 h-4"><path d="M10 5H3"></path><path d="M12 19H3"></path><path d="M14 3v4"></path><path d="M16 17v4"></path><path d="M21 12h-9"></path><path d="M21 19h-5"></path><path d="M21 5h-7"></path><path d="M8 10v4"></path><path d="M8 12H3"></path></svg>
+</div>
+<div>
+<h2 class="text-base font-extrabold text-slate-900 tracking-tight">
+              AI Arbitrage Control Parameters
+            </h2>
+<p class="text-xs text-slate-500">
+              Supervisory dispatch thresholds, autonomous risk envelopes, and real-time operational log.
+            </p>
+</div>
+</div>
+<div class="flex items-center gap-2 text-xs text-slate-400 font-mono">
+<span class="">Safety Interlock:</span>
+<span class="text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100">PASS (IEC 61850)</span>
+</div>
+</div>
+<!-- 3 Horizontal Sections -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+<!-- 1. AGGRESSIVENESS SLIDER: AI RISK PROFILE (SET TO THE MIDDLE) -->
+<div class="p-4 bg-slate-50 rounded-xl border border-slate-200/80 space-y-2.5 h-full flex flex-col justify-between">
+<div class="flex items-center justify-between text-xs">
+<span class="font-bold text-slate-900">AI Risk Profile</span>
+<span class="font-mono font-bold text-emerald-800 bg-emerald-100/70 px-2 py-0.5 rounded text-[11px]" id="risk-profile-label">
+              Balanced (50/50)
+            </span>
+</div>
+<!-- Slider Track -->
+<div class="relative pt-1">
+<input class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-emerald-600 focus:outline-none" max="100" min="0" type="range" value="50" id="risk-profile-slider" oninput="updateRiskProfile(this.value)">
+</div>
+<!-- Left / Right Labels Requested -->
+<div class="flex items-center justify-between text-[11px] font-medium text-slate-500 pt-1">
+<span class="text-slate-600 flex items-center gap-1">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="shield-check" aria-hidden="true" class="lucide lucide-shield-check w-3 h-3 text-slate-400"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"></path><path d="m9 12 2 2 4-4"></path></svg>
+              Conservative (Prioritize Backup)
+            </span>
+<span class="text-slate-600 flex items-center gap-1">
+              Aggressive (Maximize ROI)
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="trending-up" aria-hidden="true" class="lucide lucide-trending-up w-3 h-3 text-emerald-600"><path d="M16 7h6v6"></path><path d="m22 7-8.5 8.5-5-5L2 17"></path></svg>
+</span>
+</div>
+</div>
+<!-- 2. HIGH-TECH INTERACTIVE AGENT DISPATCH TERMINAL / CONSOLE -->
+<div class="lg:col-span-2 relative transition-all duration-300" id="terminal-wrapper">
+<div class="bg-[#0b101b] border border-slate-800 rounded-2xl shadow-xl shadow-slate-950/30 overflow-hidden flex flex-col font-mono" id="terminal-card">
+<!-- Terminal Top Chrome / Window Bar -->
+<div class="px-4 py-2.5 bg-[#070b13] border-b border-slate-800/90 flex items-center justify-between select-none">
+<!-- Left: macOS style window dots + Terminal Tab -->
+<div class="flex items-center gap-3">
+<div class="flex items-center gap-1.5">
+<span class="w-2.5 h-2.5 rounded-full bg-rose-500/80 inline-block"></span>
+<span class="w-2.5 h-2.5 rounded-full bg-amber-500/80 inline-block"></span>
+<span class="w-2.5 h-2.5 rounded-full bg-emerald-500/80 inline-block"></span>
+</div>
+<div class="h-3 w-px bg-slate-800"></div>
+<div class="flex items-center gap-2 px-2.5 py-1 bg-slate-900/90 border border-slate-700/60 rounded-md text-[11px] text-slate-300 font-medium">
+<svg class="text-emerald-400" fill="none" height="12" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="12" xmlns="http://www.w3.org/2000/svg"><polyline points="4 17 10 11 4 5"></polyline><line x1="12" x2="20" y1="19" y2="19"></line></svg>
+<span class="tracking-tight text-slate-200">agent-dispatch.sh</span>
+<span class="text-[9px] bg-slate-800 text-slate-400 px-1 rounded">PID: 8842</span>
+</div>
+</div>
+<!-- Center/Right: Live streaming indicator & Window controls -->
+<div class="flex items-center gap-3 text-xs">
+<!-- Live streaming badge -->
+<div class="hidden sm:flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-950/70 border border-emerald-700/50 text-[10px] text-emerald-300">
+<span class="relative flex h-1.5 w-1.5">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+<span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-400"></span>
+</span>
+<span class="tracking-wider font-semibold">STREAMING LIVE</span>
+</div>
+<!-- Expand / Maximize Terminal Button -->
+<button class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700/60 text-[11px] font-sans font-medium transition-colors" id="terminal-expand-btn" onclick="toggleTerminalExpand()" title="Expand Terminal &amp; Synchronize with AI Copilot">
+<span class="material-symbols-outlined text-[15px]" id="terminal-expand-icon">open_in_full</span>
+<span id="terminal-expand-label" class="">Expand Terminal</span>
+</button>
+</div>
+</div>
+<!-- Terminal Sub-bar: Filter Tags, Search & Action tools -->
+<div class="px-4 py-2 bg-[#090e18] border-b border-slate-800/60 flex flex-wrap items-center justify-between gap-2 text-[11px]">
+<!-- Log Level Filters -->
+<div class="flex items-center gap-1 flex-wrap" id="terminal-filter-pills">
+<button class="filter-pill active px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[10px] font-semibold" onclick="filterLogs('ALL', this)">ALL (7)</button>
+<button class="filter-pill px-2 py-0.5 rounded bg-slate-900 text-slate-400 hover:text-slate-200 border border-slate-800 text-[10px]" onclick="filterLogs('AUTO_DISPATCH', this)">DISPATCH</button>
+<button class="filter-pill px-2 py-0.5 rounded bg-slate-900 text-slate-400 hover:text-slate-200 border border-slate-800 text-[10px]" onclick="filterLogs('GRID_SYNC', this)">GRID SYNC</button>
+<button class="filter-pill px-2 py-0.5 rounded bg-slate-900 text-slate-400 hover:text-slate-200 border border-slate-800 text-[10px]" onclick="filterLogs('BESS_CONTROL', this)">BESS</button>
+<button class="filter-pill px-2 py-0.5 rounded bg-slate-900 text-slate-400 hover:text-slate-200 border border-slate-800 text-[10px]" onclick="filterLogs('IEC_61850', this)">SAFETY</button>
+</div>
+<!-- Stream Controls -->
+<div class="flex items-center gap-2 text-slate-400 text-[10px]">
+<span class="hidden md:inline font-sans text-slate-500">Auto-scroll: <strong class="text-emerald-400 font-mono">ON</strong></span>
+<span class="text-slate-700">|</span>
+<button class="hover:text-slate-200 transition-colors flex items-center gap-1" onclick="copyTerminalLogs()">
+<svg fill="none" height="11" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="11" xmlns="http://www.w3.org/2000/svg"><rect height="14" rx="2" ry="2" width="14" x="8" y="8"></rect><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"></path></svg>
+<span class="">Copy</span>
+</button>
+<button class="hover:text-slate-200 transition-colors flex items-center gap-1" onclick="clearTerminalLogs()">
+<svg fill="none" height="11" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="11" xmlns="http://www.w3.org/2000/svg"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>
+<span class="">Clear</span>
+</button>
+</div>
+</div>
+<!-- Terminal Body: Scrollable Log Stream -->
+<div class="p-4 space-y-2 overflow-y-auto max-h-52 terminal-scrollbar text-xs leading-relaxed transition-all duration-300" id="terminal-log-stream">
+<!-- Log Line 1: 14:00:00 [AUTO_DISPATCH] -->
+<div class="log-entry flex items-start gap-2.5 hover:bg-slate-900/60 px-2 py-1.5 rounded-lg border border-transparent hover:border-slate-800 transition-colors group" data-category="AUTO_DISPATCH">
+<span class="text-slate-500 font-mono select-none text-[11px] pt-0.5 shrink-0">14:00:00</span>
+<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-950/80 text-emerald-400 border border-emerald-800/70 shrink-0">[AUTO_DISPATCH]</span>
+<p class="text-slate-200 flex-1">
+        Holding solar surplus. Will dispatch <strong class="text-amber-300 font-medium">2.5 MW</strong> to Commercial Mall HVAC at 14:00 to offset TNB grid reliance.
+        <span class="inline-block ml-1 px-1.5 py-0.2 rounded text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-mono">[EXEC_SUCCESS]</span>
+</p>
+</div>
+<!-- Log Line 2: 13:45:12 [GRID_SYNC] -->
+<div class="log-entry flex items-start gap-2.5 hover:bg-slate-900/60 px-2 py-1.5 rounded-lg border border-transparent hover:border-slate-800 transition-colors group" data-category="GRID_SYNC">
+<span class="text-slate-500 font-mono select-none text-[11px] pt-0.5 shrink-0">13:45:12</span>
+<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-blue-950/80 text-blue-400 border border-blue-800/70 shrink-0">[GRID_SYNC]</span>
+<p class="text-slate-300 flex-1">
+        TNB Substation Peak Tariff surge pre-alert received (<span class="text-amber-300">Surge window: 14:00 - 17:00 MYT</span>, rate escalates to <strong class="text-white">RM 0.58/kWh</strong>).
+      </p>
+</div>
+<!-- Log Line 3: 13:30:05 [BESS_CONTROL] -->
+<div class="log-entry flex items-start gap-2.5 hover:bg-slate-900/60 px-2 py-1.5 rounded-lg border border-transparent hover:border-slate-800 transition-colors group" data-category="BESS_CONTROL">
+<span class="text-slate-500 font-mono select-none text-[11px] pt-0.5 shrink-0">13:30:05</span>
+<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-cyan-950/80 text-cyan-400 border border-cyan-800/70 shrink-0">[BESS_CONTROL]</span>
+<p class="text-slate-300 flex-1">
+        Priming <strong class="text-cyan-300">6.4 MWh BESS</strong> battery banks 1-4 for discharge threshold balancing. State of charge optimal at 85%.
+      </p>
+</div>
+<!-- Log Line 4: 13:15:22 [SOLAR_TELEMETRY] -->
+<div class="log-entry flex items-start gap-2.5 hover:bg-slate-900/60 px-2 py-1.5 rounded-lg border border-transparent hover:border-slate-800 transition-colors group" data-category="SOLAR_TELEMETRY">
+<span class="text-slate-500 font-mono select-none text-[11px] pt-0.5 shrink-0">13:15:22</span>
+<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-yellow-950/80 text-yellow-400 border border-yellow-800/70 shrink-0">[SOLAR_TELEMETRY]</span>
+<p class="text-slate-300 flex-1">
+        PV Canopy array generating <strong class="text-white">3.42 MW</strong> (Irradiance: 890 W/m²). Cloud passage dampening absorbed by inverter capacitance.
+      </p>
+</div>
+<!-- Log Line 5: 12:50:40 [HVAC_PRECOOL] -->
+<div class="log-entry flex items-start gap-2.5 hover:bg-slate-900/60 px-2 py-1.5 rounded-lg border border-transparent hover:border-slate-800 transition-colors group" data-category="HVAC_PRECOOL">
+<span class="text-slate-500 font-mono select-none text-[11px] pt-0.5 shrink-0">12:50:40</span>
+<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-purple-950/80 text-purple-400 border border-purple-800/70 shrink-0">[HVAC_PRECOOL]</span>
+<p class="text-slate-300 flex-1">
+        Initiated thermal flywheel sub-cooling across Boulevard Commercial Mall. Setpoint lowered to <strong class="text-white">21.5°C</strong> utilizing cheap off-peak surplus.
+      </p>
+</div>
+<!-- Log Line 6: 12:20:18 [MARKET_ARBITRAGE] -->
+<div class="log-entry flex items-start gap-2.5 hover:bg-slate-900/60 px-2 py-1.5 rounded-lg border border-transparent hover:border-slate-800 transition-colors group" data-category="MARKET_ARBITRAGE">
+<span class="text-slate-500 font-mono select-none text-[11px] pt-0.5 shrink-0">12:20:18</span>
+<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-950/80 text-emerald-300 border border-emerald-800/70 shrink-0">[MARKET_ARBITRAGE]</span>
+<p class="text-slate-300 flex-1">
+        Algorithm model <span class="text-slate-400">EcoGrid-4.2</span> committed: Net arbitrage saving delta <strong class="text-emerald-400 font-bold">+32.4%</strong> vs grid baseline.
+      </p>
+</div>
+<!-- Log Line 7: 11:45:00 [IEC_61850] -->
+<div class="log-entry flex items-start gap-2.5 hover:bg-slate-900/60 px-2 py-1.5 rounded-lg border border-transparent hover:border-slate-800 transition-colors group" data-category="IEC_61850">
+<span class="text-slate-500 font-mono select-none text-[11px] pt-0.5 shrink-0">11:45:00</span>
+<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-rose-950/80 text-rose-300 border border-rose-800/70 shrink-0">[IEC_61850]</span>
+<p class="text-slate-300 flex-1">
+        Safety interlock telemetry verification: All 18 micro-substations synched and locked (<strong class="text-emerald-400">0 anomalies</strong>).
+      </p>
+</div>
+</div>
+<!-- Terminal Bottom Prompt Input & Command Line -->
+<div class="px-4 py-2.5 bg-[#070b13] border-t border-slate-800/80 flex items-center justify-between gap-3 text-xs">
+<div class="flex items-center gap-2 flex-1 text-slate-400 font-mono">
+<span class="text-emerald-400 font-bold select-none">&gt;</span>
+<span class="text-slate-500 text-[11px]">telemetry@ecogrid-sanctuary:~$</span>
+<input class="bg-transparent border-none text-slate-200 text-xs placeholder-slate-600 focus:outline-none flex-1 font-mono" id="terminal-cli-input" placeholder="dispatch --now --target BESS_01 or tail -f" type="text" onkeydown="handleTerminalCommand(event)">
+</div>
+<div class="flex items-center gap-2 text-[10px] text-slate-500 font-mono">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+<span class="">0 ms delay</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- ========================================================================= -->
+<!-- TOAST NOTIFICATION ON TRIGGER                                             -->
+<!-- ========================================================================= -->
+<div class="fixed bottom-6 right-6 bg-slate-900 text-white px-4 py-3 rounded-xl shadow-xl flex items-center gap-3 text-xs z-50 transform translate-y-20 opacity-0 transition-all duration-300" id="toast">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="check-circle-2" aria-hidden="true" class="lucide lucide-check-circle-2 w-4 h-4 text-emerald-400"><circle cx="12" cy="12" r="10"></circle><path d="m16 9-5.5 5.5L8 12"></path></svg>
+<span class="" id="toast-message">Autonomous Protocol Active</span>
+</div>
+<script>
+    // Initialize Lucide Icons
+    lucide.createIcons();
+
+    // Dynamic Island Expand / Collapse Toggle
+    function toggleIslandExpand(forceOpen) {
+      const modal = document.getElementById('dynamic-island-modal');
+      const pill = document.getElementById('dynamic-island-pill');
+      if (forceOpen === true) {
+        modal.classList.remove('hidden');
+        pill.classList.add('ring-2', 'ring-emerald-500/50');
+        return;
+      }
+      if (modal.classList.contains('hidden')) {
+        modal.classList.remove('hidden');
+        pill.classList.add('ring-2', 'ring-emerald-500/50');
+      } else {
+        modal.classList.add('hidden');
+        pill.classList.remove('ring-2', 'ring-emerald-500/50');
+      }
+    }
+
+    // Toggle Terminal Expand / Maximize and Synchronize with AI Dynamic Island
+    let isTerminalExpanded = false;
+    function toggleTerminalExpand() {
+      const wrapper = document.getElementById('terminal-wrapper');
+      const card = document.getElementById('terminal-card');
+      const logStream = document.getElementById('terminal-log-stream');
+      const icon = document.getElementById('terminal-expand-icon');
+      const label = document.getElementById('terminal-expand-label');
+
+      isTerminalExpanded = !isTerminalExpanded;
+
+      if (isTerminalExpanded) {
+        // Expand terminal
+        logStream.classList.remove('max-h-52');
+        logStream.classList.add('max-h-96');
+        card.classList.add('ring-2', 'ring-emerald-500/40', 'shadow-2xl');
+        icon.innerText = 'close_fullscreen';
+        label.innerText = 'Minimize';
+
+        // Synchronously trigger and reveal top AI Dynamic Island Copilot view
+        toggleIslandExpand(true);
+        showToast('Terminal expanded • AI Dynamic Island Copilot Synchronized');
+      } else {
+        // Minimize back to normal
+        logStream.classList.remove('max-h-96');
+        logStream.classList.add('max-h-52');
+        card.classList.remove('ring-2', 'ring-emerald-500/40', 'shadow-2xl');
+        icon.innerText = 'open_in_full';
+        label.innerText = 'Expand Terminal';
+        showToast('Terminal restored to standard view');
+      }
+    }
+
+    // Filter Terminal Logs
+    function filterLogs(category, btn) {
+      const entries = document.querySelectorAll('.log-entry');
+      const pills = document.querySelectorAll('#terminal-filter-pills .filter-pill');
+      pills.forEach(p => {
+        p.classList.remove('active', 'bg-emerald-500/20', 'text-emerald-300', 'border-emerald-500/40');
+        p.classList.add('bg-slate-900', 'text-slate-400', 'border-slate-800');
+      });
+      btn.classList.remove('bg-slate-900', 'text-slate-400', 'border-slate-800');
+      btn.classList.add('active', 'bg-emerald-500/20', 'text-emerald-300', 'border-emerald-500/40');
+
+      entries.forEach(entry => {
+        if (category === 'ALL' || entry.getAttribute('data-category') === category) {
+          entry.style.display = 'flex';
+        } else {
+          entry.style.display = 'none';
+        }
+      });
+    }
+
+    // Copy Terminal Logs
+    function copyTerminalLogs() {
+      const logStream = document.getElementById('terminal-log-stream');
+      navigator.clipboard.writeText(logStream.innerText).then(() => {
+        showToast('Terminal logs copied to clipboard');
+      }).catch(() => {
+        showToast('Log contents ready');
+      });
+    }
+
+    // Clear Terminal Logs (Interactive reset)
+    function clearTerminalLogs() {
+      const logStream = document.getElementById('terminal-log-stream');
+      showToast('Logs paused. Resetting stream filter...');
+      filterLogs('ALL', document.querySelector('#terminal-filter-pills .filter-pill'));
+    }
+
+    // Slider risk profile updater
+    function updateRiskProfile(val) {
+      const label = document.getElementById('risk-profile-label');
+      if (!label) return;
+      if (val < 35) {
+        label.innerText = `Conservative (${val}/100)`;
+        label.className = "font-mono font-bold text-blue-800 bg-blue-100/70 px-2 py-0.5 rounded text-[11px]";
+      } else if (val > 65) {
+        label.innerText = `Aggressive (${val}/100)`;
+        label.className = "font-mono font-bold text-amber-800 bg-amber-100/70 px-2 py-0.5 rounded text-[11px]";
+      } else {
+        label.innerText = `Balanced (${val}/100)`;
+        label.className = "font-mono font-bold text-emerald-800 bg-emerald-100/70 px-2 py-0.5 rounded text-[11px]";
+      }
+    }
+
+    // Terminal command simulation
+    function handleTerminalCommand(e) {
+      if (e.key === 'Enter') {
+        const input = document.getElementById('terminal-cli-input');
+        const cmd = input.value.trim();
+        if (!cmd) return;
+        input.value = '';
+        showToast(`Command executed: ${cmd}`);
+
+        const logStream = document.getElementById('terminal-log-stream');
+        const newEntry = document.createElement('div');
+        newEntry.className = "log-entry flex items-start gap-2.5 hover:bg-slate-900/60 px-2 py-1.5 rounded-lg border border-transparent hover:border-slate-800 transition-colors group";
+        newEntry.setAttribute('data-category', 'AUTO_DISPATCH');
+        const now = new Date();
+        const timeStr = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0') + ':' + String(now.getSeconds()).padStart(2, '0');
+        newEntry.innerHTML = `
+          <span class="text-slate-500 font-mono select-none text-[11px] pt-0.5 shrink-0">${timeStr}</span>
+          <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-950/80 text-emerald-400 border border-emerald-800/70 shrink-0">[OPERATOR_CMD]</span>
+          <p class="text-slate-200 flex-1 font-mono text-[11px]">
+            &gt; ${cmd} <span class="text-emerald-400 font-bold">✔ ACCEPTED</span>
+          </p>
+        `;
+        logStream.appendChild(newEntry);
+        logStream.scrollTop = logStream.scrollHeight;
+      }
+    }
+
+    // Toggle Autonomous Switch visual
+    function toggleAutonomousSwitch(container) {
+      const input = container.querySelector('input');
+      const label = container.querySelector('label');
+      const knob = container.querySelector('span');
+      input.checked = !input.checked;
+      if (input.checked) {
+        label.classList.remove('bg-slate-300');
+        label.classList.add('bg-emerald-600');
+        knob.classList.remove('-translate-x-6');
+        knob.classList.add('translate-x-0');
+        showToast('Autonomous Mode Enabled');
+      } else {
+        label.classList.remove('bg-emerald-600');
+        label.classList.add('bg-slate-300');
+        knob.classList.remove('translate-x-0');
+        knob.classList.add('-translate-x-6');
+        showToast('Autonomous Mode Paused (Manual Override)');
+      }
+    }
+
+    // Toast Trigger helper
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      const text = document.getElementById('toast-message');
+      text.innerText = msg;
+      toast.classList.remove('translate-y-20', 'opacity-0');
+      setTimeout(() => {
+        toast.classList.add('translate-y-20', 'opacity-0');
+      }, 2500);
+    }
+
+    function triggerApproveToast() {
+      toggleIslandExpand();
+      showToast('Autonomous protocol confirmed for 14:00 peak discharge');
+    }
+
+    // Close dynamic island on escape or outside click (unless clicked terminal expand button)
+    document.addEventListener('click', function(event) {
+      const container = document.getElementById('dynamic-island-container');
+      const modal = document.getElementById('dynamic-island-modal');
+      const terminalExpandBtn = document.getElementById('terminal-expand-btn');
+      if (terminalExpandBtn && terminalExpandBtn.contains(event.target)) {
+        return;
+      }
+      if (!container.contains(event.target) && !modal.classList.contains('hidden')) {
+        toggleIslandExpand();
+      }
+    });
+
+    // Toggle Sidebar collapse / expand
+    function toggleSidebarCollapse() {
+      const sidebar = document.getElementById('main-sidebar');
+      const main = document.querySelector('main');
+      const icon = document.getElementById('sidebar-toggle-icon');
+      const toggleBtn = document.getElementById('sidebar-toggle-btn');
+      const labels = document.querySelectorAll('.sidebar-label');
+      const townshipCard = document.getElementById('sidebar-township-card');
+      const scadaPill = document.getElementById('sidebar-scada-pill');
+
+      const isCollapsed = sidebar.classList.contains('w-20');
+
+      if (isCollapsed) {
+        // Expand to full width (w-64)
+        sidebar.classList.remove('w-20');
+        sidebar.classList.add('w-64');
+        main.classList.remove('ml-20');
+        main.classList.add('ml-64');
+        icon.innerText = 'menu_open';
+        toggleBtn.classList.remove('justify-center');
+        labels.forEach(el => el.classList.remove('hidden'));
+        if (townshipCard) {
+          townshipCard.classList.remove('justify-center', 'p-2');
+          townshipCard.classList.add('justify-between', 'p-2.5');
+        }
+        if (scadaPill) {
+          scadaPill.classList.remove('justify-center', 'px-2');
+          scadaPill.classList.add('justify-between', 'px-3');
+        }
+      } else {
+        // Minimize / Collapse to compact rail (w-20)
+        sidebar.classList.remove('w-64');
+        sidebar.classList.add('w-20');
+        main.classList.remove('ml-64');
+        main.classList.add('ml-20');
+        icon.innerText = 'menu';
+        toggleBtn.classList.add('justify-center');
+        labels.forEach(el => el.classList.add('hidden'));
+        if (townshipCard) {
+          townshipCard.classList.remove('justify-between', 'p-2.5');
+          townshipCard.classList.add('justify-center', 'p-2');
+        }
+        if (scadaPill) {
+          scadaPill.classList.remove('justify-between', 'px-3');
+          scadaPill.classList.add('justify-center', 'px-2');
+        }
+      }
+    }
+
+    // =========================================================================
+    // CHART SCRUBBING & DRAGGING TELEMETRY ENGINE
+    // =========================================================================
+    (function initChartScrubber() {
+      const chartArea = document.getElementById('chart-scrubber-area');
+      const svg = document.getElementById('arbitrage-svg');
+      const scrubberGroup = document.getElementById('scrubber-svg-group');
+      const demandDot = document.getElementById('scrubber-demand-dot');
+      const timeBadge = document.getElementById('scrubber-time-badge');
+      const tooltip = document.getElementById('scrubber-tooltip');
+
+      const tooltipTime = document.getElementById('tooltip-time');
+      const tooltipTariff = document.getElementById('tooltip-tariff');
+      const tooltipSolar = document.getElementById('tooltip-solar');
+      const tooltipDemand = document.getElementById('tooltip-demand');
+      const tooltipGrid = document.getElementById('tooltip-grid');
+      const tooltipStratTitle = document.getElementById('tooltip-strategy-title');
+      const tooltipStratDesc = document.getElementById('tooltip-strategy-desc');
+      const tooltipEconomy = document.getElementById('tooltip-economy');
+
+      let isDragging = false;
+
+      // Telemetry lookup curve generator based on hour (0 - 24)
+      function getTelemetryAtHour(h) {
+        // Solar yield curve: peaks at 12.5h (5.2 MW)
+        let solar = 0;
+        if (h >= 6.5 && h <= 18.5) {
+          const sDist = Math.abs(h - 12.5);
+          solar = Math.max(0, 5.2 * (1 - Math.pow(sDist / 6, 2)));
+        }
+
+        // Demand curve: baseline 1.3MW, rises in morning, peaks at 15h, drops late evening
+        let demand = 1.35;
+        if (h >= 6 && h <= 13) {
+          demand = 1.35 + ((h - 6) / 7) * 2.1; // rises to 3.45 MW
+        } else if (h > 13 && h <= 17) {
+          demand = 3.6 - Math.sin((h - 13) * 0.7) * 0.4; // 3.3 to 3.8 MW
+        } else if (h > 17 && h <= 21) {
+          demand = 3.2 - ((h - 17) / 4) * 1.1; // 2.1 MW
+        } else if (h > 21) {
+          demand = 2.1 - ((h - 21) / 3) * 0.6; // drops to 1.5 MW
+        }
+
+        // Tariff band
+        const isPeak = (h >= 13.8 && h <= 17.2);
+        const tariffBadge = isPeak ? "Peak Surge (RM 0.58)" : "Off-Peak (RM 0.22)";
+        const isPeakSurge = isPeak;
+
+        // Contextual Strategy note
+        let stratTitle = "Off-Peak Baseline";
+        let stratDesc = "Township grid operating under baseline off-peak contract.";
+        let economy = "+RM 45 saved";
+
+        if (h < 6) {
+          stratTitle = "Night Base Grid Sync";
+          stratDesc = "Residential off-peak baseline. EV chargers queued on economy band.";
+          economy = "+RM 60 saved";
+        } else if (h >= 6 && h < 10) {
+          stratTitle = "Solar Pre-Charge Priming";
+          stratDesc = "Inverters synchronizing to morning PV generation. Substation charging initialized.";
+          economy = "+RM 210 saved";
+        } else if (h >= 10 && h < 13.8) {
+          stratTitle = "Peak Solar Absorption";
+          stratDesc = "Maximum irradiance feeding BESS storage at zero marginal fuel cost.";
+          economy = "+RM 850 saved";
+        } else if (isPeak) {
+          stratTitle = "Peak Shaving Discharge";
+          stratDesc = "BESS discharging 2.5 MW to eliminate TNB surge penalties across HVAC chillers.";
+          economy = "+RM 1,420 saved";
+        } else if (h > 17.2 && h <= 21) {
+          stratTitle = "Evening Demand Support";
+          stratDesc = "Boulevard lighting & sports hubs supported via remaining stored battery reserves.";
+          economy = "+RM 320 saved";
+        } else {
+          stratTitle = "Commercial Load Dropping";
+          stratDesc = "Mall closes. Retaining chilled inventory with minimal power draw.";
+          economy = "+RM 90 saved";
+        }
+
+        // Net Grid calculation
+        let netGrid = Math.max(0, demand - solar);
+        if (isPeak) {
+          netGrid = Math.max(0.2, demand - 2.5); // BESS shaving
+        }
+
+        return {
+          solar: solar.toFixed(2),
+          demand: demand.toFixed(2),
+          netGrid: netGrid.toFixed(2),
+          isPeak: isPeakSurge,
+          tariffBadge: tariffBadge,
+          stratTitle: stratTitle,
+          stratDesc: stratDesc,
+          economy: economy
+        };
+      }
+
+      function updateScrubber(clientX) {
+        const rect = chartArea.getBoundingClientRect();
+        // Constrain x between 25 and 735 relative to SVG viewBox (0-760)
+        let relativeX = clientX - rect.left;
+        let scale = 760 / rect.width;
+        let svgX = relativeX * scale;
+        svgX = Math.max(25, Math.min(735, svgX));
+
+        // Calculate Hour (0 to 24)
+        const hourFraction = ((svgX - 25) / (735 - 25)) * 24;
+        const hour = Math.floor(hourFraction);
+        const minute = Math.floor((hourFraction % 1) * 60);
+        const timeStr = String(hour).padStart(2, '0') + ':' + String(minute).padStart(2, '0');
+
+        // Telemetry
+        const telemetry = getTelemetryAtHour(hourFraction);
+
+        // Update SVG Scrubber elements
+        scrubberGroup.setAttribute('transform', `translate(${svgX}, 0)`);
+        
+        // Calculate demand Y for the dot
+        // SVG height is 220, demand path maps between 162 and 85
+        let demandY = 165 - (parseFloat(telemetry.demand) / 4.5) * 85;
+        demandDot.setAttribute('cy', demandY);
+
+        // Update bottom badge position and text
+        timeBadge.style.left = `${relativeX}px`;
+        timeBadge.innerText = timeStr;
+
+        // Update Tooltip values
+        tooltipTime.innerText = `${timeStr} MYT`;
+        tooltipTariff.innerText = telemetry.tariffBadge;
+        if (telemetry.isPeak) {
+          tooltipTariff.className = "text-[10px] font-semibold px-2 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200/60 font-mono";
+        } else {
+          tooltipTariff.className = "text-[10px] font-semibold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200/60 font-mono";
+        }
+
+        tooltipSolar.innerText = `${telemetry.solar} MW`;
+        tooltipDemand.innerText = `${telemetry.demand} MW`;
+        tooltipGrid.innerText = `${telemetry.netGrid} MW from TNB`;
+        tooltipStratTitle.innerText = telemetry.stratTitle;
+        tooltipStratDesc.innerText = telemetry.stratDesc;
+        tooltipEconomy.innerText = telemetry.economy;
+
+        // Tooltip position (keep on left side if mouse is far right, or vice versa)
+        const tooltipWidth = 245;
+        if (relativeX > rect.width * 0.55) {
+          // Flip tooltip to left of scrubber
+          tooltip.style.left = `${Math.max(10, relativeX - tooltipWidth - 20)}px`;
+        } else {
+          // Show on right of scrubber
+          tooltip.style.left = `${Math.min(rect.width - tooltipWidth - 10, relativeX + 20)}px`;
+        }
+      }
+
+      // Event Listeners for scrubbing / dragging
+      chartArea.addEventListener('mousedown', function(e) {
+        isDragging = true;
+        updateScrubber(e.clientX);
+      });
+
+      window.addEventListener('mouseup', function() {
+        isDragging = false;
+      });
+
+      chartArea.addEventListener('mousemove', function(e) {
+        updateScrubber(e.clientX);
+      });
+
+      chartArea.addEventListener('mouseleave', function() {
+        if (!isDragging) {
+          // Return smoothly to default ~21:59 position (x: 670)
+          const rect = chartArea.getBoundingClientRect();
+          const defaultClientX = rect.left + (670 / 760) * rect.width;
+          updateScrubber(defaultClientX);
+        }
+      });
+
+      // Touch screen support
+      chartArea.addEventListener('touchmove', function(e) {
+        if (e.touches && e.touches[0]) {
+          updateScrubber(e.touches[0].clientX);
+        }
+      }, { passive: true });
+    })();
+  </script>
+</body></html>
