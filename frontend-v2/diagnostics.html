@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EnergiOS — Asset Diagnostics & Subsystems</title>
+
+  <!-- Typography & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            velora: {
+              bg: '#FAF8F5',
+              card: '#FFFFFF',
+              pill: '#F4F0E8',
+              orange: '#FF7A00',
+              yellow: '#FACC15',
+              green: '#22C55E',
+              dark: '#1E2022',
+              muted: '#71767B',
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['Space Grotesk', 'monospace'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Exact Velora Stylesheet -->
+  <link rel="stylesheet" href="src/css/velora_exact.css">
+
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+
+  <!-- Verified Backend & BDG2 Telemetry Sync -->
+  <script src="src/data/bdg2_data.js"></script>
+  <script src="src/js/api.js"></script>
+</head>
+
+<body class="bg-[#FAF8F5] text-[#1E2022] antialiased min-h-screen flex flex-col p-6 lg:p-8 selection:bg-orange-100 selection:text-orange-900">
+
+  <!-- =================================================================== -->
+  <!-- APPLE DYNAMIC ISLAND (1:1 Exact Replica of dynamic_island.jpeg)     -->
+  <!-- =================================================================== -->
+  <div id="dynamic-island" class="fixed top-3.5 left-1/2 -translate-x-1/2 z-50 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] select-none">
+    
+    <!-- Collapsed Pill (Apple Dynamic Island State) -->
+    <div id="island-collapsed" onclick="dynamicIsland.expand()" class="h-9 px-4 rounded-full bg-black text-white flex items-center justify-between gap-3.5 shadow-xl shadow-black/40 border border-white/10 cursor-pointer hover:scale-[1.03] transition-all" title="Click to open EnergiOS AI Copilot & Logs">
+      <div class="flex items-center gap-2">
+        <span class="w-3.5 h-3.5 flex items-center justify-center text-[#FF7A00]">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor">
+            <circle cx="12" cy="3" r="2" /><circle cx="12" cy="21" r="2" />
+            <circle cx="3" cy="12" r="2" /><circle cx="21" cy="12" r="2" />
+            <circle cx="5.6" cy="5.6" r="2" /><circle cx="18.4" cy="18.4" r="2" />
+            <circle cx="5.6" cy="18.4" r="2" /><circle cx="18.4" cy="5.6" r="2" />
+          </svg>
+        </span>
+        <span class="text-xs font-semibold text-white tracking-tight font-sans">EnergiOS AI</span>
+      </div>
+
+      <!-- iPhone Camera Notch Hole -->
+      <span class="w-2.5 h-2.5 rounded-full bg-[#1A1B1E] border border-white/10"></span>
+    </div>
+
+    <!-- Expanded Dynamic Island (1:1 Exact Match to dynamic_island.jpeg) -->
+    <div id="island-expanded" class="hidden w-[760px] max-w-[94vw] bg-[#000000] text-white rounded-[36px] shadow-2xl shadow-black/90 border border-white/10 p-6 pt-3 relative overflow-hidden backdrop-blur-2xl">
+      
+      <!-- Top Center: iPhone Physical Camera Cutout Notch -->
+      <div class="w-28 h-5 rounded-full bg-[#121316] mx-auto mb-3 flex items-center justify-center gap-2.5 border border-white/5">
+        <div class="w-2.5 h-2.5 rounded-full bg-[#070709] border border-blue-900/50 flex items-center justify-center">
+          <span class="w-1 h-1 rounded-full bg-blue-500/50"></span>
+        </div>
+        <span class="w-1.5 h-1.5 rounded-full bg-[#050507]"></span>
+      </div>
+
+      <!-- Header Row inside Island (Matching dynamic_island.jpeg) -->
+      <div class="flex items-center justify-between pb-3 px-1 border-b border-white/10">
+        <div class="flex items-center gap-2.5">
+          <!-- Orange Asterisk Sunburst Logo -->
+          <div class="w-6 h-6 flex items-center justify-center text-[#FF7A00]">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+              <circle cx="12" cy="3" r="2" /><circle cx="12" cy="21" r="2" />
+              <circle cx="3" cy="12" r="2" /><circle cx="21" cy="12" r="2" />
+              <circle cx="5.6" cy="5.6" r="2" /><circle cx="18.4" cy="18.4" r="2" />
+              <circle cx="5.6" cy="18.4" r="2" /><circle cx="18.4" cy="5.6" r="2" />
+              <line x1="12" y1="5" x2="12" y2="19" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />
+              <line x1="5" y1="12" x2="19" y2="12" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />
+              <line x1="7" y1="7" x2="17" y2="17" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />
+              <line x1="7" y1="17" x2="17" y2="7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />
+            </svg>
+          </div>
+          <span class="text-sm font-bold tracking-tight text-white font-sans">EnergiOS AI</span>
+        </div>
+
+        <!-- Right Controls -->
+        <div class="flex items-center gap-2">
+          <button class="w-7 h-7 rounded-full bg-[#1C1D21] hover:bg-neutral-800 text-neutral-300 hover:text-white flex items-center justify-center text-xs transition-colors" title="Settings">
+            <span class="material-symbols-outlined text-[16px]">more_horiz</span>
+          </button>
+          <button onclick="dynamicIsland.collapse()" class="w-7 h-7 rounded-full bg-[#1C1D21] hover:bg-neutral-800 text-neutral-400 hover:text-white flex items-center justify-center text-xs transition-colors" title="Collapse Island">
+            <span class="material-symbols-outlined text-[16px]">close</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Two Columns Body (Exact 1:1 match to dynamic_island.jpeg) -->
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-6 pt-4">
+
+        <!-- Left Column: Chat Assistant (7 Cols) -->
+        <div class="md:col-span-7 flex flex-col justify-between space-y-3">
+          <div>
+            <span class="text-xs font-semibold text-neutral-400 block mb-2 font-sans">Chat Assistant</span>
+            <!-- Agent Message Bubble (Styled identically to dynamic_island.jpeg) -->
+            <div class="bg-[#1C1D21] border border-white/5 rounded-2xl p-4 text-xs text-neutral-200 leading-relaxed shadow-sm">
+              <p id="island-agent-bubble-text">
+                Here's an analysis of your energy consumption. Hog_office_Bill consumed <b>4,440 kWh</b> so far, which is up <b>12.4%</b> compared to 24h prior. 118 statistical anomalies detected. Would you like me to analyze peak usage?
+              </p>
+            </div>
+          </div>
+
+          <!-- Interactive Quick Prompt Chips -->
+          <div class="flex items-center gap-1.5 flex-wrap pt-0.5">
+            <button onclick="dynamicIsland.sendQuickPrompt('Analyze peak usage')" class="px-2.5 py-1 rounded-full text-[10px] font-medium bg-[#1C1D21] hover:bg-[#282A30] text-neutral-300 border border-white/5 transition-all">
+              ⚡ Analyze peak usage
+            </button>
+            <button onclick="dynamicIsland.sendQuickPrompt('Audit 118 anomalies')" class="px-2.5 py-1 rounded-full text-[10px] font-medium bg-[#1C1D21] hover:bg-[#282A30] text-neutral-300 border border-white/5 transition-all">
+              ⚠️ Audit 118 anomalies
+            </button>
+            <button onclick="dynamicIsland.sendQuickPrompt('Calculate TNB tariff cost')" class="px-2.5 py-1 rounded-full text-[10px] font-medium bg-[#1C1D21] hover:bg-[#282A30] text-neutral-300 border border-white/5 transition-all">
+              💰 Calculate TNB cost
+            </button>
+          </div>
+
+          <!-- Input Bar (Exact 1:1 match to dynamic_island.jpeg) -->
+          <form onsubmit="dynamicIsland.handleUserSubmit(event)" class="mt-2 flex items-center gap-2 bg-[#121316] border border-white/10 rounded-full px-3.5 py-2 shadow-inner">
+            <div class="flex items-center gap-1 text-neutral-500 pl-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-neutral-500"></span>
+              <span class="w-1.5 h-1.5 rounded-full bg-neutral-500"></span>
+              <span class="w-1.5 h-1.5 rounded-full bg-neutral-500"></span>
+            </div>
+            <input id="island-user-input" type="text" placeholder="Quick user mean natural prompt..." class="bg-transparent text-xs text-white placeholder:text-neutral-500 outline-none flex-1 px-1 font-sans">
+            <button type="submit" class="w-6 h-6 rounded-full bg-white text-black flex items-center justify-center hover:bg-neutral-200 transition-colors shrink-0" title="Send">
+              <span class="material-symbols-outlined text-[14px]">arrow_upward</span>
+            </button>
+          </form>
+        </div>
+
+        <!-- Right Column: Agent Logs (5 Cols) -->
+        <div class="md:col-span-5 flex flex-col justify-between border-t md:border-t-0 md:border-l border-white/10 md:pl-5 pt-3 md:pt-0">
+          <div>
+            <span class="text-xs font-semibold text-neutral-400 block mb-2 font-sans">Agent Logs</span>
+            <div id="island-agent-logs-list" class="space-y-2.5 font-mono text-[11px] max-h-[190px] overflow-y-auto pr-1">
+              <div class="flex items-start gap-1.5 leading-snug">
+                <span class="text-neutral-500 whitespace-nowrap">• 14:12:05 —</span>
+                <span class="text-neutral-300">Analyzing peak consumption metrics for current day...</span>
+              </div>
+              <div class="flex items-start gap-1.5 leading-snug">
+                <span class="text-neutral-500 whitespace-nowrap">• 14:12:12 —</span>
+                <span class="text-neutral-300">Detecting anomaly in Building 3 HVAC draw (high) <span class="text-amber-400">⚠️</span></span>
+              </div>
+              <div class="flex items-start gap-1.5 leading-snug">
+                <span class="text-neutral-500 whitespace-nowrap">• 14:14:02 —</span>
+                <span class="text-neutral-300">Optimized solar storage battery allocation <span class="text-emerald-400">✅</span></span>
+              </div>
+              <div class="flex items-start gap-1.5 leading-snug">
+                <span class="text-neutral-500 whitespace-nowrap">• 14:15:30 —</span>
+                <span class="text-neutral-300">Generating hourly 24h efficiency report...</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <!-- =================================================================== -->
+  <!-- TOP NAVIGATION BAR (Clean with Logo & Profile, Dynamic Island above)-->
+  <!-- =================================================================== -->
+  <header class="w-full flex items-center justify-between pb-6 max-w-[1540px] mx-auto relative z-10">
+    <!-- Brand Logo: Exact Orange Asterisk Sunburst + EnergiOS -->
+    <a href="index.html" class="flex items-center gap-2.5 group">
+      <div class="w-7 h-7 flex items-center justify-center text-[#FF7A00]">
+        <!-- Exact 8-point Sunburst Asterisk Icon -->
+        <svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor">
+          <circle cx="12" cy="3" r="2" />
+          <circle cx="12" cy="21" r="2" />
+          <circle cx="3" cy="12" r="2" />
+          <circle cx="21" cy="12" r="2" />
+          <circle cx="5.6" cy="5.6" r="2" />
+          <circle cx="18.4" cy="18.4" r="2" />
+          <circle cx="5.6" cy="18.4" r="2" />
+          <circle cx="18.4" cy="5.6" r="2" />
+          <line x1="12" y1="5" x2="12" y2="19" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />
+          <line x1="5" y1="12" x2="19" y2="12" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />
+          <line x1="7" y1="7" x2="17" y2="17" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />
+          <line x1="7" y1="17" x2="17" y2="7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />
+        </svg>
+      </div>
+      <span class="text-xl font-bold tracking-tight text-[#1E2022] font-sans">EnergiOS</span>
+    </a>
+
+    <!-- Center Space Reserved for Dynamic Island -->
+    <div class="hidden sm:block w-32"></div>
+
+    <!-- Right Utility: Search Bar (Command + K) + Notification + Avatar -->
+    <div class="flex items-center gap-4 text-[#71767B]">
+      <!-- Search Input Container matching idea-03 -->
+      <div class="hidden md:flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-[#EBE7DF] text-xs shadow-xs text-slate-400">
+        <span class="material-symbols-outlined text-[16px] text-slate-400">search</span>
+        <input type="text" placeholder="Enter your search..." class="bg-transparent text-slate-700 outline-none w-32 lg:w-44 placeholder:text-slate-400 text-xs">
+        <kbd class="font-mono text-[10px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded font-bold">⌘ K</kbd>
+      </div>
+
+      <!-- Live API Status Tag -->
+      <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200/80 text-emerald-800 text-[11px] font-semibold">
+        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+        <span class="font-mono">Live API</span>
+      </div>
+
+      <!-- Bell Notification with Red Dot -->
+      <div class="relative cursor-pointer hover:text-[#1E2022] transition-colors" onclick="diagApp.openAlertDetails()" title="Alerts & Notifications">
+        <span class="material-symbols-outlined text-[20px]">notifications</span>
+        <span class="absolute top-0.5 right-0.5 w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+      </div>
+
+      <!-- User Profile Avatar Image -->
+      <div class="w-8 h-8 rounded-full overflow-hidden border border-slate-200 cursor-pointer shadow-xs" title="Operator Profile">
+        <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&h=120&q=80" alt="Avatar" class="w-full h-full object-cover">
+      </div>
+    </div>
+  </header>
+
+  <!-- =================================================================== -->
+  <!-- MAIN APP CONTAINER WITH LEFT FLOATING SIDEBAR + DIAGNOSTICS VIEW    -->
+  <!-- =================================================================== -->
+  <div class="flex-1 w-full max-w-[1540px] mx-auto flex items-start gap-6">
+
+    <!-- FLOATING VERTICAL PILL NAVIGATION SIDEBAR (Exact Copy) -->
+    <aside class="velora-sidebar hidden md:flex shrink-0">
+      <!-- 1. Grid -->
+      <a href="index.html" class="velora-nav-btn" title="Dashboard Overview">
+        <span class="material-symbols-outlined text-[19px]">grid_view</span>
+      </a>
+      <!-- 2. Pie Chart (Active) -->
+      <a href="diagnostics.html" class="velora-nav-btn active" title="Asset Diagnostics">
+        <span class="material-symbols-outlined text-[19px]">pie_chart</span>
+      </a>
+      <!-- 3. Lightning Bolt -->
+      <a href="energy.html" class="velora-nav-btn" title="Energy & Power Flow">
+        <span class="material-symbols-outlined text-[19px]">bolt</span>
+      </a>
+      <!-- 4. Domain / Digital Twin -->
+      <a href="digital-twin.html" class="velora-nav-btn" title="Spatial Digital Twin">
+        <span class="material-symbols-outlined text-[19px]">domain</span>
+      </a>
+      <!-- 5. Alert Triangle -->
+      <button class="velora-nav-btn" title="Anomaly Alerts" onclick="diagApp.openAlertDetails()">
+        <span class="material-symbols-outlined text-[19px]">warning</span>
+      </button>
+      <!-- 6. Document Sheet -->
+      <button class="velora-nav-btn" title="Provenance & Reports" onclick="diagApp.showToast('Public Benchmark: BDG2 v1.0 · DOE Whole-Building Dataset')">
+        <span class="material-symbols-outlined text-[19px]">description</span>
+      </button>
+    </aside>
+
+    <!-- MAIN DIAGNOSTICS CONTENT AREA -->
+    <div class="flex-1 min-w-0 space-y-6">
+
+      <!-- =============================================================== -->
+      <!-- TOP ROW: TITLE + BUILDING SELECTOR CONTROLS                     -->
+      <!-- =============================================================== -->
+      <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 pt-2 pb-1">
+        <div>
+          <h1 class="text-3xl lg:text-[40px] font-extrabold tracking-tight text-[#1E2022] leading-[1.15]">
+            Asset Diagnostics & Subsystems
+          </h1>
+          <p class="text-xs text-[#71767B] font-medium mt-1">
+            Subsystem telemetry breakdown, architectural callouts, and peak demand horizon
+          </p>
+
+          <!-- Building Selector Pills -->
+          <div class="flex items-center gap-1.5 flex-wrap pt-3">
+            <span class="text-[10px] uppercase font-bold text-slate-400 font-mono mr-1">Building:</span>
+            <div id="building-picker-container" class="flex items-center gap-1.5 flex-wrap">
+              <!-- Dynamically populated by diagnostics_app.js -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Filter Pills -->
+        <div class="flex items-center gap-2">
+          <div class="velora-pill-container bg-white border border-[#EBE7DF] shadow-xs">
+            <button class="velora-pill active">Subsystems</button>
+            <button class="velora-pill" onclick="diagApp.showToast('Filter: Chiller Loop Active')">Chillers</button>
+            <button class="velora-pill" onclick="diagApp.showToast('Filter: AHU Ventilation Active')">AHU</button>
+          </div>
+          <button class="velora-icon-btn" title="Filters" onclick="diagApp.showToast('Filter: Validation MAD Anomaly Flags')">
+            <span class="material-symbols-outlined text-[18px]">tune</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- =============================================================== -->
+      <!-- UPPER SECTION (100% Exact Copy of idea-03-light.jpeg):          -->
+      <!-- ARCHITECTURAL HERO WITH CALLOUTS (LEFT) + METRIC CARDS (RIGHT)  -->
+      <!-- =============================================================== -->
+      <section class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+
+        <!-- Left/Center: Large Building Architectural Visual with Subsystem Callout (8 Cols) -->
+        <div class="lg:col-span-8 velora-card flex flex-col justify-between relative overflow-hidden p-0 min-h-[380px]">
+          <!-- Subtitle / Meta Tag -->
+          <div class="p-6 pb-2 z-10 flex items-center justify-between">
+            <div>
+              <span id="hero-building-name" class="text-xs font-bold font-mono uppercase text-[#71767B]">HOG OFFICE BILL</span>
+              <h3 class="text-lg font-bold text-[#1E2022] mt-0.5">Architectural Subsystem Mapping</h3>
+            </div>
+            <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200/60 font-mono">100% Monitored</span>
+          </div>
+
+          <!-- Architectural Render Image with Soft Mist -->
+          <div class="relative w-full flex-1 flex items-center justify-center p-6">
+            <img id="diag-building-photo" src="assets/idea_crops/exact_building_perfect.jpeg" alt="Architectural Render" class="w-full max-h-[300px] object-cover rounded-xl shadow-xs">
+
+            <!-- Interactive Callout Pin 1: Rooftop Solar Array -->
+            <div class="absolute top-1/4 left-1/3 transform -translate-x-1/2 -translate-y-1/2 flex items-center gap-2 group cursor-pointer">
+              <span class="w-3.5 h-3.5 rounded-full bg-[#0284C7] ring-4 ring-sky-100 flex items-center justify-center text-white text-[9px] font-bold">1</span>
+              <div class="bg-white/95 backdrop-blur-xs px-2.5 py-1 rounded-lg shadow-md border border-slate-200 text-[11px] font-medium text-slate-800 transition-all group-hover:scale-105">
+                Rooftop Solar PV Array
+              </div>
+            </div>
+
+            <!-- Interactive Callout Pin 2: Chiller Plant -->
+            <div class="absolute bottom-1/3 right-1/4 transform -translate-x-1/2 -translate-y-1/2 flex items-center gap-2 group cursor-pointer">
+              <span class="w-3.5 h-3.5 rounded-full bg-[#FF7A00] ring-4 ring-orange-100 flex items-center justify-center text-white text-[9px] font-bold">2</span>
+              <div class="bg-white/95 backdrop-blur-xs px-2.5 py-1 rounded-lg shadow-md border border-slate-200 text-[11px] font-medium text-slate-800 transition-all group-hover:scale-105">
+                Central Chiller Plant Loop
+              </div>
+            </div>
+
+            <!-- Soft bottom gradient mask -->
+            <div class="absolute inset-0 bg-gradient-to-t from-white via-transparent to-transparent pointer-events-none"></div>
+          </div>
+        </div>
+
+        <!-- Right Side: 2 Metric Cards Stack (4 Cols) -->
+        <div class="lg:col-span-4 flex flex-col gap-6 justify-between">
+
+          <!-- Card A: Estimate Run Time to Peak Capacity (Exact 1:1 match to idea-03) -->
+          <div class="velora-card flex-1 flex flex-col justify-between">
+            <div class="flex items-start gap-4">
+              <!-- Blue Battery / Power Graphic Icon -->
+              <div class="w-12 h-16 rounded-xl bg-gradient-to-b from-sky-400 to-sky-600 flex flex-col items-center justify-center text-white shadow-md shadow-sky-500/20 shrink-0">
+                <span class="material-symbols-outlined text-[24px]">bolt</span>
+                <span class="text-[9px] font-mono font-bold mt-1">BAT</span>
+              </div>
+              <div class="flex-1">
+                <span class="text-xs font-semibold text-[#1E2022] block">Estimate Run Time</span>
+                <span class="text-[11px] text-[#71767B] block mt-0.5">Estimated time to peak capacity</span>
+                <div class="text-2xl font-extrabold text-[#1E2022] tracking-tight mt-1">
+                  2 hr 47 min
+                </div>
+              </div>
+            </div>
+
+            <!-- Solid Blue Progress Bar with Percentage Tag -->
+            <div class="mt-4">
+              <div class="w-full bg-sky-100 h-7 rounded-xl p-1 flex items-center overflow-hidden">
+                <div class="bg-[#38BDF8] h-full rounded-lg flex items-center px-2.5 text-white text-xs font-bold transition-all duration-500" style="width: 76%">
+                  76%
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card B: Estimated Full & Production Kw (2 Columns in idea-03) -->
+          <div class="grid grid-cols-2 gap-4">
+            <!-- Left: Estimated Full (1hr 56m) -->
+            <div class="velora-card flex flex-col justify-between">
+              <div class="flex items-center justify-between">
+                <span class="text-xs text-[#71767B] font-medium">Estimated Full</span>
+                <span class="material-symbols-outlined text-[16px] text-slate-400">arrow_outward</span>
+              </div>
+              <div class="text-xl font-extrabold text-[#0284C7] mt-3 tracking-tight">
+                1hr 56m
+              </div>
+            </div>
+
+            <!-- Right: Production Kw (32.8) -->
+            <div class="velora-card flex flex-col justify-between">
+              <div class="flex items-center justify-between">
+                <span class="text-xs text-[#71767B] font-medium">Production Kw</span>
+                <span class="material-symbols-outlined text-[16px] text-slate-400">arrow_outward</span>
+              </div>
+              <div id="metric-prod-kw" class="text-xl font-extrabold text-[#1E2022] mt-3 tracking-tight">
+                32.8
+              </div>
+              <!-- Small scale track indicator -->
+              <div class="w-full bg-slate-100 h-1.5 rounded-full mt-2 overflow-hidden">
+                <div class="bg-sky-500 h-full rounded-full" style="width: 33%"></div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </section>
+
+      <!-- =============================================================== -->
+      <!-- BOTTOM SECTION (100% Exact Copy of idea-03-light.jpeg):         -->
+      <!-- SITE POWER BREAKDOWN (LEFT) + APPLIANCE / SUBSYSTEM USAGE       -->
+      <!-- =============================================================== -->
+      <section class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+
+        <!-- Card 1: Site Power Breakdown (Stacked Bar by Day) (8 Cols) -->
+        <div class="lg:col-span-8 velora-card flex flex-col justify-between">
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-base font-bold text-[#1E2022]">Site Power Breakdown</h2>
+            <div class="flex items-center gap-4 text-xs text-[#71767B]">
+              <div class="flex items-center gap-1.5">
+                <span class="w-2.5 h-2.5 rounded-full bg-[#0284C7]"></span>
+                <span>Production (55%)</span>
+              </div>
+              <div class="flex items-center gap-1.5">
+                <span class="w-2.5 h-2.5 rounded-full bg-[#BAE6FD]"></span>
+                <span>Consumption (30%)</span>
+              </div>
+              <div class="px-2 py-0.5 rounded-lg border border-slate-200 text-[11px] font-semibold text-slate-700 bg-white cursor-pointer">
+                Week ▾
+              </div>
+            </div>
+          </div>
+
+          <!-- 100% Stacked Bar Chart Canvas -->
+          <div class="relative w-full h-[220px]">
+            <canvas id="site-breakdown-chart"></canvas>
+          </div>
+        </div>
+
+        <!-- Card 2: Appliance / Subsystem Usage (4 Cols) -->
+        <div class="lg:col-span-4 velora-card flex flex-col justify-between">
+          <div class="flex items-center justify-between">
+            <h2 class="text-base font-bold text-[#1E2022]">Appliance Usage</h2>
+            <span class="material-symbols-outlined text-[16px] text-slate-400">arrow_outward</span>
+          </div>
+
+          <div class="my-2">
+            <div class="text-3xl font-extrabold text-[#1E2022] tracking-tight">100%</div>
+            <p class="text-xs text-[#71767B] mt-0.5">Subsystem power allocation</p>
+          </div>
+
+          <!-- Subsystem Progress Items List (Air Conditioner, Smart TV, Lamp) -->
+          <div class="space-y-3 pt-2 border-t border-slate-100 text-xs">
+            <div class="flex items-center justify-between text-slate-700">
+              <span>Air Conditioner</span>
+              <span id="load-ac-val" class="font-bold text-[#1E2022]">26 kWh</span>
+            </div>
+            <div class="w-full bg-sky-100 h-4 rounded-lg overflow-hidden flex">
+              <div class="bg-[#0284C7] h-full" style="width: 55%" title="Air Conditioner"></div>
+              <div class="bg-[#38BDF8] h-full" style="width: 25%" title="Smart TV / IT"></div>
+              <div class="bg-[#BAE6FD] h-full" style="width: 20%" title="Lighting"></div>
+            </div>
+
+            <div class="flex items-center justify-between text-[11px] text-slate-500 pt-1">
+              <div>
+                <span class="block font-semibold text-slate-700">Smart TV / IT</span>
+                <span id="load-it-val">16 kWh</span>
+              </div>
+              <div class="text-right">
+                <span class="block font-semibold text-slate-700">Lighting</span>
+                <span id="load-light-val">10 kWh</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+    </div>
+  </div>
+
+  <!-- INTERACTIVE MODAL FOR DETAILED BDG2 ANOMALIES -->
+  <div id="velora-alert-modal" class="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-slate-100 space-y-4">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+        <div>
+          <h3 class="text-base font-bold text-[#1E2022]">Telemetry & Anomaly Audit</h3>
+          <p class="text-xs text-[#71767B]">Statistical unusual pattern detections (BDG2 v1.0)</p>
+        </div>
+        <button onclick="diagApp.closeAlertDetails()" class="w-8 h-8 rounded-full hover:bg-slate-100 flex items-center justify-center text-[#71767B]">
+          <span class="material-symbols-outlined text-lg">close</span>
+        </button>
+      </div>
+
+      <div id="modal-anomalies-list" class="space-y-2.5 max-h-[300px] overflow-y-auto text-xs">
+        <!-- Injected dynamically by diagnostics_app.js -->
+      </div>
+
+      <div class="pt-3 border-t border-slate-100 flex justify-between items-center text-[10px] text-slate-400">
+        <span>Validation MAD 6× Rule · Whole-Building Meter</span>
+        <button onclick="diagApp.closeAlertDetails()" class="px-4 py-2 rounded-xl bg-[#1E2022] text-white text-xs font-semibold">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION -->
+  <div id="velora-toast" class="fixed bottom-6 right-6 z-50 transform translate-y-4 opacity-0 transition-all duration-200">
+    <div class="bg-[#1E2022] text-white px-4 py-2.5 rounded-xl shadow-xl text-xs font-medium flex items-center gap-2">
+      <span class="material-symbols-outlined text-sm text-[#FF7A00]">info</span>
+      <span id="velora-toast-text">Notification</span>
+    </div>
+  </div>
+
+  <!-- Controller Scripts -->
+  <script src="src/js/dynamic_island.js"></script>
+  <script src="src/js/diagnostics_app.js"></script>
+</body>
+</html>

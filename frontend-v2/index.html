@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EnergiOS — Building Energy Intelligence & Monitoring</title>
+
+  <!-- Typography & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            velora: {
+              bg: '#FAF8F5',
+              card: '#FFFFFF',
+              pill: '#F4F0E8',
+              orange: '#FF7A00',
+              yellow: '#FACC15',
+              green: '#22C55E',
+              dark: '#1E2022',
+              muted: '#71767B',
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['Space Grotesk', 'monospace'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Exact Velora Stylesheet -->
+  <link rel="stylesheet" href="src/css/velora_exact.css">
+
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+
+  <!-- Verified Backend & BDG2 Telemetry Sync -->
+  <script src="src/data/bdg2_data.js"></script>
+  <script src="src/js/api.js"></script>
+</head>
+
+<body class="bg-[#FAF8F5] text-[#1E2022] antialiased min-h-screen flex flex-col p-6 lg:p-8 selection:bg-orange-100 selection:text-orange-900">
+
+  <!-- =================================================================== -->
+  <!-- APPLE DYNAMIC ISLAND (1:1 Exact Replica of dynamic_island.jpeg)     -->
+  <!-- =================================================================== -->
+  <div id="dynamic-island" class="fixed top-3.5 left-1/2 -translate-x-1/2 z-50 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] select-none">
+    
+    <!-- Collapsed Pill (Apple Dynamic Island State) -->
+    <div id="island-collapsed" onclick="dynamicIsland.expand()" class="h-9 px-4 rounded-full bg-black text-white flex items-center justify-between gap-3.5 shadow-xl shadow-black/40 border border-white/10 cursor-pointer hover:scale-[1.03] transition-all" title="Click to open EnergiOS AI Copilot & Logs">
+      <div class="flex items-center gap-2">
+        <span class="w-3.5 h-3.5 flex items-center justify-center text-[#FF7A00]">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor">
+            <circle cx="12" cy="3" r="2" /><circle cx="12" cy="21" r="2" />
+            <circle cx="3" cy="12" r="2" /><circle cx="21" cy="12" r="2" />
+            <circle cx="5.6" cy="5.6" r="2" /><circle cx="18.4" cy="18.4" r="2" />
+            <circle cx="5.6" cy="18.4" r="2" /><circle cx="18.4" cy="5.6" r="2" />
+          </svg>
+        </span>
+        <span class="text-xs font-semibold text-white tracking-tight font-sans">EnergiOS AI</span>
+      </div>
+
+      <!-- iPhone Camera Notch Hole -->
+      <span class="w-2.5 h-2.5 rounded-full bg-[#1A1B1E] border border-white/10"></span>
+    </div>
+
+    <!-- Expanded Dynamic Island (1:1 Exact Match to dynamic_island.jpeg) -->
+    <div id="island-expanded" class="hidden w-[760px] max-w-[94vw] bg-[#000000] text-white rounded-[36px] shadow-2xl shadow-black/90 border border-white/10 p-6 pt-3 relative overflow-hidden backdrop-blur-2xl">
+      
+      <!-- Top Center: iPhone Physical Camera Cutout Notch -->
+      <div class="w-28 h-5 rounded-full bg-[#121316] mx-auto mb-3 flex items-center justify-center gap-2.5 border border-white/5">
+        <div class="w-2.5 h-2.5 rounded-full bg-[#070709] border border-blue-900/50 flex items-center justify-center">
+          <span class="w-1 h-1 rounded-full bg-blue-500/50"></span>
+        </div>
+        <span class="w-1.5 h-1.5 rounded-full bg-[#050507]"></span>
+      </div>
+
+      <!-- Header Row inside Island (Matching dynamic_island.jpeg) -->
+      <div class="flex items-center justify-between pb-3 px-1 border-b border-white/10">
+        <div class="flex items-center gap-2.5">
+          <!-- Orange Asterisk Sunburst Logo -->
+          <div class="w-6 h-6 flex items-center justify-center text-[#FF7A00]">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+              <circle cx="12" cy="3" r="2" /><circle cx="12" cy="21" r="2" />
+              <circle cx="3" cy="12" r="2" /><circle cx="21" cy="12" r="2" />
+              <circle cx="5.6" cy="5.6" r="2" /><circle cx="18.4" cy="18.4" r="2" />
+              <circle cx="5.6" cy="18.4" r="2" /><circle cx="18.4" cy="5.6" r="2" />
+              <line x1="12" y1="5" x2="12" y2="19" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />
+              <line x1="5" y1="12" x2="19" y2="12" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />
+              <line x1="7" y1="7" x2="17" y2="17" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />
+              <line x1="7" y1="17" x2="17" y2="7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />
+            </svg>
+          </div>
+          <span class="text-sm font-bold tracking-tight text-white font-sans">EnergiOS AI</span>
+        </div>
+
+        <!-- Right Controls -->
+        <div class="flex items-center gap-2">
+          <button class="w-7 h-7 rounded-full bg-[#1C1D21] hover:bg-neutral-800 text-neutral-300 hover:text-white flex items-center justify-center text-xs transition-colors" title="Settings">
+            <span class="material-symbols-outlined text-[16px]">more_horiz</span>
+          </button>
+          <button onclick="dynamicIsland.collapse()" class="w-7 h-7 rounded-full bg-[#1C1D21] hover:bg-neutral-800 text-neutral-400 hover:text-white flex items-center justify-center text-xs transition-colors" title="Collapse Island">
+            <span class="material-symbols-outlined text-[16px]">close</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Two Columns Body (Exact 1:1 match to dynamic_island.jpeg) -->
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-6 pt-4">
+
+        <!-- Left Column: Chat Assistant (7 Cols) -->
+        <div class="md:col-span-7 flex flex-col justify-between space-y-3">
+          <div>
+            <span class="text-xs font-semibold text-neutral-400 block mb-2 font-sans">Chat Assistant</span>
+            <!-- Agent Message Bubble (Styled identically to dynamic_island.jpeg) -->
+            <div class="bg-[#1C1D21] border border-white/5 rounded-2xl p-4 text-xs text-neutral-200 leading-relaxed shadow-sm">
+              <p id="island-agent-bubble-text">
+                Here's an analysis of your energy consumption. Hog_office_Bill consumed <b>4,440 kWh</b> so far, which is up <b>12.4%</b> compared to 24h prior. 118 statistical anomalies detected. Would you like me to analyze peak usage?
+              </p>
+            </div>
+          </div>
+
+          <!-- Interactive Quick Prompt Chips -->
+          <div class="flex items-center gap-1.5 flex-wrap pt-0.5">
+            <button onclick="dynamicIsland.sendQuickPrompt('Analyze peak usage')" class="px-2.5 py-1 rounded-full text-[10px] font-medium bg-[#1C1D21] hover:bg-[#282A30] text-neutral-300 border border-white/5 transition-all">
+              ⚡ Analyze peak usage
+            </button>
+            <button onclick="dynamicIsland.sendQuickPrompt('Audit 118 anomalies')" class="px-2.5 py-1 rounded-full text-[10px] font-medium bg-[#1C1D21] hover:bg-[#282A30] text-neutral-300 border border-white/5 transition-all">
+              ⚠️ Audit 118 anomalies
+            </button>
+            <button onclick="dynamicIsland.sendQuickPrompt('Calculate TNB tariff cost')" class="px-2.5 py-1 rounded-full text-[10px] font-medium bg-[#1C1D21] hover:bg-[#282A30] text-neutral-300 border border-white/5 transition-all">
+              💰 Calculate TNB cost
+            </button>
+          </div>
+
+          <!-- Input Bar (Exact 1:1 match to dynamic_island.jpeg) -->
+          <form onsubmit="dynamicIsland.handleUserSubmit(event)" class="mt-2 flex items-center gap-2 bg-[#121316] border border-white/10 rounded-full px-3.5 py-2 shadow-inner">
+            <div class="flex items-center gap-1 text-neutral-500 pl-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-neutral-500"></span>
+              <span class="w-1.5 h-1.5 rounded-full bg-neutral-500"></span>
+              <span class="w-1.5 h-1.5 rounded-full bg-neutral-500"></span>
+            </div>
+            <input id="island-user-input" type="text" placeholder="Quick user mean natural prompt..." class="bg-transparent text-xs text-white placeholder:text-neutral-500 outline-none flex-1 px-1 font-sans">
+            <button type="submit" class="w-6 h-6 rounded-full bg-white text-black flex items-center justify-center hover:bg-neutral-200 transition-colors shrink-0" title="Send">
+              <span class="material-symbols-outlined text-[14px]">arrow_upward</span>
+            </button>
+          </form>
+        </div>
+
+        <!-- Right Column: Agent Logs (5 Cols) -->
+        <div class="md:col-span-5 flex flex-col justify-between border-t md:border-t-0 md:border-l border-white/10 md:pl-5 pt-3 md:pt-0">
+          <div>
+            <span class="text-xs font-semibold text-neutral-400 block mb-2 font-sans">Agent Logs</span>
+            <div id="island-agent-logs-list" class="space-y-2.5 font-mono text-[11px] max-h-[190px] overflow-y-auto pr-1">
+              <div class="flex items-start gap-1.5 leading-snug">
+                <span class="text-neutral-500 whitespace-nowrap">• 14:12:05 —</span>
+                <span class="text-neutral-300">Analyzing peak consumption metrics for current day...</span>
+              </div>
+              <div class="flex items-start gap-1.5 leading-snug">
+                <span class="text-neutral-500 whitespace-nowrap">• 14:12:12 —</span>
+                <span class="text-neutral-300">Detecting anomaly in Building 3 HVAC draw (high) <span class="text-amber-400">⚠️</span></span>
+              </div>
+              <div class="flex items-start gap-1.5 leading-snug">
+                <span class="text-neutral-500 whitespace-nowrap">• 14:14:02 —</span>
+                <span class="text-neutral-300">Optimized solar storage battery allocation <span class="text-emerald-400">✅</span></span>
+              </div>
+              <div class="flex items-start gap-1.5 leading-snug">
+                <span class="text-neutral-500 whitespace-nowrap">• 14:15:30 —</span>
+                <span class="text-neutral-300">Generating hourly 24h efficiency report...</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <!-- =================================================================== -->
+  <!-- TOP NAVIGATION BAR (Clean with Logo & Profile, Dynamic Island above)-->
+  <!-- =================================================================== -->
+  <header class="w-full flex items-center justify-between pb-6 max-w-[1540px] mx-auto relative z-10">
+    <!-- Brand Logo: Exact Orange Asterisk Sunburst + EnergiOS -->
+    <a href="index.html" class="flex items-center gap-2.5 group">
+      <div class="w-7 h-7 flex items-center justify-center text-[#FF7A00]">
+        <!-- Exact 8-point Sunburst Asterisk Icon from idea-02 -->
+        <svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor">
+          <circle cx="12" cy="3" r="2" />
+          <circle cx="12" cy="21" r="2" />
+          <circle cx="3" cy="12" r="2" />
+          <circle cx="21" cy="12" r="2" />
+          <circle cx="5.6" cy="5.6" r="2" />
+          <circle cx="18.4" cy="18.4" r="2" />
+          <circle cx="5.6" cy="18.4" r="2" />
+          <circle cx="18.4" cy="5.6" r="2" />
+          <line x1="12" y1="5" x2="12" y2="19" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />
+          <line x1="5" y1="12" x2="19" y2="12" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />
+          <line x1="7" y1="7" x2="17" y2="17" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />
+          <line x1="7" y1="17" x2="17" y2="7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />
+        </svg>
+      </div>
+      <span class="text-xl font-bold tracking-tight text-[#1E2022] font-sans">EnergiOS</span>
+    </a>
+
+    <!-- Center Space Reserved for Dynamic Island -->
+    <div class="hidden sm:block w-32"></div>
+
+    <!-- Right Utility Icons & Profile Avatar -->
+    <div class="flex items-center gap-4 text-[#71767B]">
+      <!-- Live API Status Tag -->
+      <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200/80 text-emerald-800 text-[11px] font-semibold">
+        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+        <span class="font-mono">Live API Connected</span>
+      </div>
+
+      <!-- Search Icon -->
+      <button class="hover:text-[#1E2022] transition-colors" title="Search" onclick="veloraApp.showToast('Press ⌘K to search assets')">
+        <span class="material-symbols-outlined text-[20px]">search</span>
+      </button>
+      <!-- Bell Notification with Red Dot -->
+      <div class="relative cursor-pointer hover:text-[#1E2022] transition-colors" onclick="veloraApp.openAlertDetails()" title="Alerts & Notifications">
+        <span class="material-symbols-outlined text-[20px]">notifications</span>
+        <span class="absolute top-0.5 right-0.5 w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+      </div>
+      <!-- User Profile Avatar Image -->
+      <div class="w-8 h-8 rounded-full overflow-hidden border border-slate-200 cursor-pointer shadow-xs" title="Operator Profile">
+        <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&h=120&q=80" alt="Avatar" class="w-full h-full object-cover">
+      </div>
+    </div>
+  </header>
+
+  <!-- =================================================================== -->
+  <!-- MAIN APP CONTAINER WITH LEFT FLOATING SIDEBAR + DASHBOARD CANVAS    -->
+  <!-- =================================================================== -->
+  <div class="flex-1 w-full max-w-[1540px] mx-auto flex items-start gap-6">
+
+    <!-- FLOATING VERTICAL PILL NAVIGATION SIDEBAR (100% Exact Copy) -->
+    <aside class="velora-sidebar hidden md:flex shrink-0">
+      <!-- 1. Grid (Active with peach background and orange icon) -->
+      <a href="index.html" class="velora-nav-btn active" title="Dashboard Overview">
+        <span class="material-symbols-outlined text-[19px]">grid_view</span>
+      </a>
+      <!-- 2. Pie Chart -->
+      <a href="diagnostics.html" class="velora-nav-btn" title="Asset Diagnostics">
+        <span class="material-symbols-outlined text-[19px]">pie_chart</span>
+      </a>
+      <!-- 3. Lightning Bolt -->
+      <a href="energy.html" class="velora-nav-btn" title="Energy & Power Flow">
+        <span class="material-symbols-outlined text-[19px]">bolt</span>
+      </a>
+      <!-- 4. Domain / Digital Twin -->
+      <a href="digital-twin.html" class="velora-nav-btn" title="Spatial Digital Twin">
+        <span class="material-symbols-outlined text-[19px]">domain</span>
+      </a>
+      <!-- 5. Alert Triangle -->
+      <button class="velora-nav-btn" title="Anomaly Alerts" onclick="veloraApp.openAlertDetails()">
+        <span class="material-symbols-outlined text-[19px]">warning</span>
+      </button>
+      <!-- 6. Document Sheet -->
+      <button class="velora-nav-btn" title="Provenance & Reports" onclick="veloraApp.showToast('Public Benchmark: BDG2 v1.0 · DOE Whole-Building Dataset')">
+        <span class="material-symbols-outlined text-[19px]">description</span>
+      </button>
+    </aside>
+
+    <!-- MAIN DASHBOARD CONTENT AREA -->
+    <div class="flex-1 min-w-0 space-y-6">
+
+      <!-- =============================================================== -->
+      <!-- HERO ROW: TITLE + 3 METRICS (LEFT) & PHOTO OF BUILDING (RIGHT) -->
+      <!-- (100% Exact Layout of idea-02-light.jpeg)                       -->
+      <!-- =============================================================== -->
+      <section class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-end pt-2 pb-2">
+
+        <!-- Left Column: Title, Metadata, Building Switcher & 3 Project Metrics (7 cols) -->
+        <div class="lg:col-span-7 space-y-5">
+          <!-- Title & Site Tag -->
+          <div>
+            <h1 class="text-3xl lg:text-[40px] font-extrabold tracking-tight text-[#1E2022] leading-[1.15]">
+              EnergiOS<br>Dashboard Overview
+            </h1>
+            <p id="site-subtitle-tag" class="text-xs font-mono font-medium text-[#71767B] mt-2 tracking-wide uppercase">
+              // SITE: BDG2-HOG-OFFICE · WHOLE-BUILDING METER · COMMERCIAL OFFICE · MARCH 2026
+            </p>
+          </div>
+
+          <!-- Building Cohort Switcher for 4 BDG2 Buildings -->
+          <div class="flex items-center gap-1.5 flex-wrap pt-1">
+            <span class="text-[10px] uppercase font-bold text-slate-400 font-mono mr-1">Building:</span>
+            <div id="building-picker-container" class="flex items-center gap-1.5 flex-wrap">
+              <!-- Dynamically populated by velora_app.js -->
+            </div>
+          </div>
+
+          <!-- 3 Horizontal Metric Columns with Clean Division -->
+          <div class="grid grid-cols-3 gap-6 pt-3">
+            <!-- Metric 1: Total Consumption (24h) -->
+            <div>
+              <span class="text-xs text-[#71767B] font-medium block">Total Consumption (24h)</span>
+              <div class="flex items-baseline gap-1 mt-1">
+                <span id="metric-total-val" class="text-3xl lg:text-4xl font-extrabold text-[#1E2022] tracking-tight">4,440</span>
+                <span class="text-xs font-semibold text-[#71767B]">kWh</span>
+              </div>
+              <span id="metric-total-delta" class="text-xs font-semibold text-[#22C55E] mt-1 block">+12.4% vs 24h prior</span>
+            </div>
+
+            <!-- Metric 2: Current Demand -->
+            <div>
+              <span class="text-xs text-[#71767B] font-medium block">Current Demand</span>
+              <div class="flex items-baseline gap-1 mt-1">
+                <span id="metric-current-val" class="text-3xl lg:text-4xl font-extrabold text-[#1E2022] tracking-tight">185.0</span>
+                <span class="text-xs font-semibold text-[#71767B]">kWh</span>
+              </div>
+              <span id="metric-current-status" class="text-xs font-semibold text-[#22C55E] mt-1 block">Observed interval</span>
+            </div>
+
+            <!-- Metric 3: Forecast Error (MAE) -->
+            <div>
+              <span class="text-xs text-[#71767B] font-medium block">Forecast Error (MAE)</span>
+              <div class="flex items-baseline gap-1 mt-1">
+                <span id="metric-export-val" class="text-3xl lg:text-4xl font-extrabold text-[#1E2022] tracking-tight">22.07</span>
+                <span class="text-xs font-semibold text-[#71767B]">kWh</span>
+              </div>
+              <span id="metric-export-delta" class="text-xs font-semibold text-[#22C55E] mt-1 block">+23.9% vs Baseline</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column: PHOTO OF BUILDING WITH ROOFTOP SOLAR (5 cols) -->
+        <!-- (Exact building photo from idea-02-light.jpeg) -->
+        <div class="lg:col-span-5 flex flex-col items-end justify-end relative">
+          <!-- The Photo of the Building -->
+          <div class="exact-building-wrapper">
+            <img id="hero-building-photo" src="assets/idea_crops/exact_building_perfect.jpeg" alt="Rooftop Solar Architecture" class="exact-building-img">
+          </div>
+
+          <!-- Floating Pill Buttons (Hourly / Daily / Monthly + Sliders + Download) -->
+          <div class="flex items-center gap-2 mt-2 z-10">
+            <!-- Segmented Timeframe Toggle -->
+            <div class="velora-pill-container bg-white border border-[#EBE7DF] shadow-xs">
+              <button class="velora-pill timeframe-btn active" data-timeframe="Hourly" onclick="veloraApp.setTimeframe('Hourly')">Hourly</button>
+              <button class="velora-pill timeframe-btn" data-timeframe="Daily" onclick="veloraApp.setTimeframe('Daily')">Daily</button>
+              <button class="velora-pill timeframe-btn" data-timeframe="Monthly" onclick="veloraApp.setTimeframe('Monthly')">Monthly</button>
+            </div>
+
+            <!-- Filter Sliders Button -->
+            <button class="velora-icon-btn" title="Telemetry Filters" onclick="veloraApp.showToast('Filter: Hourly 60-min interval readings')">
+              <span class="material-symbols-outlined text-[18px]">tune</span>
+            </button>
+
+            <!-- Download Button -->
+            <button class="velora-icon-btn" title="Export CSV / JSON" onclick="veloraApp.showToast('Exporting BDG2 telemetry data...')">
+              <span class="material-symbols-outlined text-[18px]">download</span>
+            </button>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- =============================================================== -->
+      <!-- MIDDLE ROW: ENERGY OVERVIEW (LEFT) + POWER DIAL + BATTERY       -->
+      <!-- (100% Exact Layout of idea-02-light.jpeg)                       -->
+      <!-- =============================================================== -->
+      <section class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        <!-- Card 1: Energy Overview (Time-Series Spline Chart) (6 Cols) -->
+        <div class="lg:col-span-6 velora-card flex flex-col justify-between">
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-base font-bold text-[#1E2022]">Energy Overview</h2>
+            <!-- Exact Legend from idea-02-light.jpeg with Project Variables -->
+            <div class="flex items-center gap-4 text-xs text-[#71767B]">
+              <div class="flex items-center gap-1.5">
+                <span class="w-3 h-0.5 bg-[#FF7A00] rounded-full"></span>
+                <span>Observed (kWh)</span>
+              </div>
+              <div class="flex items-center gap-1.5">
+                <span class="w-3 h-0.5 bg-[#FACC15] rounded-full"></span>
+                <span>24h Forecast</span>
+              </div>
+              <div class="flex items-center gap-1.5">
+                <span class="w-3 h-0.5 border-b-2 border-dashed border-[#22C55E]"></span>
+                <span>Baseline</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Spline Line Chart Canvas -->
+          <div class="relative w-full h-[220px]">
+            <canvas id="energy-overview-chart"></canvas>
+          </div>
+        </div>
+
+        <!-- Card 2: Power Demand (Speedometer Radial Tick Dial) (3 Cols) -->
+        <div class="lg:col-span-3 velora-card flex flex-col justify-between">
+          <div class="flex items-center justify-between">
+            <h2 class="text-base font-bold text-[#1E2022]">Power Demand</h2>
+            <span class="text-xs font-medium text-[#71767B]">US/Central</span>
+          </div>
+
+          <!-- Circular Radial Dial Gauge with Speedometer Ticks -->
+          <div class="relative w-full flex items-center justify-center my-3">
+            <svg class="w-36 h-36" viewBox="0 0 140 140">
+              <!-- Rendered dynamically by velora_app.js -->
+              <g id="power-dial-ticks"></g>
+            </svg>
+            <!-- Center Power Label and Value -->
+            <div class="absolute inset-0 flex flex-col items-center justify-center">
+              <span class="text-[11px] text-[#71767B] font-medium uppercase tracking-wider">Demand</span>
+              <span id="dial-power-val" class="text-2xl font-extrabold text-[#1E2022] mt-0.5 tracking-tight">185.0</span>
+              <span class="text-[10px] text-[#71767B] font-medium">kWh</span>
+            </div>
+          </div>
+
+          <!-- Bottom 3 Columns: Min, Peak, Avg -->
+          <div class="flex items-center justify-between text-center pt-2 border-t border-slate-100/60 text-xs text-[#71767B]">
+            <div>
+              <span class="block text-[11px] text-[#71767B]">Min (24h)</span>
+              <span id="dial-min-val" class="font-bold text-[#1E2022] mt-0.5 block">148.2 <span class="text-[10px] font-normal">kWh</span></span>
+            </div>
+            <div>
+              <span class="block text-[11px] text-[#71767B]">Peak Load</span>
+              <span id="dial-max-val" class="font-bold text-[#1E2022] mt-0.5 block">452.9 <span class="text-[10px] font-normal">kWh</span></span>
+            </div>
+            <div>
+              <span class="block text-[11px] text-[#71767B]">Avg Demand</span>
+              <span id="dial-avg-val" class="font-bold text-[#1E2022] mt-0.5 block">184.9 <span class="text-[10px] font-normal">kWh</span></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 3: Load Factor & Efficiency Metrics (3 Cols) -->
+        <div class="lg:col-span-3 velora-card flex flex-col justify-between">
+          <div class="flex items-center justify-between mb-2">
+            <h2 class="text-base font-bold text-[#1E2022]">Load & Efficiency</h2>
+            <div class="flex items-center gap-1">
+              <span id="battery-pct-val" class="text-base font-bold text-[#1E2022]">68%</span>
+              <span class="text-[10px] text-[#71767B] font-mono">Factor</span>
+            </div>
+          </div>
+
+          <!-- Progress Bars List with Ruler Ticks -->
+          <div class="space-y-4 my-auto">
+            <!-- Item 1: Active Demand / Peak Capacity -->
+            <div>
+              <div class="flex items-center justify-between text-xs mb-1">
+                <span class="text-[#71767B]">Active Load</span>
+                <span id="bar-energy-val" class="font-semibold text-[#1E2022]">185.0 / 452.9 kW</span>
+              </div>
+              <div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
+                <div id="progress-bar-energy" class="bg-[#86EFAC] h-full rounded-full transition-all duration-500" style="width: 41%"></div>
+              </div>
+              <div class="ruler-ticks"></div>
+            </div>
+
+            <!-- Item 2: Energy Intensity (EUI) -->
+            <div>
+              <div class="flex items-center justify-between text-xs mb-1">
+                <span class="text-[#71767B]">Energy Intensity (EUI)</span>
+                <span id="bar-consuming-val" class="font-semibold text-[#1E2022]">0.33 kWh/m² · Day</span>
+              </div>
+              <div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
+                <div id="progress-bar-consuming" class="bg-[#FCA5A5] h-full rounded-full transition-all duration-500" style="width: 38%"></div>
+              </div>
+              <div class="ruler-ticks"></div>
+            </div>
+
+            <!-- Item 3: Forecast Deviation (MAE Band) -->
+            <div>
+              <div class="flex items-center justify-between text-xs mb-1">
+                <span class="text-[#71767B]">Forecast Deviation</span>
+                <span id="bar-temp-val" class="font-semibold text-[#1E2022]">MAE ±22.07 kWh</span>
+              </div>
+              <div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
+                <div id="progress-bar-temp" class="bg-gradient-to-r from-[#FED7AA] to-[#F97316] h-full rounded-full transition-all duration-500" style="width: 55%"></div>
+              </div>
+              <div class="ruler-ticks"></div>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- =============================================================== -->
+      <!-- BOTTOM ROW: ALERTS + ENVIRONMENTAL IMPACT + 24H MATRIX         -->
+      <!-- (100% Exact Layout of idea-02-light.jpeg)                       -->
+      <!-- =============================================================== -->
+      <section class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        <!-- Card 1: Anomaly Alerts (3 Cols) -->
+        <div id="alerts-card-trigger" class="lg:col-span-3 velora-card flex flex-col justify-between cursor-pointer hover:shadow-md transition-shadow" title="Click to view full anomaly detection details">
+          <div class="flex items-center justify-between">
+            <h2 class="text-base font-bold text-[#1E2022]">Anomaly Alerts</h2>
+            <span id="alerts-count-tag" class="text-xs font-semibold text-[#FF7A00] bg-orange-50 px-2 py-0.5 rounded-full border border-orange-200/50">118 Flags</span>
+          </div>
+
+          <!-- Mini Stacked Bar Visual -->
+          <div class="grid grid-cols-3 gap-3 items-end h-28 my-2 pt-4">
+            <!-- Spikes Bar -->
+            <div class="flex flex-col items-center gap-1.5 h-full justify-end">
+              <div class="w-full bg-[#FF7A00] h-14 rounded-xs" title="Surge Spikes above MAD threshold"></div>
+              <span class="text-[11px] text-[#71767B]">Spikes</span>
+            </div>
+            <!-- Drops Bar -->
+            <div class="flex flex-col items-center gap-1.5 h-full justify-end">
+              <div class="w-full bg-[#FACC15] border border-[#1E2022] h-7 rounded-xs" title="Drop outliers below threshold"></div>
+              <span class="text-[11px] text-[#71767B]">Drops</span>
+            </div>
+            <!-- Drift Diagonal Hatch Bar -->
+            <div class="flex flex-col items-center gap-1.5 h-full justify-end">
+              <div class="w-full system-hatch-pattern h-16 rounded-xs" title="Seasonal baseline drift"></div>
+              <span class="text-[11px] text-[#71767B]">Drift</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 2: Cost & Carbon Impact (4 Cols) -->
+        <div class="lg:col-span-4 velora-card flex flex-col justify-between">
+          <div class="flex items-center justify-between mb-3">
+            <h2 class="text-base font-bold text-[#1E2022]">Cost & Carbon Impact</h2>
+            <span class="text-[10px] text-[#71767B] font-mono">TNB C1 / 0.65 kg CO₂e</span>
+          </div>
+
+          <div class="space-y-3.5 my-auto">
+            <div class="flex items-center justify-between pb-2 border-b border-slate-100 text-xs">
+              <span class="text-[#71767B]">Est. Electricity Cost</span>
+              <span id="impact-cost-val" class="font-bold text-[#1E2022]">RM 1,620.60</span>
+            </div>
+            <div class="flex items-center justify-between pb-2 border-b border-slate-100 text-xs">
+              <span class="text-[#71767B]">Est. Carbon Emissions</span>
+              <span id="impact-carbon-val" class="font-bold text-[#1E2022]">2,886 kg CO₂e</span>
+            </div>
+            <div class="flex items-center justify-between text-xs">
+              <span class="text-[#71767B]">Energy Intensity (EUI)</span>
+              <span id="impact-eui-val" class="font-bold text-[#1E2022]">0.33 kWh/m² · Day</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 3: 24-Hour Forecast Horizon Matrix (5 Cols) -->
+        <div class="lg:col-span-5 velora-card flex flex-col justify-between">
+          <div class="flex items-center justify-between mb-3">
+            <h2 class="text-base font-bold text-[#1E2022]">24-Hour Forecast Horizon</h2>
+            <span class="text-xs text-[#71767B]">24 Hourly Intervals · ML Predicted</span>
+          </div>
+
+          <!-- Heatmap Grid: Row AM and Row PM with 12 cells each -->
+          <div class="space-y-2.5 my-auto overflow-x-auto pb-1">
+            <!-- Row AM (Hours 00:00 to 11:00) -->
+            <div class="flex items-center gap-2">
+              <span class="text-[11px] font-bold text-[#71767B] w-5 font-mono">AM</span>
+              <div id="heatmap-row-a" class="flex items-center gap-1.5 flex-1 justify-between">
+                <!-- Injected dynamically by velora_app.js -->
+              </div>
+            </div>
+
+            <!-- Row PM (Hours 12:00 to 23:00) -->
+            <div class="flex items-center gap-2">
+              <span class="text-[11px] font-bold text-[#71767B] w-5 font-mono">PM</span>
+              <div id="heatmap-row-b" class="flex items-center gap-1.5 flex-1 justify-between">
+                <!-- Injected dynamically by velora_app.js -->
+              </div>
+            </div>
+
+            <!-- Column Numbers 1 to 12 below -->
+            <div class="flex items-center gap-2">
+              <span class="w-5"></span>
+              <div class="flex items-center gap-1.5 flex-1 justify-between text-[10px] text-[#71767B] font-mono">
+                <span class="w-7 text-center">1</span>
+                <span class="w-7 text-center">2</span>
+                <span class="w-7 text-center">3</span>
+                <span class="w-7 text-center">4</span>
+                <span class="w-7 text-center text-[#FF7A00] font-bold">5</span>
+                <span class="w-7 text-center">6</span>
+                <span class="w-7 text-center">7</span>
+                <span class="w-7 text-center">8</span>
+                <span class="w-7 text-center">9</span>
+                <span class="w-7 text-center">10</span>
+                <span class="w-7 text-center">11</span>
+                <span class="w-7 text-center">12</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+    </div>
+  </div>
+
+  <!-- INTERACTIVE MODAL FOR DETAILED BDG2 ANOMALIES & AUDIT LOGS -->
+  <div id="velora-alert-modal" class="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-slate-100 space-y-4">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+        <div>
+          <h3 class="text-base font-bold text-[#1E2022]">Telemetry & Anomaly Audit</h3>
+          <p class="text-xs text-[#71767B]">Statistical unusual pattern detections (BDG2 v1.0)</p>
+        </div>
+        <button onclick="veloraApp.closeAlertDetails()" class="w-8 h-8 rounded-full hover:bg-slate-100 flex items-center justify-center text-[#71767B]">
+          <span class="material-symbols-outlined text-lg">close</span>
+        </button>
+      </div>
+
+      <div id="modal-anomalies-list" class="space-y-2.5 max-h-[300px] overflow-y-auto text-xs">
+        <!-- Injected dynamically by velora_app.js -->
+      </div>
+
+      <div class="pt-3 border-t border-slate-100 flex justify-between items-center text-[10px] text-slate-400">
+        <span>Validation MAD 6× Rule · Whole-Building Meter</span>
+        <button onclick="veloraApp.closeAlertDetails()" class="px-4 py-2 rounded-xl bg-[#1E2022] text-white text-xs font-semibold">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION -->
+  <div id="velora-toast" class="fixed bottom-6 right-6 z-50 transform translate-y-4 opacity-0 transition-all duration-200">
+    <div class="bg-[#1E2022] text-white px-4 py-2.5 rounded-xl shadow-xl text-xs font-medium flex items-center gap-2">
+      <span class="material-symbols-outlined text-sm text-[#FF7A00]">info</span>
+      <span id="velora-toast-text">Notification</span>
+    </div>
+  </div>
+
+  <!-- Controller Scripts -->
+  <script src="src/js/dynamic_island.js"></script>
+  <script src="src/js/velora_app.js"></script>
+</body>
+</html>
