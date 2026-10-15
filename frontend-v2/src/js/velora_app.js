@@ -513,6 +513,20 @@ class EnergiOSDashboard {
     if (alertCard) {
       alertCard.onclick = () => this.openAlertDetails();
     }
+
+    window.addEventListener('energios:theme-changed', () => {
+      if (this.energyChart && this.energyChart.options && this.energyChart.options.scales) {
+        const colors = window.getChartThemeColors ? window.getChartThemeColors() : null;
+        if (colors) {
+          if (this.energyChart.options.scales.x) this.energyChart.options.scales.x.ticks.color = colors.textColor;
+          if (this.energyChart.options.scales.y) {
+            this.energyChart.options.scales.y.grid.color = colors.gridColor;
+            this.energyChart.options.scales.y.ticks.color = colors.textColor;
+          }
+          this.energyChart.update();
+        }
+      }
+    });
   }
 }
 

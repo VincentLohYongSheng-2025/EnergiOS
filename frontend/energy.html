@@ -12,6 +12,7 @@
 <script src="https://unpkg.com/lucide@latest"></script>
 <script>
     tailwind.config = {
+      darkMode: 'class',
       theme: {
         extend: {
           fontFamily: {
@@ -62,6 +63,45 @@
     }
     .terminal-scrollbar::-webkit-scrollbar-thumb:hover {
       background: #334155;
+    }
+    /* Dark Mode Styles */
+    html.dark {
+      color-scheme: dark;
+    }
+    html.dark body {
+      background-color: #0b0f17 !important;
+      color: #f1f5f9 !important;
+    }
+    html.dark .bg-white {
+      background-color: #121824 !important;
+      border-color: rgba(255, 255, 255, 0.08) !important;
+    }
+    html.dark .bg-slate-50 {
+      background-color: #0b0f17 !important;
+    }
+    html.dark .text-slate-900, html.dark .text-slate-800 {
+      color: #f8fafc !important;
+    }
+    html.dark .text-slate-700, html.dark .text-slate-600 {
+      color: #cbd5e1 !important;
+    }
+    html.dark .text-slate-500, html.dark .text-slate-400 {
+      color: #94a3b8 !important;
+    }
+    html.dark .border-slate-200, html.dark .border-slate-100 {
+      border-color: rgba(255, 255, 255, 0.08) !important;
+    }
+    html.dark aside {
+      background-color: #121824 !important;
+      border-color: rgba(255, 255, 255, 0.08) !important;
+    }
+    html.dark .bg-\[\#eff4ff\] {
+      background-color: #162030 !important;
+      border-color: rgba(255, 255, 255, 0.08) !important;
+    }
+    html.dark .bg-\[\#d1fae5\]\/80 {
+      background-color: rgba(6, 78, 59, 0.5) !important;
+      border-color: rgba(16, 185, 129, 0.3) !important;
     }
   </style>
 </head><body class="bg-slate-50 text-slate-800 min-h-screen flex antialiased selection:bg-emerald-100 selection:text-emerald-900 overflow-x-hidden overflow-y-auto"><svg aria-hidden="true" class="inline-defs-container" style="position:absolute;width:0;height:0;overflow:hidden"></svg>
@@ -274,6 +314,10 @@
 <span class="">Next Arbitrage Dispatch:</span>
 <strong class="font-mono text-slate-900">14:00 MYT (in 1h 45m)</strong>
 </div>
+<button id="theme-toggle-btn-v1" onclick="toggleDarkModeV1()" class="w-8 h-8 rounded-lg bg-white border border-slate-200 text-slate-700 hover:text-slate-900 flex items-center justify-center shadow-xs transition-colors" title="Toggle Dark / Light Mode">
+<span class="material-symbols-outlined text-[18px]" id="icon-moon-v1">dark_mode</span>
+<span class="material-symbols-outlined text-[18px] hidden" id="icon-sun-v1">light_mode</span>
+</button>
 <button class="flex items-center gap-2 px-3.5 py-1.5 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 hover:text-slate-900 text-xs font-semibold rounded-lg shadow-xs transition-colors" onclick="showToast('Exporting microgrid financial ledger audit...')">
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="download" aria-hidden="true" class="lucide lucide-download w-3.5 h-3.5 text-slate-400"><path d="M12 15V3"></path><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><path d="m7 10 5 5 5-5"></path></svg>
 <span class="">Export Audit</span>
@@ -1248,6 +1292,34 @@
           updateScrubber(e.touches[0].clientX);
         }
       }, { passive: true });
+    })();
+
+    // Dark Mode Controller for EnergyOS v1 view
+    function toggleDarkModeV1() {
+      const isDark = document.documentElement.classList.toggle('dark');
+      localStorage.setItem('ENERGIOS_THEME', isDark ? 'dark' : 'light');
+      const moon = document.getElementById('icon-moon-v1');
+      const sun = document.getElementById('icon-sun-v1');
+      if (moon && sun) {
+        moon.classList.toggle('hidden', isDark);
+        sun.classList.toggle('hidden', !isDark);
+      }
+      if (typeof showToast === 'function') {
+        showToast(isDark ? 'Dark Mode (Obsidian) Enabled' : 'Light Mode Enabled');
+      }
+    }
+    (function() {
+      const stored = localStorage.getItem('ENERGIOS_THEME');
+      const isDark = stored === 'dark' || (!stored && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+      if (isDark) {
+        document.documentElement.classList.add('dark');
+        const moon = document.getElementById('icon-moon-v1');
+        const sun = document.getElementById('icon-sun-v1');
+        if (moon && sun) {
+          moon.classList.add('hidden');
+          sun.classList.remove('hidden');
+        }
+      }
     })();
   </script>
 </body></html>

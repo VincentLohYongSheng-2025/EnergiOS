@@ -15,6 +15,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
+      darkMode: 'class',
       theme: {
         extend: {
           colors: {
@@ -37,6 +38,9 @@
       }
     }
   </script>
+
+  <!-- Theme Manager (Immediately executes to prevent theme flash) -->
+  <script src="src/js/theme.js"></script>
 
   <!-- Exact Velora Stylesheet -->
   <link rel="stylesheet" href="src/css/velora_exact.css">
@@ -219,10 +223,16 @@
     <!-- Right Utility Icons & Profile Avatar -->
     <div class="flex items-center gap-4 text-[#71767B]">
       <!-- Live API Status Tag -->
-      <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200/80 text-emerald-800 text-[11px] font-semibold">
+      <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200/80 dark:border-emerald-800/60 text-emerald-800 dark:text-emerald-300 text-[11px] font-semibold">
         <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
         <span class="font-mono">Live API Connected</span>
       </div>
+
+      <!-- Theme Toggle Button -->
+      <button id="theme-toggle-btn" onclick="themeManager.toggle()" class="w-8 h-8 rounded-full bg-white dark:bg-[#162030] border border-[#EBE7DF] dark:border-white/10 flex items-center justify-center text-[#71767B] dark:text-[#94A3B8] hover:text-[#1E2022] dark:hover:text-white transition-all shadow-2xs hover:scale-105 active:scale-95" title="Toggle Dark / Light Mode">
+        <span class="material-symbols-outlined text-[18px] theme-icon-moon">dark_mode</span>
+        <span class="material-symbols-outlined text-[18px] theme-icon-sun hidden">light_mode</span>
+      </button>
 
       <!-- Search Icon -->
       <button class="hover:text-[#1E2022] transition-colors" title="Search" onclick="veloraApp.showToast('Press ⌘K to search assets')">

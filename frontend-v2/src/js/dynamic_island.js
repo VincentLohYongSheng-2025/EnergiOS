@@ -167,6 +167,15 @@ class DynamicIslandController {
       } else if (q.includes('forecast') || q.includes('predict') || q.includes('model') || q.includes('mae')) {
         response = `Forecasting model: 24h multi-step Ridge/LightGBM model active. Evaluation accuracy: <b>MAE 22.07 kWh</b> (+23.9% improvement over baseline), <b>RMSE 36.69 kWh</b> (+31.3% reduction).`;
         this.addLog(timeStr, `24h ML forecast model evaluation metrics retrieved`, 'info');
+      } else if (q.includes('dark') || q.includes('night') || q.includes('light') || q.includes('theme')) {
+        const isDark = q.includes('dark') || q.includes('night') || (q.includes('toggle') && !document.documentElement.classList.contains('dark'));
+        if (window.themeManager) {
+          window.themeManager.setTheme(isDark ? 'dark' : 'light');
+        }
+        response = isDark
+          ? `Visual theme switched to <b>Velora Obsidian (Dark Mode)</b>. Starry 3D digital twin sky, dark blueprint floorplan, and high-contrast telemetry active.`
+          : `Visual theme switched to <b>Velora Warm Sand (Light Mode)</b>. Architectural paper palette active.`;
+        this.addLog(timeStr, `Visual theme updated: ${isDark ? 'Dark Mode' : 'Light Mode'} active`, 'info');
       } else {
         response = `Here's an analysis of your energy consumption. Hog_office_Bill consumed <b>4,440 kWh</b> so far, which is up <b>12.4%</b> compared to 24h prior. 118 statistical anomalies detected. Would you like me to analyze peak usage?`;
         this.addLog(timeStr, `Telemetry synthesized for Hog_office_Bill`, 'success');

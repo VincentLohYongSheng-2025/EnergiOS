@@ -8,6 +8,9 @@
  */
 
 const ENERGIOS_DEFAULT_SETTINGS = {
+  // Appearance & Visual Theme
+  appearanceTheme: 'system',   // 'light' | 'dark' | 'system'
+
   // Section 1: AI Agent & Dynamic Island Preferences
   operationMode: 'autonomous', // 'autonomous' | 'manual'
   pollingInterval: '30s',      // '10s' | '30s' | '1m'
@@ -38,8 +41,13 @@ class SettingsManager {
   loadSettings() {
     try {
       const stored = localStorage.getItem(this.storageKey);
+      const themeStored = localStorage.getItem('ENERGIOS_THEME');
       if (stored) {
-        return { ...ENERGIOS_DEFAULT_SETTINGS, ...JSON.parse(stored) };
+        const parsed = JSON.parse(stored);
+        if (themeStored) parsed.appearanceTheme = themeStored;
+        return { ...ENERGIOS_DEFAULT_SETTINGS, ...parsed };
+      } else if (themeStored) {
+        return { ...ENERGIOS_DEFAULT_SETTINGS, appearanceTheme: themeStored };
       }
     } catch (e) {
       console.warn('[EnergiOS Settings] Failed to parse localStorage settings, using defaults.', e);
@@ -118,19 +126,36 @@ class SettingsManager {
   }
 
   applySettingsToRuntime() {
-    // 1. Update window.TNB_TARIFF if loaded
+    // 1. Sync theme if themeManager loaded
+    if (window.themeManager && this.settings.appearanceTheme) {
+      window.themeManager.setTheme(this.settings.appearanceTheme);
+    }
+
+    // 2. Update window.TNB_TARIFF if loaded
     if (window.TNB_TARIFF) {
       window.TNB_TARIFF.peakRateMyr = parseFloat(this.settings.peakRate) || 0.584;
       window.TNB_TARIFF.offPeakRateMyr = parseFloat(this.settings.offPeakRate) || 0.220;
     }
 
-    // 2. Dispatch custom event for cross-component sync
+    // 3. Dispatch custom event for cross-component sync
     window.dispatchEvent(new CustomEvent('energios:settings-updated', {
       detail: this.settings
     }));
   }
 
   populateUI() {
+    // 0. Appearance Theme Cards
+    const curTheme = this.settings.appearanceTheme || (window.themeManager ? window.themeManager.getTheme() : 'system');
+    document.querySelectorAll('.theme-option-btn').forEach((btn) => {
+      const mode = btn.getAttribute('data-theme');
+      const isSelected = mode === curTheme;
+      btn.classList.toggle('ring-2', isSelected);
+      btn.classList.toggle('ring-[#FF7A00]', isSelected);
+      btn.classList.toggle('border-[#FF7A00]', isSelected);
+      const checkIcon = btn.querySelector('.theme-check-icon');
+      if (checkIcon) checkIcon.classList.toggle('hidden', !isSelected);
+    });
+
     // 1. Operation Mode Segmented Control
     document.querySelectorAll('.op-mode-btn').forEach((btn) => {
       const mode = btn.getAttribute('data-value');
@@ -259,9 +284,35 @@ class SettingsManager {
     // Benchmark toggle
     const toggleBench = document.getElementById('toggle-benchmark-lines');
     if (toggleBench) this.settings.showBenchmarkLines = toggleBench.checked;
+
+    // Appearance Theme
+    const activeThemeBtn = document.querySelector('.theme-option-btn.ring-[#FF7A00]');
+    if (activeThemeBtn) {
+      this.settings.appearanceTheme = activeThemeBtn.getAttribute('data-theme');
+    }
   }
 
   bindUIEvents() {
+    // Appearance Theme Option Cards
+    document.querySelectorAll('.theme-option-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const selectedTheme = btn.getAttribute('data-theme');
+        this.settings.appearanceTheme = selectedTheme;
+        if (window.themeManager) {
+          window.themeManager.setTheme(selectedTheme);
+        }
+        document.querySelectorAll('.theme-option-btn').forEach((b) => {
+          const isSelected = b === btn;
+          b.classList.toggle('ring-2', isSelected);
+          b.classList.toggle('ring-[#FF7A00]', isSelected);
+          b.classList.toggle('border-[#FF7A00]', isSelected);
+          const checkIcon = b.querySelector('.theme-check-icon');
+          if (checkIcon) checkIcon.classList.toggle('hidden', !isSelected);
+        });
+        this.markDirty();
+      });
+    });
+
     // Segmented Controls: Operation Mode
     document.querySelectorAll('.op-mode-btn').forEach((btn) => {
       btn.addEventListener('click', () => {

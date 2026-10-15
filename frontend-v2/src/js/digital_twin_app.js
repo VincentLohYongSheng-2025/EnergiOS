@@ -62,6 +62,24 @@ class EnergiOSTwinApp {
     if (window.dynamicIsland && window.dynamicIsland.addLog) {
       window.dynamicIsland.addLog('Township 3D Microgrid twin initialized (4 assets, 18 telemetry nodes)', 'normal');
     }
+
+    // 4. Sync Initial Theme with Scene & Floorplan
+    if (window.themeManager && window.themeManager.isDark()) {
+      if (this.scene3d) this.scene3d.toggleNightMode(true);
+      if (this.floorplan2d) this.floorplan2d.setTheme('blueprint');
+    }
+
+    // 5. Listen for Theme Changed Event
+    window.addEventListener('energios:theme-changed', (e) => {
+      const isDark = e.detail ? e.detail.isDark : (window.themeManager ? window.themeManager.isDark() : false);
+      if (this.scene3d) {
+        this.scene3d.toggleNightMode(isDark);
+        this.state.isNightMode = isDark;
+      }
+      if (this.floorplan2d) {
+        this.floorplan2d.setTheme(isDark ? 'blueprint' : 'architectural');
+      }
+    });
   }
 
   // ==========================================

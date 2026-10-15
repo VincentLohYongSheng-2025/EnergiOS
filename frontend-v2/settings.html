@@ -15,6 +15,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
+      darkMode: 'class',
       theme: {
         extend: {
           colors: {
@@ -37,6 +38,9 @@
       }
     }
   </script>
+
+  <!-- Theme Manager (Immediately executes to prevent theme flash) -->
+  <script src="src/js/theme.js"></script>
 
   <!-- Exact Velora Stylesheet -->
   <link rel="stylesheet" href="src/css/velora_exact.css">
@@ -200,6 +204,12 @@
         <span id="save-status-text" class="text-[#71767B] font-medium">All Changes Saved</span>
       </div>
 
+      <!-- Theme Toggle Button -->
+      <button id="theme-toggle-btn" onclick="themeManager.toggle()" class="w-8 h-8 rounded-full bg-white dark:bg-[#162030] border border-[#EBE7DF] dark:border-white/10 flex items-center justify-center text-[#71767B] dark:text-[#94A3B8] hover:text-[#1E2022] dark:hover:text-white transition-all shadow-2xs hover:scale-105 active:scale-95" title="Toggle Dark / Light Mode">
+        <span class="material-symbols-outlined text-[18px] theme-icon-moon">dark_mode</span>
+        <span class="material-symbols-outlined text-[18px] theme-icon-sun hidden">light_mode</span>
+      </button>
+
       <!-- Save Changes Primary Button -->
       <button id="btn-save-settings" class="px-4 py-1.5 rounded-full bg-[#1E2022] hover:bg-black text-white text-xs font-semibold flex items-center gap-1.5 shadow-sm transition-all hover:scale-[1.02] active:scale-[0.98]">
         <span class="material-symbols-outlined text-[16px]">check</span>
@@ -271,6 +281,128 @@
           </button>
         </div>
       </div>
+
+      <!-- =============================================================== -->
+      <!-- SECTION 0: APPEARANCE & VISUAL THEME                            -->
+      <!-- =============================================================== -->
+      <section class="space-y-3">
+        <!-- Section Header with Apple-Style Icon Badge -->
+        <div class="flex items-center gap-2.5">
+          <div class="w-7 h-7 rounded-lg bg-indigo-500 text-white flex items-center justify-center shadow-xs">
+            <span class="material-symbols-outlined text-[17px]">palette</span>
+          </div>
+          <div>
+            <h2 class="text-sm font-bold text-[#1E2022] font-sans">Appearance & Visual Theme</h2>
+            <p class="text-[11px] text-[#71767B]">Select interface theme: Velora Warm Sand (Light), Velora Obsidian (Dark), or follow system OS</p>
+          </div>
+        </div>
+
+        <!-- Grouped Card Container with 3 Theme Cards -->
+        <div class="velora-card p-5 border border-[#EBE7DF] shadow-xs">
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            
+            <!-- Option 1: Light Mode -->
+            <button type="button" data-theme="light" class="theme-option-btn group relative flex flex-col p-4 rounded-2xl border border-[#EBE7DF] hover:border-slate-300 transition-all text-left bg-[#FAF8F5] cursor-pointer">
+              <!-- Visual Mockup Thumbnail -->
+              <div class="w-full h-24 rounded-xl bg-[#FAF8F5] border border-black/10 p-2.5 flex flex-col justify-between shadow-inner mb-3 overflow-hidden">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-1.5">
+                    <span class="w-2.5 h-2.5 rounded-full bg-[#FF7A00]"></span>
+                    <span class="w-14 h-2 rounded-full bg-black/10"></span>
+                  </div>
+                  <span class="w-3.5 h-3.5 rounded-full bg-black/5"></span>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                  <div class="h-10 rounded-lg bg-white border border-black/5 p-1.5 flex flex-col justify-between shadow-2xs">
+                    <span class="w-6 h-1.5 rounded-full bg-black/20"></span>
+                    <span class="w-10 h-2.5 rounded-full bg-[#FF7A00]/80"></span>
+                  </div>
+                  <div class="h-10 rounded-lg bg-white border border-black/5 p-1.5 flex flex-col justify-between shadow-2xs">
+                    <span class="w-6 h-1.5 rounded-full bg-black/20"></span>
+                    <span class="w-10 h-2.5 rounded-full bg-emerald-500/80"></span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Title & Checkmark -->
+              <div class="flex items-center justify-between w-full">
+                <div>
+                  <span class="text-xs font-bold text-[#1E2022] block">Velora Light</span>
+                  <span class="text-[10px] text-[#71767B]">Warm Sand Clean Paper</span>
+                </div>
+                <span class="material-symbols-outlined text-[18px] text-[#FF7A00] theme-check-icon hidden">check_circle</span>
+              </div>
+            </button>
+
+            <!-- Option 2: Dark Mode -->
+            <button type="button" data-theme="dark" class="theme-option-btn group relative flex flex-col p-4 rounded-2xl border border-[#EBE7DF] hover:border-slate-600 transition-all text-left bg-[#0A0E17] text-white cursor-pointer">
+              <!-- Visual Mockup Thumbnail -->
+              <div class="w-full h-24 rounded-xl bg-[#0A0E17] border border-white/10 p-2.5 flex flex-col justify-between shadow-inner mb-3 overflow-hidden">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-1.5">
+                    <span class="w-2.5 h-2.5 rounded-full bg-[#FF7A00]"></span>
+                    <span class="w-14 h-2 rounded-full bg-white/20"></span>
+                  </div>
+                  <span class="w-3.5 h-3.5 rounded-full bg-white/10"></span>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                  <div class="h-10 rounded-lg bg-[#111726] border border-white/10 p-1.5 flex flex-col justify-between shadow-2xs">
+                    <span class="w-6 h-1.5 rounded-full bg-white/25"></span>
+                    <span class="w-10 h-2.5 rounded-full bg-[#FF7A00]"></span>
+                  </div>
+                  <div class="h-10 rounded-lg bg-[#111726] border border-white/10 p-1.5 flex flex-col justify-between shadow-2xs">
+                    <span class="w-6 h-1.5 rounded-full bg-white/25"></span>
+                    <span class="w-10 h-2.5 rounded-full bg-emerald-400"></span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Title & Checkmark -->
+              <div class="flex items-center justify-between w-full">
+                <div>
+                  <span class="text-xs font-bold text-white block">Velora Dark</span>
+                  <span class="text-[10px] text-slate-400">Obsidian & Midnight Sky</span>
+                </div>
+                <span class="material-symbols-outlined text-[18px] text-[#FF7A00] theme-check-icon hidden">check_circle</span>
+              </div>
+            </button>
+
+            <!-- Option 3: Auto System -->
+            <button type="button" data-theme="system" class="theme-option-btn group relative flex flex-col p-4 rounded-2xl border border-[#EBE7DF] hover:border-slate-400 transition-all text-left bg-gradient-to-r from-[#FAF8F5] to-[#0A0E17] cursor-pointer">
+              <!-- Visual Mockup Thumbnail -->
+              <div class="w-full h-24 rounded-xl bg-gradient-to-r from-[#FAF8F5] via-[#CBD5E1] to-[#0A0E17] border border-black/10 p-2.5 flex flex-col justify-between shadow-inner mb-3 overflow-hidden">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-1.5">
+                    <span class="w-2.5 h-2.5 rounded-full bg-[#FF7A00]"></span>
+                    <span class="w-12 h-2 rounded-full bg-black/20"></span>
+                  </div>
+                  <span class="text-[9px] font-mono font-bold text-slate-700 bg-white/90 px-1 rounded">AUTO</span>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                  <div class="h-10 rounded-lg bg-white/90 border border-black/5 p-1.5 flex flex-col justify-between shadow-2xs">
+                    <span class="w-6 h-1.5 rounded-full bg-black/20"></span>
+                    <span class="w-10 h-2.5 rounded-full bg-amber-500"></span>
+                  </div>
+                  <div class="h-10 rounded-lg bg-[#111726]/90 border border-white/10 p-1.5 flex flex-col justify-between shadow-2xs">
+                    <span class="w-6 h-1.5 rounded-full bg-white/30"></span>
+                    <span class="w-10 h-2.5 rounded-full bg-emerald-400"></span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Title & Checkmark -->
+              <div class="flex items-center justify-between w-full">
+                <div>
+                  <span class="text-xs font-bold text-[#1E2022] dark:text-white block">Auto (System)</span>
+                  <span class="text-[10px] text-[#71767B] dark:text-slate-400">Match macOS / Windows</span>
+                </div>
+                <span class="material-symbols-outlined text-[18px] text-[#FF7A00] theme-check-icon hidden">check_circle</span>
+              </div>
+            </button>
+
+          </div>
+        </div>
+      </section>
 
       <!-- =============================================================== -->
       <!-- SECTION 1: AI AGENT & DYNAMIC ISLAND PREFERENCES                -->

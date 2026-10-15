@@ -230,3 +230,238 @@ h1, h2, h3, .font-heading {
   border-radius: 4px;
 }
 
+/* =================================================================== */
+/* VELORA OBSIDIAN DARK MODE THEME SYSTEM                              */
+/* =================================================================== */
+html.dark {
+  --bg-velora: #0A0E17;
+  --card-white: #111726;
+  --text-primary: #F1F5F9;
+  --text-secondary: #94A3B8;
+  --text-muted: #64748B;
+  --accent-orange: #FF7A00;
+  --accent-yellow: #FACC15;
+  --accent-green: #22C55E;
+  --accent-red: #EF4444;
+  --pill-bg: #162030;
+  --pill-border: rgba(255, 255, 255, 0.08);
+  color-scheme: dark;
+}
+
+html.dark body {
+  background-color: #0A0E17 !important;
+  color: #F1F5F9 !important;
+}
+
+/* Velora Card Surfaces in Dark Mode */
+html.dark .velora-card,
+html.dark .bento-card {
+  background-color: #111726 !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 4px 24px -2px rgba(0, 0, 0, 0.55), 0 2px 6px -1px rgba(0, 0, 0, 0.3) !important;
+}
+
+html.dark .velora-card-subtle,
+html.dark .bento-card-subtle {
+  background-color: #162030 !important;
+  border-color: rgba(255, 255, 255, 0.07) !important;
+}
+
+/* Floating Vertical Nav Sidebar in Dark Mode */
+html.dark .velora-sidebar {
+  background: #111726 !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6) !important;
+}
+
+html.dark .velora-nav-btn {
+  color: #94A3B8 !important;
+}
+
+html.dark .velora-nav-btn:hover {
+  color: #FFFFFF !important;
+  background: #1C273C !important;
+}
+
+html.dark .velora-nav-btn.active {
+  color: #FF7A00 !important;
+  background: rgba(255, 122, 0, 0.16) !important;
+}
+
+/* Segmented Top Pill Bar in Dark Mode */
+html.dark .velora-pill-container {
+  background: #162030 !important;
+  border: 1px solid rgba(255, 255, 255, 0.06) !important;
+}
+
+html.dark .velora-pill {
+  color: #94A3B8 !important;
+}
+
+html.dark .velora-pill:hover {
+  color: #F8FAFC !important;
+}
+
+html.dark .velora-pill.active {
+  background: #223046 !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.45) !important;
+}
+
+/* Icon Buttons in Dark Mode */
+html.dark .velora-icon-btn {
+  background: #111726 !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  color: #94A3B8 !important;
+}
+
+html.dark .velora-icon-btn:hover {
+  background: #1C273C !important;
+  color: #FFFFFF !important;
+  border-color: rgba(255, 255, 255, 0.22) !important;
+}
+
+/* Background Color Class Overrides */
+html.dark .bg-\[\#FAF8F5\] {
+  background-color: #0A0E17 !important;
+}
+
+html.dark .bg-white {
+  background-color: #111726 !important;
+}
+
+html.dark .bg-\[\#F4F0E8\] {
+  background-color: #162030 !important;
+}
+
+html.dark .bg-slate-50,
+html.dark .bg-neutral-50 {
+  background-color: #0A0E17 !important;
+}
+
+/* Text Color Class Overrides */
+html.dark .text-\[\#1E2022\] {
+  color: #F1F5F9 !important;
+}
+
+html.dark .text-\[\#71767B\] {
+  color: #94A3B8 !important;
+}
+
+html.dark .text-slate-800,
+html.dark .text-neutral-800,
+html.dark .text-slate-900,
+html.dark .text-neutral-900 {
+  color: #F8FAFC !important;
+}
+
+html.dark .text-slate-600,
+html.dark .text-neutral-600 {
+  color: #94A3B8 !important;
+}
+
+/* Borders & Dividers */
+html.dark .border-\[\#EBE7DF\],
+html.dark .border-slate-200,
+html.dark .border-neutral-200 {
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+html.dark .divide-\[\#F4F0E8\] > :not([hidden]) ~ :not([hidden]),
+html.dark .divide-slate-100 > :not([hidden]) ~ :not([hidden]),
+html.dark .divide-neutral-100 > :not([hidden]) ~ :not([hidden]) {
+  border-color: rgba(255, 255, 255, 0.06) !important;
+}
+
+/* Form Controls: Inputs, Selects, and Dropdowns */
+html.dark select,
+html.dark input[type="text"],
+html.dark input[type="number"] {
+  background-color: #162030 !important;
+  color: #F1F5F9 !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+html.dark select option {
+  background-color: #111726;
+  color: #F1F5F9;
+}
+
+/* Nested Card Containers (e.g. rate boxes, notification toggles in settings) */
+html.dark .velora-card .bg-\[\#FAF8F5\],
+html.dark .velora-card .bg-white {
+  background-color: #162030 !important;
+  border-color: rgba(255, 255, 255, 0.07) !important;
+}
+
+/* Badges & Pills */
+html.dark .bg-emerald-50 {
+  background-color: rgba(6, 78, 59, 0.45) !important;
+  border-color: rgba(16, 185, 129, 0.3) !important;
+  color: #6EE7B7 !important;
+}
+
+html.dark .bg-amber-50 {
+  background-color: rgba(120, 53, 15, 0.45) !important;
+  border-color: rgba(245, 158, 11, 0.3) !important;
+  color: #FCD34D !important;
+}
+
+html.dark .bg-rose-50 {
+  background-color: rgba(136, 19, 55, 0.45) !important;
+  border-color: rgba(244, 63, 94, 0.3) !important;
+  color: #FDA4AF !important;
+}
+
+/* iOS Toggle Switch Track in Dark */
+html.dark .bg-\[\#E5E5EA\] {
+  background-color: #2D3748 !important;
+}
+
+/* Table Hover */
+html.dark tr:hover td {
+  background-color: #162030 !important;
+}
+
+/* System Hatch & Ruler Ticks in Dark */
+html.dark .system-hatch-pattern {
+  background-image: repeating-linear-gradient(
+    45deg,
+    #162030 0px,
+    #162030 4px,
+    #1C273C 4px,
+    #1C273C 8px
+  ) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+html.dark .ruler-ticks {
+  background-image: repeating-linear-gradient(
+    to right,
+    #334155 0px,
+    #334155 1px,
+    transparent 1px,
+    transparent 4px
+  ) !important;
+}
+
+/* Custom Scrollbars in Dark Mode */
+html.dark ::-webkit-scrollbar-track {
+  background: #0A0E17;
+}
+
+html.dark ::-webkit-scrollbar-thumb {
+  background: #1E293B;
+  border-radius: 9999px;
+}
+
+html.dark ::-webkit-scrollbar-thumb:hover {
+  background: #334155;
+}
+
+/* Smooth Transitions for Theme Toggling */
+body, .velora-card, .velora-sidebar, .velora-pill-container, .velora-pill, .velora-icon-btn, header {
+  transition: background-color 0.25s ease, border-color 0.25s ease, color 0.2s ease, box-shadow 0.25s ease;
+}
+
+

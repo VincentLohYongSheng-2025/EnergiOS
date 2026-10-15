@@ -27,6 +27,27 @@ class EnergiOSEnergyApp {
       Hog_assembly_Dona: 'assets/buildings/Hog_assembly_Dona.jpg',
       Hog_lodging_Francisco: 'assets/buildings/Hog_lodging_Francisco.jpg',
     };
+
+    window.addEventListener('energios:theme-changed', () => {
+      this.updateThemeColors();
+    });
+  }
+
+  updateThemeColors() {
+    const colors = window.getChartThemeColors ? window.getChartThemeColors() : null;
+    if (!colors) return;
+    [this.levelChart, this.usageChart, this.chargeChart].forEach((chart) => {
+      if (chart && chart.options && chart.options.scales) {
+        if (chart.options.scales.x && chart.options.scales.x.ticks) {
+          chart.options.scales.x.ticks.color = colors.textColor;
+        }
+        if (chart.options.scales.y) {
+          if (chart.options.scales.y.grid) chart.options.scales.y.grid.color = colors.gridColor;
+          if (chart.options.scales.y.ticks) chart.options.scales.y.ticks.color = colors.textColor;
+        }
+        chart.update();
+      }
+    });
   }
 
   async init() {

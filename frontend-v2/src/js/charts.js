@@ -8,6 +8,28 @@ class EnergiOSCharts {
     this.mainChart = null;
     this.comparisonChart = null;
     this.accuracyChart = null;
+
+    window.addEventListener('energios:theme-changed', () => {
+      this.updateThemeColors();
+    });
+  }
+
+  updateThemeColors() {
+    const colors = window.getChartThemeColors ? window.getChartThemeColors() : null;
+    if (!colors) return;
+
+    [this.mainChart, this.comparisonChart, this.accuracyChart].forEach((chart) => {
+      if (chart && chart.options && chart.options.scales) {
+        if (chart.options.scales.x && chart.options.scales.x.ticks) {
+          chart.options.scales.x.ticks.color = colors.textColor;
+        }
+        if (chart.options.scales.y) {
+          if (chart.options.scales.y.grid) chart.options.scales.y.grid.color = colors.gridColor;
+          if (chart.options.scales.y.ticks) chart.options.scales.y.ticks.color = colors.textColor;
+        }
+        chart.update();
+      }
+    });
   }
 
   /**

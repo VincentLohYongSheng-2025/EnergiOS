@@ -24,6 +24,20 @@ class EnergiOSDiagnosticsApp {
       Hog_assembly_Dona: 'assets/buildings/Hog_assembly_Dona.jpg',
       Hog_lodging_Francisco: 'assets/buildings/Hog_lodging_Francisco.jpg',
     };
+
+    window.addEventListener('energios:theme-changed', () => {
+      if (this.breakdownChart && this.breakdownChart.options && this.breakdownChart.options.scales) {
+        const colors = window.getChartThemeColors ? window.getChartThemeColors() : null;
+        if (colors && this.breakdownChart.options.scales.y) {
+          this.breakdownChart.options.scales.y.grid.color = colors.gridColor;
+          this.breakdownChart.options.scales.y.ticks.color = colors.textColor;
+          if (this.breakdownChart.options.scales.x) {
+            this.breakdownChart.options.scales.x.ticks.color = colors.textColor;
+          }
+          this.breakdownChart.update();
+        }
+      }
+    });
   }
 
   async init() {
