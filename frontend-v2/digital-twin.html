@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EnergiOS — Spatial 3D Digital Twin & Microgrid Telemetry</title>
+
+  <!-- Typography & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            velora: {
+              bg: '#FAF8F5',
+              card: '#FFFFFF',
+              pill: '#F4F0E8',
+              orange: '#FF7A00',
+              yellow: '#FACC15',
+              green: '#22C55E',
+              dark: '#1E2022',
+              muted: '#71767B',
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['Space Grotesk', 'monospace'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Theme Manager (Immediately executes to prevent theme flash) -->
+  <script type="module" src="src/js/theme.js"></script>
+
+  <!-- Exact Velora Stylesheet -->
+  <link rel="stylesheet" href="src/css/velora_exact.css">
+
+  <!-- Three.js & OrbitControls (Vendored Offline + CDN Fallback) -->
+
+  <!-- Verified Backend & BDG2 Telemetry Sync -->
+  <script type="module" src="src/js/api.js"></script>
+
+  <!-- Township 3D Telemetry & Scene Controllers -->
+</head>
+
+<body class="bg-[#FAF8F5] text-[#1E2022] antialiased min-h-screen flex flex-col p-6 lg:p-8 selection:bg-orange-100 selection:text-orange-900">
+
+  <!-- =================================================================== -->
+  <!-- APPLE DYNAMIC ISLAND (1:1 Exact Replica of dynamic_island.jpeg)     -->
+  <!-- =================================================================== -->
+  <div id="dynamic-island" class="fixed top-3.5 left-1/2 -translate-x-1/2 z-50 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] select-none">
+
+    <!-- Collapsed Pill (Apple Dynamic Island State) -->
+    <div id="island-collapsed" onclick="dynamicIsland.expand()" class="h-9 px-4 rounded-full bg-black text-white flex items-center justify-between gap-3.5 shadow-xl shadow-black/40 border border-white/10 cursor-pointer hover:scale-[1.03] transition-all" title="Click to open EnergiOS AI Copilot & Logs">
+      <div class="flex items-center gap-2">
+        <span class="w-3.5 h-3.5 flex items-center justify-center text-[#FF7A00]">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor">
+            <circle cx="12" cy="3" r="2" /><circle cx="12" cy="21" r="2" />
+            <circle cx="3" cy="12" r="2" /><circle cx="21" cy="12" r="2" />
+            <circle cx="5.6" cy="5.6" r="2" /><circle cx="18.4" cy="18.4" r="2" />
+            <circle cx="5.6" cy="18.4" r="2" /><circle cx="18.4" cy="5.6" r="2" />
+          </svg>
+        </span>
+        <span class="text-xs font-semibold text-white tracking-tight font-sans">EnergiOS AI</span>
+      </div>
+
+      <!-- iPhone Camera Notch Hole -->
+      <span class="w-2.5 h-2.5 rounded-full bg-[#1A1B1E] border border-white/10"></span>
+    </div>
+
+    <!-- Expanded Dynamic Island -->
+    <div id="island-expanded" class="hidden w-[760px] max-w-[94vw] bg-[#000000] text-white rounded-[36px] shadow-2xl shadow-black/90 border border-white/10 p-6 pt-3 relative overflow-hidden backdrop-blur-2xl">
+
+      <!-- Top Center: iPhone Physical Camera Cutout Notch -->
+      <div class="w-28 h-5 rounded-full bg-[#121316] mx-auto mb-3 flex items-center justify-center gap-2.5 border border-white/5">
+        <div class="w-2.5 h-2.5 rounded-full bg-[#070709] border border-blue-900/50 flex items-center justify-center">
+          <span class="w-1 h-1 rounded-full bg-blue-500/50"></span>
+        </div>
+        <span class="w-1.5 h-1.5 rounded-full bg-[#050507]"></span>
+      </div>
+
+      <!-- Header Row inside Island -->
+      <div class="flex items-center justify-between pb-3 px-1 border-b border-white/10">
+        <div class="flex items-center gap-2.5">
+          <div class="w-6 h-6 flex items-center justify-center text-[#FF7A00]">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+              <circle cx="12" cy="3" r="2" /><circle cx="12" cy="21" r="2" />
+              <circle cx="3" cy="12" r="2" /><circle cx="21" cy="12" r="2" />
+              <circle cx="5.6" cy="5.6" r="2" /><circle cx="18.4" cy="18.4" r="2" />
+              <circle cx="5.6" cy="18.4" r="2" /><circle cx="18.4" cy="5.6" r="2" />
+              <line x1="12" y1="5" x2="12" y2="19" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />
+              <line x1="5" y1="12" x2="19" y2="12" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />
+              <line x1="7" y1="7" x2="17" y2="17" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />
+              <line x1="7" y1="17" x2="17" y2="7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />
+            </svg>
+          </div>
+          <span class="text-sm font-bold tracking-tight text-white font-sans">EnergiOS AI Copilot</span>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button class="w-7 h-7 rounded-full bg-[#1C1D21] hover:bg-neutral-800 text-neutral-300 hover:text-white flex items-center justify-center text-xs transition-colors" title="Settings">
+            <span class="material-symbols-outlined text-[16px]">more_horiz</span>
+          </button>
+          <button onclick="dynamicIsland.collapse()" class="w-7 h-7 rounded-full bg-[#1C1D21] hover:bg-neutral-800 text-neutral-400 hover:text-white flex items-center justify-center text-xs transition-colors" title="Collapse Island">
+            <span class="material-symbols-outlined text-[16px]">close</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Two Columns Body -->
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-6 pt-4">
+
+        <!-- Left Column: Chat Assistant -->
+        <div class="md:col-span-7 flex flex-col justify-between space-y-3">
+          <div>
+            <span class="text-xs font-semibold text-neutral-400 block mb-2 font-sans">Township Twin Copilot</span>
+            <div class="bg-[#1C1D21] border border-white/5 rounded-2xl p-4 text-xs text-neutral-200 leading-relaxed shadow-sm">
+              <p id="island-agent-bubble-text">
+                Spatial 3D Digital Twin synchronized. Monitoring <b>4 key township assets</b> consuming <b>22.62 MWh</b> today. Clean solar microgrid is offsetting <b>49.3%</b> of township baseload. Fox Tower Level 2 has an active Low ΔT valve bypass alert.
+              </p>
+            </div>
+          </div>
+
+          <!-- Quick Action Prompts -->
+          <div class="flex items-center gap-1.5 flex-wrap pt-0.5">
+            <button onclick="twinApp.selectBuilding('innovation-hub'); twinApp.selectFloor('l2')" class="px-2.5 py-1 rounded-full text-[10px] font-medium bg-[#1C1D21] hover:bg-[#282A30] text-neutral-300 border border-white/5 transition-all">
+              ⚠️ Inspect Fox Hub Anomaly
+            </button>
+            <button onclick="twinApp.toggleNightMode()" class="px-2.5 py-1 rounded-full text-[10px] font-medium bg-[#1C1D21] hover:bg-[#282A30] text-neutral-300 border border-white/5 transition-all">
+              🌙 Toggle Night Lighting
+            </button>
+            <button onclick="twinApp.resetView()" class="px-2.5 py-1 rounded-full text-[10px] font-medium bg-[#1C1D21] hover:bg-[#282A30] text-neutral-300 border border-white/5 transition-all">
+              🏛️ Township Overview
+            </button>
+          </div>
+
+          <!-- Input Bar -->
+          <form onsubmit="dynamicIsland.handleUserSubmit(event)" class="mt-2 flex items-center gap-2 bg-[#121316] border border-white/10 rounded-full px-3.5 py-2 shadow-inner">
+            <div class="flex items-center gap-1 text-neutral-500 pl-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-neutral-500"></span>
+              <span class="w-1.5 h-1.5 rounded-full bg-neutral-500"></span>
+              <span class="w-1.5 h-1.5 rounded-full bg-neutral-500"></span>
+            </div>
+            <input id="island-user-input" type="text" placeholder="Ask EnergiOS Copilot about HVAC, Chillers or Tariffs..." class="bg-transparent text-xs text-white placeholder:text-neutral-500 outline-none flex-1 px-1 font-sans">
+            <button type="submit" class="w-6 h-6 rounded-full bg-white text-black flex items-center justify-center hover:bg-neutral-200 transition-colors shrink-0" title="Send">
+              <span class="material-symbols-outlined text-[14px]">arrow_upward</span>
+            </button>
+          </form>
+        </div>
+
+        <!-- Right Column: Agent Logs -->
+        <div class="md:col-span-5 flex flex-col justify-between border-t md:border-t-0 md:border-l border-white/10 md:pl-5 pt-3 md:pt-0">
+          <div>
+            <span class="text-xs font-semibold text-neutral-400 block mb-2 font-sans">Live Spatial SCADA Telemetry</span>
+            <div id="island-agent-logs-list" class="space-y-2.5 font-mono text-[11px] max-h-[190px] overflow-y-auto pr-1">
+              <div class="flex items-start gap-1.5 leading-snug">
+                <span class="text-neutral-500 whitespace-nowrap">• 14:15:02 —</span>
+                <span class="text-neutral-300">3D Mesh loader bound 4 building groups & 18 AHU zones.</span>
+              </div>
+              <div class="flex items-start gap-1.5 leading-snug">
+                <span class="text-neutral-500 whitespace-nowrap">• 14:15:18 —</span>
+                <span class="text-neutral-300">CRAC-UNIT-02 valve seat bypass: space temp +3.9°C <span class="text-rose-400">⚠️</span></span>
+              </div>
+              <div class="flex items-start gap-1.5 leading-snug">
+                <span class="text-neutral-500 whitespace-nowrap">• 14:16:00 —</span>
+                <span class="text-neutral-300">Municipal BESS 5.0 MWh dispatched 840 kW peak shave. <span class="text-emerald-400">⚡</span></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <!-- =================================================================== -->
+  <!-- TOP NAVIGATION BAR                                                  -->
+  <!-- =================================================================== -->
+  <header class="w-full flex items-center justify-between pb-6 max-w-[1540px] mx-auto relative z-10">
+    <a href="index.html" class="flex items-center gap-2.5 group">
+      <div class="w-7 h-7 flex items-center justify-center text-[#FF7A00]">
+        <svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor">
+          <circle cx="12" cy="3" r="2" /><circle cx="12" cy="21" r="2" />
+          <circle cx="3" cy="12" r="2" /><circle cx="21" cy="12" r="2" />
+          <circle cx="5.6" cy="5.6" r="2" /><circle cx="18.4" cy="18.4" r="2" />
+          <circle cx="5.6" cy="18.4" r="2" /><circle cx="18.4" cy="5.6" r="2" />
+          <line x1="12" y1="5" x2="12" y2="19" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />
+          <line x1="5" y1="12" x2="19" y2="12" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />
+          <line x1="7" y1="7" x2="17" y2="17" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />
+          <line x1="7" y1="17" x2="17" y2="7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />
+        </svg>
+      </div>
+      <span class="text-xl font-bold tracking-tight text-[#1E2022] font-sans">EnergiOS</span>
+    </a>
+
+    <!-- Center Space Reserved for Dynamic Island -->
+    <div class="hidden sm:block w-32"></div>
+
+    <!-- Right Controls & Profile -->
+    <div class="flex items-center gap-3 text-[#71767B]">
+      <!-- Live API Status Tag -->
+      <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200/80 dark:border-emerald-800/60 text-emerald-800 dark:text-emerald-300 text-[11px] font-semibold">
+        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+        <span class="font-mono">BDG2 SCADA Active</span>
+      </div>
+
+      <!-- Theme Toggle Button -->
+      <button id="theme-toggle-btn" onclick="themeManager.toggle()" class="w-8 h-8 rounded-full bg-white dark:bg-[#162030] border border-[#EBE7DF] dark:border-white/10 flex items-center justify-center text-[#71767B] dark:text-[#94A3B8] hover:text-[#1E2022] dark:hover:text-white transition-all shadow-2xs hover:scale-105 active:scale-95" title="Toggle Dark / Light Mode">
+        <span class="material-symbols-outlined text-[18px] theme-icon-moon">dark_mode</span>
+        <span class="material-symbols-outlined text-[18px] theme-icon-sun hidden">light_mode</span>
+      </button>
+
+      <!-- Quick Reset View Button -->
+      <button onclick="twinApp.resetView()" class="hidden md:flex items-center gap-1.5 px-3 py-1 rounded-full bg-white dark:bg-[#162030] border border-[#EBE7DF] dark:border-white/10 hover:bg-[#FAF8F5] dark:hover:bg-[#1E293B] text-xs font-semibold text-[#1E2022] dark:text-[#F1F5F9] shadow-2xs transition-colors">
+        <span class="material-symbols-outlined text-[16px] text-[#FF7A00]">center_focus_strong</span>
+        <span>Township View</span>
+      </button>
+
+      <!-- Bell Notification with Red Dot -->
+      <div class="relative cursor-pointer hover:text-[#1E2022] transition-colors" onclick="twinApp.showToast('1 High Severity Anomaly: Fox Hub Level 2')" title="Active Alerts">
+        <span class="material-symbols-outlined text-[20px]">notifications</span>
+        <span class="absolute top-0.5 right-0.5 w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping"></span>
+      </div>
+
+      <!-- User Profile Avatar Image -->
+      <div class="w-8 h-8 rounded-full overflow-hidden border border-slate-200 cursor-pointer shadow-xs" title="Operator Profile">
+        <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&h=120&q=80" alt="Avatar" class="w-full h-full object-cover">
+      </div>
+    </div>
+  </header>
+
+  <!-- =================================================================== -->
+  <!-- MAIN APP CONTAINER WITH LEFT FLOATING SIDEBAR + 3D DIGITAL TWIN     -->
+  <!-- =================================================================== -->
+  <div class="flex-1 w-full max-w-[1540px] mx-auto flex items-start gap-6">
+
+    <!-- FLOATING VERTICAL PILL NAVIGATION SIDEBAR (Exact Velora Standard) -->
+    <aside class="velora-sidebar hidden md:flex shrink-0">
+      <a href="index.html" class="velora-nav-btn" title="Dashboard Overview">
+        <span class="material-symbols-outlined text-[19px]">grid_view</span>
+      </a>
+      <a href="diagnostics.html" class="velora-nav-btn" title="Asset Diagnostics">
+        <span class="material-symbols-outlined text-[19px]">pie_chart</span>
+      </a>
+      <a href="energy.html" class="velora-nav-btn" title="Energy & Power Flow">
+        <span class="material-symbols-outlined text-[19px]">bolt</span>
+      </a>
+      <a href="digital-twin.html" class="velora-nav-btn active" title="Spatial 3D Digital Twin">
+        <span class="material-symbols-outlined text-[19px]">domain</span>
+      </a>
+      <a href="settings.html" class="velora-nav-btn" title="Settings & Preferences">
+        <span class="material-symbols-outlined text-[19px]">settings</span>
+      </a>
+      <button class="velora-nav-btn" title="Anomaly Alerts" onclick="twinApp.showToast('Audit 3 Active Township Deviations')">
+        <span class="material-symbols-outlined text-[19px]">warning</span>
+      </button>
+      <button class="velora-nav-btn" title="Provenance & Reports" onclick="twinApp.showToast('Public Benchmark: BDG2 v1.0 · Malaysian TNB Commercial Tariffs')">
+        <span class="material-symbols-outlined text-[19px]">description</span>
+      </button>
+    </aside>
+
+    <!-- MAIN DIGITAL TWIN WORKSPACE -->
+    <div class="flex-1 min-w-0 space-y-4">
+
+      <!-- =============================================================== -->
+      <!-- TOP CONTROLS: BREADCRUMBS, VIEW SWITCHER, FLOOR SELECTOR        -->
+      <!-- =============================================================== -->
+      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pt-1">
+        <div>
+          <div class="flex items-center gap-2 text-xs text-[#71767B] font-mono">
+            <a href="index.html" class="hover:underline">Home</a>
+            <span>/</span>
+            <span>Spatial Digital Twin</span>
+            <span>/</span>
+            <span id="breadcrumb-asset-name" class="font-bold text-[#1E2022]">Township Central Core</span>
+          </div>
+          <h1 class="text-2xl lg:text-3xl font-extrabold tracking-tight text-[#1E2022] mt-1 font-sans">
+            3D Township Microgrid & HVAC Telemetry
+          </h1>
+        </div>
+
+        <div class="flex items-center gap-2.5 flex-wrap">
+          <!-- View Mode: 3D Microgrid vs 2D CAD Floorplan -->
+          <div class="velora-pill-container bg-white border border-[#EBE7DF] shadow-xs">
+            <button id="btn-view-3d" class="velora-pill active" onclick="twinApp.setViewMode('3d')">
+              3D Township
+            </button>
+            <button id="btn-view-2d" class="velora-pill" onclick="twinApp.setViewMode('2d')">
+              2D Floorplan CAD
+            </button>
+          </div>
+
+          <!-- Floor Switcher Container (Dynamically rendered by digital_twin_app.js) -->
+          <div id="floor-picker-container"></div>
+
+          <!-- Environmental Status Badges -->
+          <div class="hidden sm:flex items-center gap-2 text-xs font-mono">
+            <div class="px-2.5 py-1 rounded-full bg-white border border-[#EBE7DF] text-[#1E2022] flex items-center gap-1.5 shadow-2xs">
+              <span class="material-symbols-outlined text-[14px] text-amber-500">wb_sunny</span>
+              <span>32°C</span>
+            </div>
+            <div class="px-2.5 py-1 rounded-full bg-white border border-[#EBE7DF] text-emerald-800 flex items-center gap-1.5 shadow-2xs">
+              <span class="material-symbols-outlined text-[14px] text-emerald-600">solar_power</span>
+              <span>840 W/m²</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Asset Selector Pills -->
+      <div class="flex items-center gap-2 flex-wrap">
+        <span class="text-[10px] uppercase font-bold text-[#71767B] font-mono mr-1">Select Asset:</span>
+        <div id="building-picker-container" class="velora-pill-container bg-white border border-[#EBE7DF] shadow-xs flex-wrap">
+          <!-- Injected dynamically by digital_twin_app.js -->
+        </div>
+      </div>
+
+      <!-- =============================================================== -->
+      <!-- MAIN 3D THREE.JS CANVAS CONTAINER (Velora Framed Card)          -->
+      <!-- =============================================================== -->
+      <div class="velora-card relative overflow-hidden p-0 min-h-[640px] h-[72vh] max-h-[820px] bg-[#E2E8F0] border border-[#EBE7DF] shadow-xl rounded-3xl flex items-center justify-center select-none">
+
+        <!-- 1. FULL THREE.JS WEBGL CANVAS CONTAINER -->
+        <div id="township-3d-container" class="w-full h-full relative cursor-grab active:cursor-grabbing"></div>
+
+        <!-- 2. PROCEDURAL 2D ARCHITECTURAL CAD FLOORPLAN (Generated directly from 3D Model) -->
+        <div id="floorplan-2d-container" class="hidden w-full h-full relative flex flex-col">
+          <!-- Dynamically populated by floorplan_2d.js -->
+        </div>
+
+        <!-- ============================================================= -->
+        <!-- FLOATING OVERLAY: TOP-LEFT MACRO METRICS CARD (COLLAPSIBLE)   -->
+        <!-- ============================================================= -->
+        <div class="absolute top-4 left-4 z-20 pointer-events-none transition-all duration-300">
+          <div class="pointer-events-auto flex flex-col gap-2 max-w-[340px] sm:max-w-[380px]">
+
+            <!-- Header Strip with Minimize -->
+            <div class="bg-white/95 backdrop-blur-md px-3.5 py-2 rounded-2xl flex items-center justify-between shadow-lg border border-[#EBE7DF]">
+              <div class="flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span class="text-[11px] font-extrabold uppercase tracking-wider text-[#1E2022] font-mono">
+                  Township Macro Telemetry
+                </span>
+              </div>
+              <button onclick="twinApp.toggleMacroMetrics()" class="text-[#71767B] hover:text-[#1E2022] text-xs font-semibold flex items-center gap-0.5 transition-colors">
+                <span id="macro-toggle-text">Collapse</span>
+                <span id="macro-toggle-icon" class="material-symbols-outlined text-[16px]">expand_less</span>
+              </button>
+            </div>
+
+            <!-- 3 Core Velora Metric Cards -->
+            <div id="macro-metrics-cards" class="flex flex-col gap-2 transition-all">
+
+              <!-- Metric 1: Total Energy Consumed -->
+              <div class="bg-white/95 backdrop-blur-md p-3 rounded-2xl border border-[#EBE7DF] shadow-md flex items-start gap-3 hover:border-emerald-500 transition-colors">
+                <div class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0">
+                  <span class="material-symbols-outlined text-[20px]">bolt</span>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center justify-between">
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-[#71767B] font-mono">Total Energy Used</span>
+                    <span class="px-1.5 py-0.2 rounded text-[9px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200/80 font-mono">TODAY</span>
+                  </div>
+                  <div class="flex items-baseline gap-1 mt-0.5">
+                    <span class="text-lg font-extrabold text-[#1E2022] font-mono">22,620</span>
+                    <span class="text-xs font-bold text-[#71767B]">kWh</span>
+                    <span class="text-[10px] text-[#71767B] font-mono">(22.62 MWh)</span>
+                  </div>
+                  <div class="mt-1 pt-1 border-t border-[#FAF8F5] flex items-center justify-between text-[10px]">
+                    <span class="text-[#71767B]">Solar Self-Sufficiency:</span>
+                    <span class="font-bold text-emerald-700 font-mono">49.3%</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Metric 2: Electricity Cost (TNB C1) -->
+              <div class="bg-white/95 backdrop-blur-md p-3 rounded-2xl border border-[#EBE7DF] shadow-md flex items-start gap-3 hover:border-amber-500 transition-colors">
+                <div class="w-8 h-8 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center shrink-0">
+                  <span class="material-symbols-outlined text-[20px]">payments</span>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center justify-between">
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-[#71767B] font-mono">Electricity Cost</span>
+                    <span class="px-1.5 py-0.2 rounded text-[9px] font-bold bg-amber-50 text-amber-800 border border-amber-200 font-mono">TNB C1</span>
+                  </div>
+                  <div class="flex items-baseline gap-1 mt-0.5">
+                    <span class="text-lg font-extrabold text-[#1E2022] font-mono">RM 13,210.08</span>
+                  </div>
+                  <div class="mt-1 pt-1 border-t border-[#FAF8F5] flex items-center justify-between text-[10px]">
+                    <span class="text-[#71767B]">Solar & BESS Avoided:</span>
+                    <span class="font-bold text-emerald-700 font-mono">-RM 6,482.40</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Metric 3: Scope 2 Carbon Emissions -->
+              <div class="bg-white/95 backdrop-blur-md p-3 rounded-2xl border border-[#EBE7DF] shadow-md flex items-start gap-3 hover:border-sky-500 transition-colors">
+                <div class="w-8 h-8 rounded-xl bg-sky-50 text-sky-700 flex items-center justify-center shrink-0">
+                  <span class="material-symbols-outlined text-[20px]">co2</span>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center justify-between">
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-[#71767B] font-mono">Scope 2 Emissions</span>
+                    <span class="px-1.5 py-0.2 rounded text-[9px] font-bold bg-sky-50 text-sky-800 border border-sky-200 font-mono">0.658 KG/KWH</span>
+                  </div>
+                  <div class="flex items-baseline gap-1 mt-0.5">
+                    <span class="text-lg font-extrabold text-[#1E2022] font-mono">14.88</span>
+                    <span class="text-xs font-bold text-[#71767B]">tCO₂e</span>
+                  </div>
+                  <div class="mt-1 pt-1 border-t border-[#FAF8F5] flex items-center justify-between text-[10px]">
+                    <span class="text-[#71767B]">Clean Offset Today:</span>
+                    <span class="font-bold text-sky-700 font-mono">-7.30 tCO₂e</span>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+        <!-- ============================================================= -->
+        <!-- FLOATING OVERLAY: TOP-RIGHT VELORA CONTROLS DOCK              -->
+        <!-- ============================================================= -->
+        <div class="absolute top-4 right-4 z-20 flex flex-col gap-2 bg-white/90 backdrop-blur-md p-1.5 rounded-2xl shadow-lg border border-[#EBE7DF]">
+
+          <!-- 1. Reset Camera -->
+          <button onclick="twinApp.resetView()" class="w-9 h-9 rounded-xl bg-[#FAF8F5] hover:bg-[#F4F0E8] text-[#1E2022] flex items-center justify-center transition-colors shadow-2xs" title="Reset Camera to Overview">
+            <span class="material-symbols-outlined text-[19px]">center_focus_strong</span>
+          </button>
+
+          <!-- 2. Energy Flow Conduits Toggle -->
+          <button id="btn-energy-flow" onclick="twinApp.toggleEnergyFlow()" class="w-9 h-9 rounded-xl bg-[#FFF3EB] text-[#FF7A00] flex items-center justify-center transition-all shadow-2xs" title="Toggle Animated Energy Flow Conduits">
+            <span class="material-symbols-outlined text-[19px]">electric_bolt</span>
+          </button>
+
+          <!-- 3. Day / Night Lighting Toggle -->
+          <button id="btn-night-mode" onclick="twinApp.toggleNightMode()" class="w-9 h-9 rounded-xl bg-[#FAF8F5] hover:bg-[#F4F0E8] text-[#1E2022] flex items-center justify-center transition-all shadow-2xs" title="Toggle Day / Night Scene Lighting">
+            <span id="icon-night-mode" class="material-symbols-outlined text-[19px]">dark_mode</span>
+          </button>
+
+          <!-- 4. Wireframe / X-Ray Mode -->
+          <button id="btn-wireframe" onclick="twinApp.toggleWireframe()" class="w-9 h-9 rounded-xl bg-[#FAF8F5] hover:bg-[#F4F0E8] text-[#71767B] hover:text-[#1E2022] flex items-center justify-center transition-all shadow-2xs" title="Toggle Wireframe X-Ray">
+            <span class="material-symbols-outlined text-[19px]">view_in_ar</span>
+          </button>
+
+        </div>
+
+        <!-- ============================================================= -->
+        <!-- FLOATING OVERLAY: BOTTOM-LEFT MICROGRID TELEMETRY DOCK        -->
+        <!-- ============================================================= -->
+        <div class="absolute bottom-4 left-4 z-20 pointer-events-auto bg-white/95 backdrop-blur-md p-2.5 px-4 rounded-2xl flex items-center gap-4 text-xs font-mono shadow-lg border border-[#EBE7DF]">
+          <div>
+            <span class="text-[10px] text-[#71767B] block uppercase font-bold">TOTAL LOAD</span>
+            <div class="flex items-baseline gap-1 mt-0.5">
+              <span class="text-base font-extrabold text-[#1E2022]">8.42</span>
+              <span class="text-[11px] text-[#71767B]">MW</span>
+            </div>
+          </div>
+
+          <div class="w-px h-7 bg-[#EBE7DF]"></div>
+
+          <div>
+            <span class="text-[10px] text-emerald-700 block uppercase font-bold">SOLAR YIELD</span>
+            <div class="flex items-baseline gap-1 mt-0.5">
+              <span class="text-base font-extrabold text-emerald-700">4.15</span>
+              <span class="text-[11px] text-emerald-600">MW</span>
+              <span class="text-[10px] text-emerald-800 font-bold ml-1">(49.3%)</span>
+            </div>
+          </div>
+
+          <div class="w-px h-7 bg-[#EBE7DF]"></div>
+
+          <div>
+            <span class="text-[10px] text-sky-700 block uppercase font-bold">BESS STORAGE</span>
+            <div class="flex items-baseline gap-1 mt-0.5">
+              <span class="text-base font-extrabold text-sky-800">4.2</span>
+              <span class="text-[11px] text-[#71767B]">/ 5.0 MWh</span>
+              <span class="text-[10px] text-sky-700 font-bold ml-1">(84%)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ============================================================= -->
+        <!-- SLIDE-OUT DRAWER: VELORA FLOOR & HVAC ANALYTICS DRAWER        -->
+        <!-- ============================================================= -->
+        <div
+          id="velora-analytics-drawer"
+          class="absolute top-4 right-4 bottom-4 w-[92vw] sm:w-[460px] z-30 flex flex-col bg-white/95 backdrop-blur-2xl rounded-3xl shadow-2xl border border-[#EBE7DF] overflow-hidden font-sans transition-all duration-300 translate-x-[110%] opacity-0 pointer-events-none"
+        >
+          <!-- Dynamically populated by digital_twin_app.js -->
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <!-- =================================================================== -->
+  <!-- TOAST NOTIFICATION                                                  -->
+  <!-- =================================================================== -->
+  <div id="velora-toast" class="fixed bottom-6 right-6 z-50 transform translate-y-4 opacity-0 transition-all duration-200 pointer-events-none">
+    <div class="bg-[#1E2022] text-white px-4 py-2.5 rounded-xl shadow-xl text-xs font-medium flex items-center gap-2">
+      <span class="material-symbols-outlined text-sm text-[#FF7A00]">info</span>
+      <span id="velora-toast-text">Notification</span>
+    </div>
+  </div>
+
+  <!-- Controller Scripts -->
+  <script type="module" src="src/js/scope_guard.js"></script>
+</body>
+</html>

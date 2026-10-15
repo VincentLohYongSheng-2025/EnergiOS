@@ -1,0 +1,14 @@
+{
+  "name": "energios-frontend-v2",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "test": "node --test tests/api.test.mjs",
+    "build": "vite build"
+  },
+  "devDependencies": {
+    "vite": "5.4.21"
+  }
+}
