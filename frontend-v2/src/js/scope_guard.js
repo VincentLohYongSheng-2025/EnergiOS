@@ -15,8 +15,8 @@
       body: 'BDG2 does not provide verified township coordinates, building geometry, floor plans, room mappings, or equipment telemetry. The dashboard therefore does not present the illustrative scene as measured data.',
     },
     'settings.html': {
-      title: 'Operational settings are unavailable',
-      body: 'The current prototype is read-only. It has no tariff configuration, anomaly-threshold controls, chatbot controls, setpoints, live commands, or database settings in the browser.',
+      title: 'Read-only demo configuration',
+      body: 'The application remains read-only. Scenario assumptions are edited in the Energy Scenario Lab and are not saved to the database. No live controls, setpoints, browser credentials, database administration, or operational tariff configuration are available.',
     },
   };
   const message = messages[page];

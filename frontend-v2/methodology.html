@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>EnergiOS — Data Sources & Methodology</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="src/css/compliance.css">
+</head>
+<body class="module-surface font-sans">
+  <main class="module-shell">
+    <header class="border-b border-[#E5E0D7] pb-7">
+      <a href="index.html" class="text-xs font-extrabold uppercase tracking-[0.18em] text-[#FF7A00]">← EnergiOS dashboard</a>
+      <h1 class="mt-4 max-w-4xl font-mono text-4xl font-black tracking-tight md:text-6xl">Data sources & methodology</h1>
+      <p class="mt-4 max-w-3xl text-base leading-7 text-[#5F6469]">A plain-language record of what the demo observes, calculates, detects, derives, simulates, and illustrates.</p>
+    </header>
+
+    <section class="mt-7 rounded-2xl border border-orange-200 bg-orange-50 p-5 text-sm leading-6 text-orange-950">
+      <strong>This is public benchmark data and is not Sime Darby Property operational data.</strong> The demo uses four Building Data Genome Project 2 whole-building electricity meters. It does not represent Elmina Lakeside Mall or a real township deployment.
+    </section>
+
+    <div class="mt-7 grid gap-6 lg:grid-cols-[minmax(0,1.25fr)_minmax(300px,0.75fr)]">
+      <section class="module-card p-6 md:p-8">
+        <p class="text-xs font-black uppercase tracking-[0.16em] text-[#FF7A00]">Primary public source</p>
+        <h2 class="mt-2 text-2xl font-black">Building Data Genome Project 2 v1.0</h2>
+        <dl class="mt-6 grid gap-5 text-sm sm:grid-cols-2">
+          <div><dt class="font-black">Dataset record</dt><dd class="mt-1 break-words text-[#5F6469]"><a class="underline decoration-orange-400 underline-offset-4" href="https://doi.org/10.5281/zenodo.3887306">https://doi.org/10.5281/zenodo.3887306</a></dd></div>
+          <div><dt class="font-black">Research paper</dt><dd class="mt-1 break-words text-[#5F6469]"><a class="underline decoration-orange-400 underline-offset-4" href="https://doi.org/10.1038/s41597-020-00712-x">https://doi.org/10.1038/s41597-020-00712-x</a></dd></div>
+          <div><dt class="font-black">Licence</dt><dd class="mt-1 text-[#5F6469]">Creative Commons Attribution 4.0 International (CC BY 4.0)</dd></div>
+          <div><dt class="font-black">Demo cohort</dt><dd class="mt-1 text-[#5F6469]">Four selected whole-building electricity meters</dd></div>
+          <div><dt class="font-black">Observed field</dt><dd class="mt-1 text-[#5F6469]">Hourly interval energy consumption in kWh</dd></div>
+          <div><dt class="font-black">Missing data rule</dt><dd class="mt-1 text-[#5F6469]">Missing source readings remain missing and are not replaced with synthetic observations.</dd></div>
+        </dl>
+      </section>
+
+      <aside class="module-card p-6 md:p-8">
+        <h2 class="text-xl font-black">Unsupported claims</h2>
+        <p class="mt-3 text-sm leading-6 text-[#5F6469]">BDG2 does not establish Sime Darby or Elmina asset identity, township coordinates, geometry, floors, rooms, equipment, HVAC causes, schedules, Malaysian tariffs, Malaysian carbon factors, measured solar or battery performance, interventions, or verified savings.</p>
+      </aside>
+    </div>
+
+    <section class="mt-7 module-card p-6 md:p-8">
+      <h2 class="text-2xl font-black">Data classifications used throughout the demo</h2>
+      <div class="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <article class="rounded-xl border border-[#EBE7DF] p-4"><span class="data-classification" data-kind="observed" title="Imported BDG2 whole-building hourly interval-kWh readings.">Observed public benchmark data</span><p class="mt-3 text-sm leading-6 text-[#5F6469]">Imported BDG2 readings. These are the only observed operational values displayed.</p></article>
+        <article class="rounded-xl border border-[#EBE7DF] p-4"><span class="data-classification" data-kind="calculated" title="Model output derived from BDG2 history.">Calculated forecast</span><p class="mt-3 text-sm leading-6 text-[#5F6469]">A 24-hour model output derived from BDG2 history, with held-out error metrics.</p></article>
+        <article class="rounded-xl border border-[#EBE7DF] p-4"><span class="data-classification" data-kind="detected" title="A statistical detection with no confirmed operational cause.">Detected unusual consumption pattern</span><p class="mt-3 text-sm leading-6 text-[#5F6469]">A statistical residual detection. It never establishes HVAC, lighting, waste, ghost-load, or equipment causes.</p></article>
+        <article class="rounded-xl border border-[#EBE7DF] p-4"><span class="data-classification" data-kind="derived" title="A comparison calculated from selected BDG2 assets.">Derived benchmark comparison</span><p class="mt-3 text-sm leading-6 text-[#5F6469]">A comparison or aggregation calculated from the selected public benchmark buildings.</p></article>
+        <article class="rounded-xl border border-[#EBE7DF] p-4"><span class="data-classification" data-kind="simulated" title="A hypothetical input or output; not measured data.">Simulated assumption</span><p class="mt-3 text-sm leading-6 text-[#5F6469]">A user-entered or default hypothetical input and its result. It is not measured operational data.</p></article>
+        <article class="rounded-xl border border-[#EBE7DF] p-4"><span class="data-classification" data-kind="illustrative" title="Graphics that are not measured spatial data.">Illustrative visual</span><p class="mt-3 text-sm leading-6 text-[#5F6469]">A navigation or presentation graphic. It is not measured geometry or a verified digital twin.</p></article>
+      </div>
+    </section>
+
+    <section class="mt-7 grid gap-6 lg:grid-cols-2">
+      <article class="module-card p-6 md:p-8">
+        <h2 class="text-xl font-black">Forecast and detection method</h2>
+        <ul class="mt-4 space-y-3 text-sm leading-6 text-[#5F6469]">
+          <li>The backend trains and evaluates only on validated BDG2 readings with chronological splits.</li>
+          <li>The next 24 hourly values are calculated forecasts, compared with a previous-day same-hour baseline.</li>
+          <li>Unusual patterns use forecast residuals and a validation-derived MAD threshold. A detection is not a confirmed cause.</li>
+        </ul>
+      </article>
+      <article class="module-card p-6 md:p-8">
+        <h2 class="text-xl font-black">Simulation assumptions</h2>
+        <ul class="mt-4 space-y-3 text-sm leading-6 text-[#5F6469]">
+          <li>The simulator uses the selected asset’s calculated 24-hour forecast as its demand input.</li>
+          <li>Solar follows a clearly labelled hypothetical normalized daytime curve; capacity is user-entered or a displayed default.</li>
+          <li>Battery capacity, charge/discharge limit, and starting state are simulated assumptions. The demo model is idealized with no losses.</li>
+          <li>Flexible load is shifted between user-selected forecast intervals. No live control action is performed.</li>
+          <li>No financial output is shown unless the user enters a price. Any result is labelled “Illustrative estimate based on user-entered tariff”.</li>
+          <li>One-hour interval kWh divided by one hour is labelled as derived interval-average kW, not instantaneous measured demand.</li>
+        </ul>
+      </article>
+    </section>
+  </main>
+  <script type="module">
+    import { createPersistentDisclosure } from './src/js/data_classification.js';
+    createPersistentDisclosure();
+  </script>
+</body>
+</html>

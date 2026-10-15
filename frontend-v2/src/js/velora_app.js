@@ -430,7 +430,8 @@ class EnergiOSDashboard {
       if (anomalies.length === 0) {
         listEl.innerHTML = `
           <div class="p-4 text-center text-slate-400 text-xs">
-            No unusual consumption patterns flagged for this asset.
+            No unusual consumption patterns were detected for this asset and selected period.<br>
+            <span class="mt-2 inline-block">This is not proof that the building has no inefficiency.</span>
           </div>
         `;
         return;

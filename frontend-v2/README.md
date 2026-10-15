@@ -2,6 +2,14 @@
 
 Modern, Bento-grid energy monitoring, 24-hour forecasting, and unusual-consumption-pattern dashboard for the EnergiOS BDG2 public benchmark.
 
+The frontend also includes clearly separated demonstration modules:
+
+- `energy.html` uses the selected asset's calculated 24-hour forecast with user-visible simulated solar, battery, price, and flexible-load assumptions. It performs no live control action.
+- `digital-twin.html` is an illustrative portfolio navigator for the four BDG2 benchmark assets. It is not measured geometry or a verified digital twin.
+- `methodology.html` records the BDG2 dataset and paper citations, CC BY 4.0 licence, data classifications, limitations, and simulation assumptions.
+
+Every page carries the disclosure: “Demo uses BDG2 public benchmark data and clearly labelled simulations. It does not use Sime Darby Property operational data.”
+
 ## Architecture & Visual Design
 - **Bento-Grid Layout:** Rounded cards with subtle shadows, soft warm background (`#F6F5F0`), clean typography (`Outfit`, `Space Grotesk`, `Inter`).
 - **Building presentation:** Illustrative images for the four source-labelled BDG2 buildings. They are not verified geometry or spatial data.

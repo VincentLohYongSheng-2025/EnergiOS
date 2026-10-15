@@ -44,6 +44,7 @@
 
   <!-- Exact Velora Stylesheet -->
   <link rel="stylesheet" href="src/css/velora_exact.css">
+  <link rel="stylesheet" href="src/css/compliance.css">
 
   <!-- Chart.js CDN -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
@@ -281,9 +282,9 @@
         <span class="material-symbols-outlined text-[19px]">warning</span>
       </button>
       <!-- 6. Document Sheet -->
-      <button class="velora-nav-btn" title="Provenance & Reports" onclick="veloraApp.showToast('Public benchmark data: Building Data Genome Project 2 v1.0')">
+      <a href="methodology.html" class="velora-nav-btn" title="Data Sources & Methodology">
         <span class="material-symbols-outlined text-[19px]">description</span>
-      </button>
+      </a>
     </aside>
 
     <!-- MAIN DASHBOARD CONTENT AREA -->
@@ -646,5 +647,6 @@
   <!-- Controller Scripts -->
   <script type="module" src="src/js/dynamic_island.js"></script>
   <script type="module" src="src/js/velora_app.js"></script>
+  <script type="module" src="src/js/data_classification.js"></script>
 </body>
 </html>
