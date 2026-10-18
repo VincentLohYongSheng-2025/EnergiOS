@@ -1,839 +1,119 @@
-/**
- * EnergiOS - Spatial Digital Twin Application Controller (digital-twin.html)
- * Unifies Three.js 3D Township Microgrid, 2D Floorplan CAD,
- * Velora Design System, and Apple Dynamic Island Copilot.
- */
-
-class EnergiOSTwinApp {
-  constructor() {
-    this.buildingsData = window.BUILDINGS_DATA || {};
-    this.townshipSummary = window.TOWNSHIP_SUMMARY || {};
-    this.tnbTariff = window.TNB_TARIFF || {};
-
-    this.state = {
-      viewMode: '3d', // '3d' | '2d'
-      selectedBuildingId: null,
-      selectedFloorId: null,
-      activeDrawerTab: 'hvac', // 'hvac' | 'energy' | 'cost' | 'anomalies'
-      isNightMode: false,
-      showEnergyFlow: true,
-      wireframeMode: false,
-      macroCollapsed: false,
-      acknowledgedAnomalies: {},
-      customSetpoints: {},
-    };
-
-    this.scene3d = null;
-    this.floorplan2d = null;
-  }
-
-  async init() {
-    console.log('[EnergiOS Twin] Initializing Spatial 3D Digital Twin with Velora design...');
-
-    // 1. Initialize 3D Scene
-    const canvasContainer = document.getElementById('township-3d-container');
-    if (canvasContainer && window.Township3DScene && window.THREE) {
-      this.scene3d = new window.Township3DScene({
-        container: canvasContainer,
-        onSelectBuilding: (bId) => this.handle3DSelectBuilding(bId),
-        onSelectFloor: (fId) => this.handle3DSelectFloor(fId),
-      });
-    }
-
-    // 1b. Initialize Procedural 2D Architectural CAD Floorplan
-    const floorplanContainer = document.getElementById('floorplan-2d-container');
-    if (floorplanContainer && window.Floorplan2DView) {
-      this.floorplan2d = new window.Floorplan2DView({
-        container: floorplanContainer,
-        onInspectZone: (zoneName) => {
-          this.renderDrawer();
-        }
-      });
-      window.floorplanView = this.floorplan2d;
-    }
-
-    // 2. Render Building Switcher & Initial Views
-    this.renderBuildingPicker();
-    this.renderFloorPicker();
-    this.renderDrawer();
-    this.updateBreadcrumbs();
-
-    // 3. Sync Dynamic Island Log
-    if (window.dynamicIsland && window.dynamicIsland.addLog) {
-      window.dynamicIsland.addLog('Township 3D Microgrid twin initialized (4 assets, 18 telemetry nodes)', 'normal');
-    }
-
-    // 4. Sync Initial Theme with Scene & Floorplan
-    if (window.themeManager && window.themeManager.isDark()) {
-      if (this.scene3d) this.scene3d.toggleNightMode(true);
-      if (this.floorplan2d) this.floorplan2d.setTheme('blueprint');
-    }
-
-    // 5. Listen for Theme Changed Event
-    window.addEventListener('energios:theme-changed', (e) => {
-      const isDark = e.detail ? e.detail.isDark : (window.themeManager ? window.themeManager.isDark() : false);
-      if (this.scene3d) {
-        this.scene3d.toggleNightMode(isDark);
-        this.state.isNightMode = isDark;
-      }
-      if (this.floorplan2d) {
-        this.floorplan2d.setTheme(isDark ? 'blueprint' : 'architectural');
-      }
-    });
-  }
-
-  // ==========================================
-  // Building & Floor Navigation
-  // ==========================================
-
-  renderBuildingPicker() {
-    const container = document.getElementById('building-picker-container');
-    if (!container) return;
-
-    const buildings = Object.values(this.buildingsData);
-    let html = `
-      <button onclick="twinApp.resetView()" class="velora-pill ${!this.state.selectedBuildingId ? 'active' : ''}">
-        Township Overview
-      </button>
-    `;
-
-    buildings.forEach((b) => {
-      const isSelected = this.state.selectedBuildingId === b.id;
-      html += `
-        <button onclick="twinApp.selectBuilding('${b.id}')" class="velora-pill flex items-center gap-1.5 ${isSelected ? 'active' : ''}">
-          <span class="w-2 h-2 rounded-full" style="background-color: ${b.accentColor}"></span>
-          <span>${b.shortName || b.name.split(' (')[0]}</span>
-          <span class="text-[10px] font-mono opacity-70">(${b.demandKw} kW)</span>
-        </button>
-      `;
-    });
-
-    container.innerHTML = html;
-  }
-
-  renderFloorPicker() {
-    const container = document.getElementById('floor-picker-container');
-    if (!container) return;
-
-    if (!this.state.selectedBuildingId) {
-      container.innerHTML = `
-        <div class="velora-pill-container bg-white border border-[#EBE7DF] shadow-xs">
-          <button class="velora-pill active">All Buildings</button>
-        </div>
-      `;
-      return;
-    }
-
-    const building = this.buildingsData[this.state.selectedBuildingId];
-    if (!building) return;
-
-    let html = `
-      <div class="velora-pill-container bg-white border border-[#EBE7DF] shadow-xs">
-        <button onclick="twinApp.selectFloor(null)" class="velora-pill ${!this.state.selectedFloorId ? 'active' : ''}">
-          All Floors
-        </button>
-    `;
-
-    building.floors.forEach((f) => {
-      const isSelected = this.state.selectedFloorId === f.id;
-      const hasAnomaly = !!f.anomaly;
-      html += `
-        <button onclick="twinApp.selectFloor('${f.id}')" class="velora-pill flex items-center gap-1 ${isSelected ? 'active' : ''}">
-          <span>${f.id.toUpperCase()}</span>
-          ${hasAnomaly ? '<span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping"></span>' : ''}
-        </button>
-      `;
-    });
-
-    html += `</div>`;
-    container.innerHTML = html;
-  }
-
-  selectBuilding(buildingId) {
-    this.state.selectedBuildingId = buildingId;
-    this.state.selectedFloorId = null;
-
-    if (this.scene3d) {
-      this.scene3d.selectBuilding(buildingId);
-    }
-
-    if (this.floorplan2d) {
-      this.floorplan2d.setBuildingAndFloor(buildingId, this.state.selectedFloorId);
-    }
-
-    this.renderBuildingPicker();
-    this.renderFloorPicker();
-    this.renderDrawer();
-    this.updateBreadcrumbs();
-
-    if (buildingId && this.buildingsData[buildingId]) {
-      const b = this.buildingsData[buildingId];
-      this.showToast(`Selected ${b.name}`);
-      if (window.dynamicIsland && window.dynamicIsland.addLog) {
-        window.dynamicIsland.addLog(`Focused on ${b.shortName}: ${b.type} · ${b.totalAreaSqM} m² · EUI ${b.eui}`, 'normal');
-      }
-    }
-  }
-
-  selectFloor(floorId) {
-    this.state.selectedFloorId = floorId;
-
-    if (this.scene3d) {
-      this.scene3d.selectFloor(floorId);
-    }
-
-    if (this.floorplan2d) {
-      this.floorplan2d.setBuildingAndFloor(this.state.selectedBuildingId, floorId);
-    }
-
-    this.renderFloorPicker();
-    this.renderDrawer();
-    this.updateBreadcrumbs();
-
-    if (floorId && this.state.selectedBuildingId) {
-      const b = this.buildingsData[this.state.selectedBuildingId];
-      const f = b.floors.find((fl) => fl.id === floorId);
-      if (f) {
-        this.showToast(`Inspecting ${f.name}`);
-        if (window.dynamicIsland && window.dynamicIsland.addLog) {
-          window.dynamicIsland.addLog(`Inspecting ${b.shortName} ${f.id.toUpperCase()}: ${f.hvac.ahuTag} (${f.hvac.spaceTempC}°C)`, f.anomaly ? 'high' : 'normal');
-        }
-      }
-    }
-  }
-
-  resetView() {
-    this.state.selectedBuildingId = null;
-    this.state.selectedFloorId = null;
-
-    if (this.scene3d) {
-      this.scene3d.resetView();
-    }
-
-    if (this.floorplan2d) {
-      this.floorplan2d.setBuildingAndFloor(null, null);
-    }
-
-    this.renderBuildingPicker();
-    this.renderFloorPicker();
-    this.renderDrawer();
-    this.updateBreadcrumbs();
-    this.showToast('Reset view to Township Overview');
-
-    if (window.dynamicIsland && window.dynamicIsland.addLog) {
-      window.dynamicIsland.addLog('Camera reset to Township Macro Grid (4 Buildings)', 'normal');
-    }
-  }
-
-  handle3DSelectBuilding(buildingId) {
-    this.state.selectedBuildingId = buildingId;
-    if (this.floorplan2d) {
-      this.floorplan2d.setBuildingAndFloor(buildingId, this.state.selectedFloorId);
-    }
-    this.renderBuildingPicker();
-    this.renderFloorPicker();
-    this.renderDrawer();
-    this.updateBreadcrumbs();
-  }
-
-  handle3DSelectFloor(floorId) {
-    this.state.selectedFloorId = floorId;
-    if (this.floorplan2d) {
-      this.floorplan2d.setBuildingAndFloor(this.state.selectedBuildingId, floorId);
-    }
-    this.renderFloorPicker();
-    this.renderDrawer();
-    this.updateBreadcrumbs();
-  }
-
-  updateBreadcrumbs() {
-    const el = document.getElementById('breadcrumb-asset-name');
-    if (!el) return;
-
-    if (this.state.selectedBuildingId && this.buildingsData[this.state.selectedBuildingId]) {
-      const b = this.buildingsData[this.state.selectedBuildingId];
-      if (this.state.selectedFloorId) {
-        const f = b.floors.find((fl) => fl.id === this.state.selectedFloorId);
-        el.textContent = `${b.shortName} › ${f ? f.id.toUpperCase() : ''}`;
-      } else {
-        el.textContent = b.name;
-      }
-    } else {
-      el.textContent = 'Township Central Core';
-    }
-  }
-
-  // ==========================================
-  // 3D Controls
-  // ==========================================
-
-  toggleEnergyFlow() {
-    if (this.scene3d) {
-      const val = this.scene3d.toggleEnergyFlow();
-      this.state.showEnergyFlow = val;
-      const btn = document.getElementById('btn-energy-flow');
-      if (btn) {
-        btn.classList.toggle('text-[#FF7A00]', val);
-        btn.classList.toggle('bg-[#FFF3EB]', val);
-      }
-      this.showToast(`Energy Flow Conduits: ${val ? 'Visible' : 'Hidden'}`);
-    }
-  }
-
-  toggleNightMode() {
-    if (this.scene3d) {
-      const val = this.scene3d.toggleNightMode();
-      this.state.isNightMode = val;
-      const btn = document.getElementById('btn-night-mode');
-      const icon = document.getElementById('icon-night-mode');
-      if (btn) {
-        btn.classList.toggle('bg-[#1E2022]', val);
-        btn.classList.toggle('text-white', val);
-      }
-      if (icon) {
-        icon.textContent = val ? 'light_mode' : 'dark_mode';
-      }
-      this.showToast(val ? 'Night Lighting Activated' : 'Daylight Scene Activated');
-    }
-  }
-
-  toggleWireframe() {
-    if (this.scene3d) {
-      const val = this.scene3d.toggleWireframe();
-      this.state.wireframeMode = val;
-      const btn = document.getElementById('btn-wireframe');
-      if (btn) {
-        btn.classList.toggle('bg-amber-50', val);
-        btn.classList.toggle('text-amber-700', val);
-      }
-      this.showToast(`Wireframe Mode: ${val ? 'On' : 'Off'}`);
-    }
-  }
-
-  toggleMacroMetrics() {
-    this.state.macroCollapsed = !this.state.macroCollapsed;
-    const cards = document.getElementById('macro-metrics-cards');
-    const toggleText = document.getElementById('macro-toggle-text');
-    const toggleIcon = document.getElementById('macro-toggle-icon');
-
-    if (cards) cards.classList.toggle('hidden', this.state.macroCollapsed);
-    if (toggleText) toggleText.textContent = this.state.macroCollapsed ? 'Expand' : 'Collapse';
-    if (toggleIcon) toggleIcon.textContent = this.state.macroCollapsed ? 'expand_more' : 'expand_less';
-  }
-
-  setViewMode(mode) {
-    this.state.viewMode = mode;
-    const btn3d = document.getElementById('btn-view-3d');
-    const btn2d = document.getElementById('btn-view-2d');
-    const container3d = document.getElementById('township-3d-container');
-    const container2d = document.getElementById('floorplan-2d-container');
-
-    if (mode === '3d') {
-      if (btn3d) btn3d.classList.add('active');
-      if (btn2d) btn2d.classList.remove('active');
-      if (container3d) container3d.classList.remove('hidden');
-      if (container2d) container2d.classList.add('hidden');
-      if (this.scene3d) this.scene3d._handleResize();
-      if (window.dynamicIsland && window.dynamicIsland.addLog) {
-        window.dynamicIsland.addLog('Switched viewport to 3D Microgrid Spatial Twin', 'normal');
-      }
-    } else {
-      if (btn3d) btn3d.classList.remove('active');
-      if (btn2d) btn2d.classList.add('active');
-      if (container3d) container3d.classList.add('hidden');
-      if (container2d) container2d.classList.remove('hidden');
-      if (this.floorplan2d) {
-        this.floorplan2d.setBuildingAndFloor(this.state.selectedBuildingId || 'commercial-mall', this.state.selectedFloorId || 'l3');
-      }
-      if (window.dynamicIsland && window.dynamicIsland.addLog) {
-        window.dynamicIsland.addLog('Switched viewport to 2D CAD Blueprint Mode (HVAC & Hydronic Overlay)', 'normal');
-      }
-    }
-  }
-
-  // ==========================================
-  // Velora Floor & HVAC Analytics Drawer
-  // ==========================================
-
-  setDrawerTab(tab) {
-    this.state.activeDrawerTab = tab;
-    this.renderDrawer();
-  }
-
-  setSetpoint(temp) {
-    if (!this.state.selectedBuildingId || !this.state.selectedFloorId) return;
-    const key = `${this.state.selectedBuildingId}_${this.state.selectedFloorId}`;
-    this.state.customSetpoints[key] = temp;
-    this.renderDrawer();
-    this.showToast(`Thermostat setpoint adjusted to ${temp}°C`);
-  }
-
-  acknowledgeAnomaly(anomId) {
-    this.state.acknowledgedAnomalies[anomId] = true;
-    this.renderDrawer();
-    this.showToast(`Anomaly ${anomId} Acknowledged`);
-    if (window.dynamicIsland && window.dynamicIsland.addLog) {
-      window.dynamicIsland.addLog(`Anomaly ${anomId} acknowledged by operator · Work Order dispatched`, 'normal');
-    }
-  }
-
-  renderDrawer() {
-    const drawerEl = document.getElementById('velora-analytics-drawer');
-    if (!drawerEl) return;
-
-    if (!this.state.selectedBuildingId) {
-      drawerEl.classList.add('translate-x-[110%]', 'opacity-0', 'pointer-events-none');
-      drawerEl.classList.remove('translate-x-0', 'opacity-100', 'pointer-events-auto');
-      return;
-    }
-
-    // Show drawer with smooth slide-in
-    drawerEl.classList.remove('translate-x-[110%]', 'opacity-0', 'pointer-events-none');
-    drawerEl.classList.add('translate-x-0', 'opacity-100', 'pointer-events-auto');
-
-    const building = this.buildingsData[this.state.selectedBuildingId];
-    if (!building) return;
-
-    const activeFloor = this.state.selectedFloorId
-      ? building.floors.find((f) => f.id === this.state.selectedFloorId)
-      : null;
-
-    const hvac = activeFloor?.hvac || {
-      ahuTag: `${building.code}-MAIN-CHILLER`,
-      status: 'OPTIMAL RUNNING',
-      supplyTempC: 14.0,
-      returnTempC: 23.5,
-      spaceTempC: 22.2,
-      setpointC: 22.0,
-      airflowCfm: 5200,
-      chwSupplyC: 6.8,
-      chwReturnC: 12.4,
-      chwDeltaTC: 5.6,
-      chwValvePercent: 72,
-      fanSpeedPercent: 78,
-      rhPercent: 52,
-      co2Ppm: 510,
-      filterHealthPercent: 95,
-      diffuserCount: 6,
-    };
-
-    const spKey = `${building.id}_${activeFloor?.id || 'main'}`;
-    const currentSetpoint = this.state.customSetpoints[spKey] || hvac.setpointC;
-
-    const dailyKwh = activeFloor ? activeFloor.dailyKwh : building.dailyKwh;
-    const demandKw = activeFloor ? activeFloor.demandKw : building.demandKw;
-    const peakKwh = dailyKwh * 0.65;
-    const offPeakKwh = dailyKwh * 0.35;
-    const peakCostMyr = peakKwh * this.tnbTariff.peakRateMyr;
-    const offPeakCostMyr = offPeakKwh * this.tnbTariff.offPeakRateMyr;
-    const totalCostMyr = peakCostMyr + offPeakCostMyr;
-    const costAvoidedMyr = (activeFloor?.solarGenKwh || 0) * this.tnbTariff.peakRateMyr;
-    const co2Kg = dailyKwh * this.tnbTariff.gridFactorKgCo2PerKwh;
-    const co2AvoidedKg = (activeFloor?.solarGenKwh || 0) * this.tnbTariff.gridFactorKgCo2PerKwh;
-
-    // Build Drawer Inner HTML
-    drawerEl.innerHTML = `
-      <!-- Header -->
-      <div class="p-4 bg-white border-b border-[#EBE7DF] flex items-start justify-between">
-        <div>
-          <div class="flex items-center gap-2">
-            <span class="w-2.5 h-2.5 rounded-full" style="background-color: ${building.accentColor}"></span>
-            <span class="text-[10px] font-mono uppercase font-bold text-[#71767B]">
-              ${building.code} • ${building.gbiTier}
-            </span>
-          </div>
-          <h2 class="text-base font-bold text-[#1E2022] mt-0.5 tracking-tight font-sans">
-            ${building.name}
-          </h2>
-          <div class="text-xs text-[#71767B] font-mono mt-0.5">
-            Total Area: <strong class="text-[#1E2022]">${building.totalAreaSqM.toLocaleString()} m²</strong> • EUI: <strong class="text-emerald-700">${building.eui} kWh/m²/yr</strong>
-          </div>
-        </div>
-        <button onclick="twinApp.resetView()" class="w-7 h-7 rounded-full bg-[#FAF8F5] hover:bg-[#F4F0E8] text-[#71767B] hover:text-[#1E2022] flex items-center justify-center transition-colors" title="Close Drawer">
-          <span class="material-symbols-outlined text-[18px]">close</span>
-        </button>
-      </div>
-
-      <!-- Floor Selection Pills -->
-      <div class="p-3 bg-[#FAF8F5] border-b border-[#EBE7DF]">
-        <div class="flex items-center justify-between text-[11px] font-mono text-[#71767B] mb-1.5 font-bold uppercase">
-          <span>${activeFloor ? 'Focused Floor:' : 'Floor Plates:'}</span>
-          ${activeFloor ? `<button onclick="twinApp.selectFloor(null)" class="text-[#FF7A00] hover:underline flex items-center gap-1 font-bold">← View All Floors</button>` : ''}
-        </div>
-        <div class="flex gap-1.5 overflow-x-auto no-scrollbar">
-          ${building.floors.map((f) => {
-            const isSelected = activeFloor && f.id === activeFloor.id;
-            const hasAnomaly = !!f.anomaly;
-            return `
-              <button onclick="twinApp.selectFloor('${f.id}')" class="flex-1 py-1.5 px-2 rounded-xl text-xs font-bold transition-all relative flex flex-col items-center gap-0.5 border ${
-                isSelected
-                  ? 'bg-[#1E2022] text-white border-[#1E2022] shadow-sm'
-                  : 'bg-white hover:bg-slate-50 text-[#1E2022] border-[#EBE7DF]'
-              }">
-                <div class="flex items-center gap-1">
-                  <span>${f.id.toUpperCase()}</span>
-                  ${hasAnomaly ? '<span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse"></span>' : ''}
-                </div>
-                <span class="text-[9px] font-mono opacity-70">${f.demandKw}kW</span>
-              </button>
-            `;
-          }).join('')}
-        </div>
-      </div>
-
-      <!-- Navigation Tabs (HVAC, Energy, Cost, Anomalies) -->
-      <div class="flex border-b border-[#EBE7DF] bg-white px-2 pt-1 gap-1 text-xs">
-        <button onclick="twinApp.setDrawerTab('hvac')" class="px-3 py-2 font-semibold border-b-2 transition-all ${this.state.activeDrawerTab === 'hvac' ? 'border-[#FF7A00] text-[#FF7A00]' : 'border-transparent text-[#71767B] hover:text-[#1E2022]'}">
-          HVAC Telemetry
-        </button>
-        <button onclick="twinApp.setDrawerTab('energy')" class="px-3 py-2 font-semibold border-b-2 transition-all ${this.state.activeDrawerTab === 'energy' ? 'border-[#FF7A00] text-[#FF7A00]' : 'border-transparent text-[#71767B] hover:text-[#1E2022]'}">
-          Power Breakdown
-        </button>
-        <button onclick="twinApp.setDrawerTab('cost')" class="px-3 py-2 font-semibold border-b-2 transition-all ${this.state.activeDrawerTab === 'cost' ? 'border-[#FF7A00] text-[#FF7A00]' : 'border-transparent text-[#71767B] hover:text-[#1E2022]'}">
-          TNB Tariff Cost
-        </button>
-        <button onclick="twinApp.setDrawerTab('anomalies')" class="px-3 py-2 font-semibold border-b-2 transition-all flex items-center gap-1.5 ${this.state.activeDrawerTab === 'anomalies' ? 'border-[#FF7A00] text-[#FF7A00]' : 'border-transparent text-[#71767B] hover:text-[#1E2022]'}">
-          <span>Anomalies</span>
-          ${activeFloor?.anomaly ? `<span class="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>` : ''}
-        </button>
-      </div>
-
-      <!-- Scrollable Tab Content Body -->
-      <div class="flex-1 overflow-y-auto p-4 space-y-4 text-xs font-sans">
-        ${this._renderDrawerTabContent({
-          building,
-          activeFloor,
-          hvac,
-          currentSetpoint,
-          dailyKwh,
-          demandKw,
-          peakCostMyr,
-          offPeakCostMyr,
-          totalCostMyr,
-          costAvoidedMyr,
-          co2Kg,
-          co2AvoidedKg,
-        })}
-      </div>
-    `;
-  }
-
-  _renderDrawerTabContent(ctx) {
-    const { building, activeFloor, hvac, currentSetpoint, dailyKwh, demandKw, peakCostMyr, offPeakCostMyr, totalCostMyr, costAvoidedMyr, co2Kg, co2AvoidedKg } = ctx;
-
-    // TAB 1: HVAC Telemetry
-    if (this.state.activeDrawerTab === 'hvac') {
-      const isAnomaly = hvac.status.includes('ANOMALY');
-      return `
-        <!-- AHU Tag & Live Status -->
-        <div class="p-3 rounded-2xl ${isAnomaly ? 'bg-rose-50 border border-rose-200' : 'bg-[#FAF8F5] border border-[#EBE7DF]'} flex items-center justify-between">
-          <div>
-            <span class="text-[10px] uppercase font-mono font-bold text-[#71767B] block">Air Handling Unit Node</span>
-            <span class="text-sm font-extrabold text-[#1E2022] font-mono">${hvac.ahuTag}</span>
-          </div>
-          <span class="px-2.5 py-1 rounded-full text-[10px] font-bold ${isAnomaly ? 'bg-rose-500 text-white' : 'bg-emerald-500/10 text-emerald-700 border border-emerald-500/20'}">
-            ${hvac.status}
-          </span>
-        </div>
-
-        <!-- 4 Core Gauges (Space Temp, Supply, Return, Setpoint) -->
-        <div class="grid grid-cols-2 gap-2.5 font-mono">
-          <div class="p-3 rounded-2xl bg-white border border-[#EBE7DF] shadow-2xs">
-            <span class="text-[10px] text-[#71767B] block uppercase font-bold">Space Temperature</span>
-            <div class="flex items-baseline gap-1 mt-1">
-              <span class="text-xl font-extrabold text-[#1E2022]">${hvac.spaceTempC}</span>
-              <span class="text-xs text-[#71767B]">°C</span>
-            </div>
-            <span class="text-[9px] text-[#71767B] mt-0.5 block">Target: ${currentSetpoint}°C</span>
-          </div>
-
-          <div class="p-3 rounded-2xl bg-white border border-[#EBE7DF] shadow-2xs">
-            <span class="text-[10px] text-sky-700 block uppercase font-bold">Supply Air Temp</span>
-            <div class="flex items-baseline gap-1 mt-1">
-              <span class="text-xl font-extrabold text-sky-700">${hvac.supplyTempC}</span>
-              <span class="text-xs text-sky-600">°C</span>
-            </div>
-            <span class="text-[9px] text-[#71767B] mt-0.5 block">Return: ${hvac.returnTempC}°C</span>
-          </div>
-
-          <div class="p-3 rounded-2xl bg-white border border-[#EBE7DF] shadow-2xs">
-            <span class="text-[10px] text-indigo-700 block uppercase font-bold">Hydronic CHW ΔT</span>
-            <div class="flex items-baseline gap-1 mt-1">
-              <span class="text-xl font-extrabold text-indigo-700">${hvac.chwDeltaTC}</span>
-              <span class="text-xs text-indigo-600">°C</span>
-            </div>
-            <span class="text-[9px] text-[#71767B] mt-0.5 block">${hvac.chwSupplyC}°C → ${hvac.chwReturnC}°C</span>
-          </div>
-
-          <div class="p-3 rounded-2xl bg-white border border-[#EBE7DF] shadow-2xs">
-            <span class="text-[10px] text-emerald-700 block uppercase font-bold">Airflow Volume</span>
-            <div class="flex items-baseline gap-1 mt-1">
-              <span class="text-xl font-extrabold text-emerald-700">${hvac.airflowCfm.toLocaleString()}</span>
-              <span class="text-xs text-emerald-600">CFM</span>
-            </div>
-            <span class="text-[9px] text-[#71767B] mt-0.5 block">${hvac.diffuserCount} Swirl Diffusers</span>
-          </div>
-        </div>
-
-        <!-- Damper & Fan Metrics -->
-        <div class="p-3 rounded-2xl bg-white border border-[#EBE7DF] shadow-2xs space-y-2">
-          <div class="flex justify-between items-center text-xs">
-            <span class="text-[#71767B]">Chilled Water Valve Position</span>
-            <span class="font-mono font-bold text-[#1E2022]">${hvac.chwValvePercent}%</span>
-          </div>
-          <div class="w-full h-1.5 bg-[#FAF8F5] rounded-full overflow-hidden">
-            <div class="h-full bg-sky-500 rounded-full" style="width: ${hvac.chwValvePercent}%"></div>
-          </div>
-
-          <div class="flex justify-between items-center text-xs pt-1">
-            <span class="text-[#71767B]">VFD Supply Fan Speed</span>
-            <span class="font-mono font-bold text-[#1E2022]">${hvac.fanSpeedPercent}%</span>
-          </div>
-          <div class="w-full h-1.5 bg-[#FAF8F5] rounded-full overflow-hidden">
-            <div class="h-full bg-emerald-500 rounded-full" style="width: ${hvac.fanSpeedPercent}%"></div>
-          </div>
-        </div>
-
-        <!-- Indoor Environmental Quality (IEQ) -->
-        <div class="p-3 rounded-2xl bg-[#FAF8F5] border border-[#EBE7DF] flex items-center justify-between text-xs">
-          <div>
-            <span class="text-[10px] text-[#71767B] block uppercase font-bold font-mono">Relative Humidity</span>
-            <span class="font-bold text-[#1E2022] font-mono text-sm">${hvac.rhPercent}% RH</span>
-          </div>
-          <div class="w-px h-7 bg-[#EBE7DF]"></div>
-          <div>
-            <span class="text-[10px] text-[#71767B] block uppercase font-bold font-mono">CO₂ Concentration</span>
-            <span class="font-bold text-[#1E2022] font-mono text-sm">${hvac.co2Ppm} ppm</span>
-          </div>
-          <div class="w-px h-7 bg-[#EBE7DF]"></div>
-          <div>
-            <span class="text-[10px] text-[#71767B] block uppercase font-bold font-mono">Filter Health</span>
-            <span class="font-bold text-emerald-700 font-mono text-sm">${hvac.filterHealthPercent}%</span>
-          </div>
-        </div>
-
-        <!-- Interactive Smart Thermostat Setpoint Slider -->
-        <div class="p-3.5 rounded-2xl bg-white border border-[#EBE7DF] shadow-2xs space-y-2">
-          <div class="flex justify-between items-center">
-            <span class="font-bold text-[#1E2022]">Smart Thermostat Setpoint</span>
-            <span class="font-mono font-bold text-[#FF7A00] text-sm">${currentSetpoint}°C</span>
-          </div>
-          <input
-            type="range"
-            min="20"
-            max="26"
-            step="0.5"
-            value="${currentSetpoint}"
-            oninput="twinApp.setSetpoint(parseFloat(this.value))"
-            class="w-full accent-[#FF7A00] cursor-pointer"
-          />
-          <div class="flex justify-between text-[10px] font-mono text-[#71767B]">
-            <span>20.0°C (Comfort Max)</span>
-            <span>23.0°C (GBI Target)</span>
-            <span>26.0°C (Eco-Active)</span>
-          </div>
-        </div>
-      `;
-    }
-
-    // TAB 2: Power Breakdown
-    if (this.state.activeDrawerTab === 'energy') {
-      const hvacKw = activeFloor?.hvacLoadKw || (demandKw * 0.52).toFixed(1);
-      const lightKw = activeFloor?.lightingLoadKw || (demandKw * 0.24).toFixed(1);
-      const plugKw = activeFloor?.plugLoadKw || (demandKw * 0.24).toFixed(1);
-      const solarKwh = activeFloor?.solarGenKwh || (building.floors.find((f) => f.id === 'roof')?.solarGenKwh || 0);
-
-      return `
-        <div class="p-3.5 rounded-2xl bg-[#FAF8F5] border border-[#EBE7DF] space-y-1">
-          <span class="text-[10px] uppercase font-mono font-bold text-[#71767B] block">Current Power Draw</span>
-          <div class="flex items-baseline gap-1.5">
-            <span class="text-2xl font-extrabold text-[#1E2022] font-mono">${demandKw}</span>
-            <span class="text-xs font-bold text-[#71767B]">kW Active Demand</span>
-          </div>
-          <span class="text-xs text-[#71767B] block">Total Daily Consumed: <strong class="text-[#1E2022]">${dailyKwh.toLocaleString()} kWh</strong></span>
-        </div>
-
-        <!-- Power Distribution Bars -->
-        <div class="p-3.5 rounded-2xl bg-white border border-[#EBE7DF] shadow-2xs space-y-3">
-          <span class="text-[10px] uppercase font-mono font-bold text-[#71767B] block">Sub-System Load Partition</span>
-
-          <div>
-            <div class="flex justify-between text-xs mb-1">
-              <span class="font-medium text-[#1E2022]">HVAC Chiller & AHU Loops</span>
-              <span class="font-mono font-bold text-sky-700">${hvacKw} kW</span>
-            </div>
-            <div class="w-full h-2 bg-[#FAF8F5] rounded-full overflow-hidden">
-              <div class="h-full bg-sky-600 rounded-full" style="width: ${(hvacKw / demandKw * 100).toFixed(0)}%"></div>
-            </div>
-          </div>
-
-          <div>
-            <div class="flex justify-between text-xs mb-1">
-              <span class="font-medium text-[#1E2022]">Smart LED Architectural Lighting</span>
-              <span class="font-mono font-bold text-amber-700">${lightKw} kW</span>
-            </div>
-            <div class="w-full h-2 bg-[#FAF8F5] rounded-full overflow-hidden">
-              <div class="h-full bg-amber-500 rounded-full" style="width: ${(lightKw / demandKw * 100).toFixed(0)}%"></div>
-            </div>
-          </div>
-
-          <div>
-            <div class="flex justify-between text-xs mb-1">
-              <span class="font-medium text-[#1E2022]">Plug Loads & Server Racks</span>
-              <span class="font-mono font-bold text-indigo-700">${plugKw} kW</span>
-            </div>
-            <div class="w-full h-2 bg-[#FAF8F5] rounded-full overflow-hidden">
-              <div class="h-full bg-indigo-500 rounded-full" style="width: ${(plugKw / demandKw * 100).toFixed(0)}%"></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Rooftop Solar Generation -->
-        <div class="p-3.5 rounded-2xl bg-emerald-50/80 border border-emerald-200/80 flex items-center justify-between">
-          <div>
-            <span class="text-[10px] font-mono uppercase font-bold text-emerald-800 block">Clean Solar Yield</span>
-            <span class="text-lg font-extrabold text-emerald-900 font-mono">${solarKwh.toLocaleString()} kWh</span>
-          </div>
-          <span class="material-symbols-outlined text-2xl text-emerald-600">solar_power</span>
-        </div>
-      `;
-    }
-
-    // TAB 3: TNB Tariff Cost
-    if (this.state.activeDrawerTab === 'cost') {
-      return `
-        <div class="p-3.5 rounded-2xl bg-[#FAF8F5] border border-[#EBE7DF] space-y-1">
-          <span class="text-[10px] uppercase font-mono font-bold text-[#71767B] block">Daily Electricity Expenditure</span>
-          <div class="flex items-baseline gap-1">
-            <span class="text-2xl font-extrabold text-[#1E2022] font-mono">RM ${totalCostMyr.toFixed(2)}</span>
-          </div>
-          <span class="text-[11px] text-[#71767B] block font-mono">Malaysian TNB Commercial Tariff C1 Rate</span>
-        </div>
-
-        <div class="space-y-2.5">
-          <div class="p-3 rounded-2xl bg-white border border-[#EBE7DF] shadow-2xs flex justify-between items-center">
-            <div>
-              <span class="text-xs font-bold text-[#1E2022] block">Peak Consumption Window</span>
-              <span class="text-[10px] text-[#71767B] font-mono">08:00 – 22:00 @ RM 0.584 / kWh</span>
-            </div>
-            <span class="font-mono font-bold text-[#1E2022] text-sm">RM ${peakCostMyr.toFixed(2)}</span>
-          </div>
-
-          <div class="p-3 rounded-2xl bg-white border border-[#EBE7DF] shadow-2xs flex justify-between items-center">
-            <div>
-              <span class="text-xs font-bold text-[#1E2022] block">Off-Peak Night Window</span>
-              <span class="text-[10px] text-[#71767B] font-mono">22:00 – 08:00 @ RM 0.220 / kWh</span>
-            </div>
-            <span class="font-mono font-bold text-emerald-700 text-sm">RM ${offPeakCostMyr.toFixed(2)}</span>
-          </div>
-
-          <div class="p-3 rounded-2xl bg-emerald-50 border border-emerald-200/80 flex justify-between items-center">
-            <div>
-              <span class="text-xs font-bold text-emerald-900 block">Solar & BESS Savings Offset</span>
-              <span class="text-[10px] text-emerald-700 font-mono">Peak Demand Shaving Avoided</span>
-            </div>
-            <span class="font-mono font-bold text-emerald-800 text-sm">-RM ${costAvoidedMyr.toFixed(2)}</span>
-          </div>
-        </div>
-
-        <!-- Scope 2 Carbon Emissions -->
-        <div class="p-3.5 rounded-2xl bg-sky-50 border border-sky-200/80 space-y-1">
-          <span class="text-[10px] font-mono uppercase font-bold text-sky-800 block">Scope 2 Carbon Footprint</span>
-          <div class="flex items-baseline gap-1">
-            <span class="text-xl font-extrabold text-sky-950 font-mono">${(co2Kg / 1000).toFixed(2)}</span>
-            <span class="text-xs text-sky-800">tCO₂e (${Math.round(co2Kg).toLocaleString()} kg)</span>
-          </div>
-          <span class="text-[10px] text-sky-700 block font-mono">Grid Factor: 0.658 kg CO₂e / kWh (Energy Commission)</span>
-        </div>
-      `;
-    }
-
-    // TAB 4: Anomalies
-    if (this.state.activeDrawerTab === 'anomalies') {
-      const anom = activeFloor?.anomaly;
-      if (!anom) {
-        return `
-          <div class="p-8 text-center space-y-2">
-            <div class="w-10 h-10 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto">
-              <span class="material-symbols-outlined text-xl">check_circle</span>
-            </div>
-            <h4 class="font-bold text-[#1E2022]">No Active Anomalies Flagged</h4>
-            <p class="text-[11px] text-[#71767B]">All zone meters, VAV dampers, and supply fan baselines are running within 6× MAD nominal bounds.</p>
-          </div>
-        `;
-      }
-
-      const isAck = this.state.acknowledgedAnomalies[anom.id];
-
-      return `
-        <div class="p-4 rounded-2xl bg-rose-50 border border-rose-200 space-y-3">
-          <div class="flex justify-between items-start">
-            <div>
-              <span class="text-[10px] font-mono uppercase font-bold text-rose-700 block">Statistical Deviation Detected</span>
-              <h4 class="font-extrabold text-[#1E2022] text-sm mt-0.5">${anom.type}</h4>
-            </div>
-            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-500 text-white font-mono">
-              ${anom.severity}
-            </span>
-          </div>
-
-          <div class="grid grid-cols-2 gap-2 text-xs font-mono">
-            <div>
-              <span class="text-[#71767B] block text-[10px]">Excess Draw</span>
-              <strong class="text-rose-700">${anom.deltaKwh}</strong>
-            </div>
-            <div>
-              <span class="text-[#71767B] block text-[10px]">Detection Time</span>
-              <strong class="text-[#1E2022]">${anom.time}</strong>
-            </div>
-          </div>
-
-          <p class="text-xs text-[#1E2022] leading-relaxed pt-1 border-t border-rose-200/80">
-            ${anom.detail}
-          </p>
-
-          <div class="pt-2 flex items-center justify-between">
-            <button
-              onclick="twinApp.acknowledgeAnomaly('${anom.id}')"
-              class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
-                isAck
-                  ? 'bg-emerald-600 text-white'
-                  : 'bg-rose-600 hover:bg-rose-700 text-white shadow-xs'
-              }"
-            >
-              ${isAck ? '✓ Acknowledged' : 'Acknowledge & Dispatch'}
-            </button>
-            <button onclick="twinApp.showToast('Copilot analyzing root cause...')" class="text-xs font-semibold text-sky-700 hover:underline">
-              Copilot Diagnosis ›
-            </button>
-          </div>
-        </div>
-      `;
-    }
-
-    return '';
-  }
-
-  // ==========================================
-  // Toast Notification
-  // ==========================================
-
-  showToast(msg) {
-    const toast = document.getElementById('velora-toast');
-    const text = document.getElementById('velora-toast-text');
-    if (!toast || !text) return;
-
-    text.textContent = msg;
-    toast.classList.remove('opacity-0', 'translate-y-4');
-    toast.classList.add('opacity-100', 'translate-y-0');
-
-    clearTimeout(this._toastT);
-    this._toastT = setTimeout(() => {
-      toast.classList.add('opacity-0', 'translate-y-4');
-      toast.classList.remove('opacity-100', 'translate-y-0');
-    }, 2800);
-  }
+import '../vendor/three.min.js';
+import '../vendor/OrbitControls.js';
+import './township_3d.js';
+import {ready,assets,bundle,esc,stamp,status,chart} from './screen_common.js';
+import {createDrawerSimulation,calculateHvacPreview,calculateFloorPreview} from './digital_twin_simulation.js';
+import {estimateImpact} from './demo_preferences.js';
+import {loadScenarioProfile,mountScenarioPanel,saveScenarioProfile} from './scenario_profile.js';
+class TownshipDemo {
+ constructor(){this.assets=[];this.state={selected:null};this.sequence=0;this.scene=null;this.drawerTab='evidence';this.simulations=new Map();}
+ async init(){
+  status('Loading the BDG2 catalogue and timestamp-aligned portfolio...');
+  try{
+   this.assets=await assets();this.picker();
+   const colors=[0x006948,0x0284c7,0xf59e0b,0xa855f7],positions=[[-80,0,-40],[80,0,-40],[-80,0,80],[80,0,80]];
+   // Design-only geometry. No dimensions, coordinates, floors or equipment are sourced from BDG2.
+   window.BUILDINGS_DATA=Object.fromEntries(this.assets.map((a,i)=>[a.id,{id:a.id,position:positions[i],dimensions:{width:50,depth:40,height:40},primaryColor:colors[i],glassColor:0x6ee7b7,floors:[{id:'g',levelNumber:0},{id:'l1',levelNumber:1},{id:'roof',levelNumber:2}]}]));
+   if(!this.scene){try{this.scene=new window.Township3DScene({container:document.getElementById('township-3d-container'),onSelectBuilding:id=>this.loadSelection(id),onSelectFloor:()=>{}});}catch(e){document.getElementById('township-3d-container').textContent='3D graphics are unavailable in this browser. The measured portfolio below remains usable.';}}
+   const [result,scenario]=await Promise.all([window.apiClient.request('/demo/portfolio'),loadScenarioProfile(this.assets[0].id)]);this.portfolio=result;this.portfolioScenario=scenario;this.renderPortfolio(result);mountScenarioPanel(scenario);
+   status(`Derived comparison from ${result.common_interval_count} common observed intervals; geometry is illustrative.`,'success');
+  }catch(e){status(e.message,'error',()=>this.init());}
+ }
+ picker(){document.getElementById('building-picker-container').innerHTML=`<button class="velora-pill active" onclick="twinApp.resetView()">Township Overview</button>`+this.assets.map(a=>`<button class="velora-pill" onclick="twinApp.selectBuilding('${a.id}')">${esc(a.source_asset_id.replace('Hog_','').replaceAll('_',' '))}</button>`).join('');}
+ renderPortfolio(data){
+  const cards=document.getElementById('macro-metrics-cards');
+  const impact=this.portfolioScenario.assumptions.impact,total=data.total_kwh,cost=total*impact.tariff_myr_per_kwh,carbon=total*impact.carbon_kg_per_kwh,micro=this.portfolioScenario.assumptions.microgrid;
+  cards.innerHTML=`<article class="township-stat"><small>DERIVED BENCHMARK TOTAL</small><strong>${data.total_kwh==null?'Unavailable':data.total_kwh.toLocaleString(undefined,{maximumFractionDigits:1})} kWh</strong><p>${data.common_interval_count} common hourly intervals; not today's telemetry</p></article><article class="township-stat"><small>SCENARIO COST / CARBON</small><strong>MYR ${cost.toLocaleString(undefined,{maximumFractionDigits:2})}</strong><p>${carbon.toLocaleString(undefined,{maximumFractionDigits:1})} kg CO2e · Calculated from observed BDG2 data and simulation assumptions</p></article><article class="township-stat"><small>SCENE CLASSIFICATION</small><strong>Illustrative visual</strong><p>No measured solar, battery, floor, room or HVAC telemetry.</p></article>`;
+  document.getElementById('township-bottom-dock').innerHTML=`<div><small>LATEST COMMON INTERVAL</small><strong>${data.latest_interval_average_kw?.toFixed(1)??'Unavailable'} kW avg</strong></div><div><small>SIMULATED SOLAR / STORAGE</small><a href="energy.html">${micro.solar_capacity_kw} kW / ${micro.battery_capacity_kwh} kWh scenario</a></div>`;
+  let section=document.getElementById('township-comparison');
+  if(!section){section=document.createElement('section');section.id='township-comparison';section.className='velora-card';document.getElementById('township-frame').insertAdjacentElement('afterend',section);}
+  const fmt=(value,digits=1)=>value==null?'Unavailable':Number(value).toFixed(digits);
+  const rows=data.items.map(i=>`<tr>
+   <td><button onclick="twinApp.selectBuilding('${i.asset.id}')">${esc(i.asset.source_asset_id)}</button><br><small>${esc(i.asset.primary_space_usage)}</small></td>
+   <td>${fmt(i.common_energy_kwh)} kWh</td>
+   <td>${fmt(i.mean_interval_average_kw)} kW avg</td>
+   <td>${fmt(i.peak_interval_average_kw)} kW avg</td>
+   <td>${fmt(i.energy_intensity_kwh_per_m2,3)} kWh/m²</td>
+   <td>${fmt(i.overnight_share_percent)}%${i.overnight_investigation_candidate?'<br><span class="candidate-flag">Highest share · investigate only</span>':''}</td>
+  </tr>`).join('');
+  section.innerHTML=`<div class="flex flex-wrap items-start justify-between gap-3"><div><h2 class="text-lg font-bold">Benchmark building comparison</h2><p class="scope-note">Derived from ${data.common_interval_count} matching observed hourly intervals (${esc(data.common_start||'unavailable')} to ${esc(data.common_end||'unavailable')}). Area intensity and overnight share are descriptive; different uses, schedules and weather prevent a normalized peer or efficiency ranking.</p></div><span class="data-classification" data-kind="derived">Derived comparison</span></div><div class="comparison-chart"><canvas id="portfolio-energy-chart"></canvas></div><div class="table-scroll"><table><thead><tr><th>BDG2 building</th><th>Observed energy</th><th>Mean interval</th><th>Peak interval</th><th>Window intensity</th><th>00:00–05:59 share</th></tr></thead><tbody>${rows}</tbody></table></div><p class="scope-note">The highest overnight share is a candidate for investigation only. BDG2 provides no operating schedule, occupancy context or equipment mapping, so this is not confirmed ghost load, waste or a fault. Source: Building Data Genome Project 2 v1.0 (CC BY 4.0), DOI 10.5281/zenodo.3887306.</p>`;
+  chart(document.getElementById('portfolio-energy-chart'),data.items.map(i=>i.asset.source_asset_id.replace('Hog_','')),[{label:'Observed sum over shared intervals',data:data.items.map(i=>i.common_energy_kwh),backgroundColor:['#006948','#0284c7','#f59e0b','#a855f7'],borderColor:'#006948',borderRadius:4}],'kWh','bar');
+ }
+ selectBuilding(id){if(this.scene)this.scene.selectBuilding(id);else this.loadSelection(id);}
+ simulationFor(id){if(!this.simulations.has(id))this.simulations.set(id,createDrawerSimulation());return this.simulations.get(id);}
+ floorPicker(){
+  const element=document.getElementById('floor-picker-container');
+  if(!this.state.selected){element.innerHTML='<span class="data-classification" data-kind="illustrative">Illustrative scene · no measured spatial data</span>';return;}
+  element.innerHTML=`<div class="velora-pill-container" aria-label="Building detail view"><button class="velora-pill ${this.drawerTab==='evidence'?'active':''}" onclick="twinApp.openDrawerTab('evidence')">Whole building</button><button class="velora-pill ${this.drawerTab==='floors'?'active':''}" onclick="twinApp.openDrawerTab('floors')">Floor simulation</button></div>`;
+ }
+ async loadSelection(id){
+  const seq=++this.sequence;this.state.selected=id;this.drawerTab='evidence';
+  if(!id){this.closeDrawer();return;}
+  const asset=this.assets.find(a=>a.id===id);if(!asset)return;
+  document.getElementById('breadcrumb-asset-name').textContent=asset.source_asset_id;
+  this.floorPicker();
+  const drawer=document.getElementById('velora-analytics-drawer');drawer.classList.remove('translate-x-[110%]','opacity-0','pointer-events-none');
+  drawer.innerHTML=`<div class="p-5"><button class="drawer-close" onclick="twinApp.closeDrawer()" aria-label="Close building detail">×</button><small>BDG2 PUBLIC BENCHMARK</small><h2 class="text-lg font-bold">${esc(asset.source_asset_id)}</h2><p>Loading building-level evidence...</p></div>`;
+  try{const [data,scenario]=await Promise.all([bundle(id,24),loadScenarioProfile(id)]);if(seq!==this.sequence)return;
+   this.state={...this.state,...data,currentBuilding:asset,scenario};
+   const assumptions=scenario.assumptions;
+   this.simulations.set(id,{hvac:{allocationPercent:assumptions.load_allocations_percent.hvac,setpointC:assumptions.hvac.cooling_setpoint_c,fanCommandPercent:assumptions.hvac.fan_command_percent,enabled:assumptions.hvac.enabled,mode:assumptions.hvac.mode},floors:assumptions.floors.map(row=>({id:row.id,label:row.label,allocationPercent:row.allocation_percent}))});
+   mountScenarioPanel(scenario);this.renderDrawer();
+  }catch(e){if(seq===this.sequence)drawer.innerHTML=`<div class="p-5"><button class="drawer-close" onclick="twinApp.closeDrawer()">×</button><p role="alert">${esc(e.message)}</p><button class="module-button" onclick="twinApp.loadSelection('${id}')">Retry</button></div>`;}
+ }
+ drawerShell(content){
+  const asset=this.state.currentBuilding;
+  const focus=['ROOF','L1','GROUND'].map((floor,index)=>`<button type="button" onclick="twinApp.openDrawerTab('floors')"><span>${floor}</span><small>Illustrative ${[33,33,34][index]}% allocation</small></button>`).join('');
+  const tabs=[['evidence','Evidence'],['hvac','HVAC simulation'],['floors','Floor simulation'],['power','Power'],['cost','Cost'],['anomalies','Anomalies']].map(([id,label])=>`<button class="velora-pill ${this.drawerTab===id?'active':''}" role="tab" aria-selected="${this.drawerTab===id}" onclick="twinApp.openDrawerTab('${id}')">${label}</button>`).join('');
+  return `<div class="p-5 space-y-4"><button class="drawer-close" onclick="twinApp.closeDrawer()" aria-label="Close building detail">×</button><div class="drawer-asset-heading"><small>BDG2 PUBLIC BENCHMARK · WHOLE BUILDING</small><h2 class="text-lg font-bold">${esc(asset.source_asset_id)}</h2><p class="text-xs">${esc(asset.primary_space_usage)} · ${asset.floor_area_m2??'Unknown'} m²</p></div><div class="drawer-focus-strip"><div><small>FOCUSED FLOOR LAYER</small><span class="data-classification" data-kind="illustrative">Illustrative visual</span></div><div>${focus}</div><p>No BDG2 floor meters or surveyed plans are available.</p></div><div class="velora-pill-container drawer-tabs" role="tablist" aria-label="Building detail">${tabs}</div>${content}</div>`;
+ }
+ evidenceSummary(latest){return `<article class="drawer-evidence"><span class="data-classification" data-kind="observed">Observed BDG2</span><strong>${latest.consumption_kwh.toFixed(1)} kWh</strong><p>Whole-building hourly interval · ${esc(stamp(latest.timestamp,this.state.currentBuilding.timezone))}</p></article>`;}
+ renderDrawer(){
+  if(!this.state.currentBuilding||!this.state.readings?.items?.length)return;
+  const drawer=document.getElementById('velora-analytics-drawer');const latest=this.state.readings.items.at(-1);const next=this.state.forecast.items[0];let content='';
+  if(this.drawerTab==='evidence')content=`${this.evidenceSummary(latest)}<div class="drawer-result-grid"><article><small>CALCULATED NEXT INTERVAL</small><strong>${next.forecast_kwh.toFixed(1)} kWh</strong><p>${esc(stamp(next.timestamp,this.state.currentBuilding.timezone))}</p></article><article><small>DETECTED PATTERNS</small><strong>${this.state.anomalies.count}</strong><p>Statistical detections; no confirmed cause.</p></article></div><p class="scope-note">BDG2 provides one whole-building meter here. It does not provide floor, room, HVAC, equipment, sensor, BMS or control evidence.</p><a class="module-button" href="index.html?asset=${this.state.currentBuilding.id}">Open building dashboard</a>`;
+  else if(this.drawerTab==='hvac')content=this.renderHvacSimulation(latest);
+  else if(this.drawerTab==='floors')content=this.renderFloorSimulation(latest);
+  else if(this.drawerTab==='power')content=this.renderPowerSimulation(latest);
+  else if(this.drawerTab==='cost')content=this.renderCostEstimate(latest);
+  else content=this.renderAnomalies();
+  drawer.innerHTML=this.drawerShell(`<section role="tabpanel" aria-label="${esc(this.drawerTab)} building detail">${content}</section>`);this.floorPicker();
+ }
+ renderHvacSimulation(latest){
+  const inputs=this.simulationFor(this.state.selected).hvac;const result=calculateHvacPreview(latest.consumption_kwh,inputs);
+  return `${this.evidenceSummary(latest)}<div class="simulation-disclosure"><span class="data-classification" data-kind="simulated">Simulated demonstration assumption</span><p>These inputs change only this browser preview. No BMS/SCADA connection, equipment command, fault diagnosis or measured HVAC value is available.</p></div><div class="drawer-form-grid"><label>Illustrative HVAC share <strong>${result.allocationPercent.toFixed(0)}%</strong><input type="range" min="0" max="${100-this.state.scenario.assumptions.load_allocations_percent.lighting-this.state.scenario.assumptions.load_allocations_percent.it_plug}" value="${result.allocationPercent}" onchange="twinApp.updateHvac('allocationPercent',this.value)"></label><label>Simulated cooling setpoint <strong>${result.setpointC.toFixed(1)} °C</strong><input type="range" min="16" max="30" step="0.5" value="${result.setpointC}" onchange="twinApp.updateHvac('setpointC',this.value)"></label><label>Simulated fan command <strong>${result.fanCommandPercent.toFixed(0)}%</strong><input type="range" min="0" max="100" value="${result.fanCommandPercent}" onchange="twinApp.updateHvac('fanCommandPercent',this.value)"></label><label>Illustrative operating mode<select onchange="twinApp.updateHvac('mode',this.value)">${['comfort','eco','test'].map(mode=>`<option value="${mode}" ${mode===result.mode?'selected':''}>${mode[0].toUpperCase()+mode.slice(1)} · Simulated</option>`).join('')}</select></label><label class="drawer-switch"><input type="checkbox" ${result.enabled?'checked':''} onchange="twinApp.updateHvac('enabled',this.checked)"> Simulated equipment enabled</label></div><div class="drawer-result-grid"><article><small>SIMULATED HVAC ALLOCATION</small><strong>${result.simulatedHvacKwh.toFixed(1)} kWh</strong><p>${result.allocationPercent.toFixed(0)}% assumption applied to the observed whole-building interval.</p></article><article><small>ILLUSTRATIVE AHU-01 PREVIEW</small><strong>${result.enabled?'Simulated on':'Simulated off'}</strong><p>${result.mode} · ${result.setpointC.toFixed(1)} °C · fan ${result.fanCommandPercent.toFixed(0)}%</p></article></div><p class="scope-note"><strong>Assumptions:</strong> HVAC share, setpoint, fan command, mode and enabled state are local user-controlled demo inputs. The allocation is arithmetic context only and does not establish actual equipment energy, state, savings or cause. Real use requires authorised equipment mapping, HVAC/BMS telemetry and control approval.</p>`;
+ }
+ renderFloorSimulation(latest){
+  const inputs=this.simulationFor(this.state.selected).floors;const result=calculateFloorPreview(latest.consumption_kwh,inputs);
+  const rows=result.rows.map((floor,index)=>`<article class="floor-simulation-row"><div><span class="data-classification" data-kind="illustrative">Illustrative floor</span><strong>${esc(floor.label)}</strong><p>${floor.simulatedKwh==null?'Not calculated':`${floor.simulatedKwh.toFixed(1)} kWh simulated allocation`}</p></div><label><span>${floor.allocationPercent.toFixed(0)}% assumed</span><input aria-label="${esc(floor.label)} allocation assumption" type="range" min="0" max="100" value="${floor.allocationPercent}" onchange="twinApp.updateFloor(${index},this.value)"></label></article>`).join('');
+  return `${this.evidenceSummary(latest)}<div class="simulation-disclosure"><span class="data-classification" data-kind="simulated">Simulated demonstration assumption</span><p>The three floor names and percentages are illustrative assumptions. They are not BDG2 floor meters, actual plans or measured floor consumption.</p></div><div class="floor-simulation-list">${rows}</div><div class="allocation-total ${result.valid?'valid':'invalid'}"><strong>Assumption total: ${result.totalPercent.toFixed(0)}%</strong><span>${result.valid?`Simulated allocations reconcile to ${latest.consumption_kwh.toFixed(1)} kWh observed whole-building energy.`:'Not calculated — floor assumptions must total 100%.'}</span></div><button class="module-button secondary" onclick="twinApp.resetDrawerSimulation('floors')">Reset illustrative floor assumptions</button><p class="scope-note"><strong>Assumptions:</strong> Ground 34%, Level 1 33%, Roof 33% by default. No external factor is used. Real floor analysis requires authorised floor meters, mapping, timestamps and plans; whole-building BDG2 readings cannot identify floor performance or causes.</p>`;
+ }
+ renderPowerSimulation(latest){
+  const result=calculateHvacPreview(latest.consumption_kwh,this.simulationFor(this.state.selected).hvac);const hvac=result.simulatedHvacKwh;const other=result.simulatedOtherKwh;
+  return `${this.evidenceSummary(latest)}<div class="simulation-disclosure"><span class="data-classification" data-kind="simulated">Calculated from observed BDG2 data and simulation assumptions</span><p>Uses only the local HVAC-share assumption. It is not a measured equipment split.</p></div><div class="simulated-power-bar"><span style="width:${result.allocationPercent}%">HVAC ${result.allocationPercent.toFixed(0)}%</span><span style="width:${100-result.allocationPercent}%">Other</span></div><div class="drawer-result-grid"><article><small>SIMULATED HVAC SHARE</small><strong>${hvac.toFixed(1)} kWh</strong><p>Arithmetic allocation of the observed interval.</p></article><article><small>SIMULATED OTHER LOAD</small><strong>${other.toFixed(1)} kWh</strong><p>No room or equipment attribution.</p></article></div><button class="module-button secondary" onclick="twinApp.openDrawerTab('hvac')">Edit simulation assumptions</button><p class="scope-note">Real power breakdown requires authorised submeters and equipment mapping. No fault, efficiency or savings claim is made.</p>`;
+ }
+ renderCostEstimate(latest){
+  const impact=this.state.scenario.assumptions.impact;const result=estimateImpact(latest.consumption_kwh,{currency_code:impact.currency_code,tariff_myr_per_kwh:impact.tariff_myr_per_kwh,tariff_source:impact.assumption_reference,carbon_kg_per_kwh:impact.carbon_kg_per_kwh,carbon_source:impact.assumption_reference});
+  return `${this.evidenceSummary(latest)}<div class="simulation-disclosure"><span class="data-classification" data-kind="estimated">Calculated from observed BDG2 data and simulation assumptions</span><p>The estimate applies browser-local inputs to one observed hourly interval. It is not a real tariff bill.</p></div><div class="drawer-result-grid"><article><small>ESTIMATED INTERVAL COST</small><strong>${result.cost==null?'Not calculated':`MYR ${result.cost.toFixed(2)}`}</strong><p>${result.preferences.tariff_source?esc(result.preferences.tariff_source):'Tariff source required in Settings.'}</p></article><article><small>ESTIMATED INTERVAL CARBON</small><strong>${result.carbon==null?'Not calculated':`${result.carbon.toFixed(2)} kg CO2e`}</strong><p>${result.preferences.carbon_source?esc(result.preferences.carbon_source):'Carbon-factor source required in Settings.'}</p></article></div><a class="module-button" href="settings.html#scenario-assumptions">Edit scenario assumptions</a><p class="scope-note">No applicable tariff, official carbon factor, taxes, demand charges or verified savings are supplied by BDG2.</p>`;
+ }
+ renderAnomalies(){
+  const items=this.state.anomalies?.items||[];const rows=items.slice(0,5).map(item=>`<article class="audit-row"><span class="data-classification" data-kind="detected">Detected unusual pattern</span><time>${esc(stamp(item.timestamp,this.state.currentBuilding.timezone))}</time><strong>${esc(item.direction.replaceAll('_',' '))}</strong><small>${item.observed_kwh.toFixed(1)} kWh observed vs ${item.forecast_kwh.toFixed(1)} kWh forecast</small></article>`).join('');
+  return `<div class="simulation-disclosure detected-disclosure"><span class="data-classification" data-kind="detected">Detected · whole-building only</span><p>${this.state.anomalies.count} statistical unusual-consumption patterns in the API result. These do not identify a cause or fault.</p></div><div class="drawer-audit-list">${rows||'<p class="scope-note">No returned unusual patterns for this asset.</p>'}</div><a class="module-button" href="diagnostics.html?asset=${this.state.currentBuilding.id}&openAlerts=1">Open full anomaly audit</a><p class="scope-note">Source: BDG2 observations plus the evaluated forecast-residual rule. HVAC diagnosis requires equipment telemetry and mapping.</p>`;
+ }
+ openDrawerTab(tab){if(!['evidence','hvac','floors','power','cost','anomalies'].includes(tab)||!this.state.currentBuilding)return;this.drawerTab=tab;this.renderDrawer();status(`${tab==='evidence'?'Observed building evidence':tab==='anomalies'?'Detected unusual-pattern evidence':`${tab} demo layer`} opened. Simulations remain local and do not control equipment.`,'info');}
+ persistDrawer(){const current=this.simulationFor(this.state.selected),a=this.state.scenario.assumptions;a.load_allocations_percent.hvac=current.hvac.allocationPercent;a.load_allocations_percent.other=100-a.load_allocations_percent.hvac-a.load_allocations_percent.lighting-a.load_allocations_percent.it_plug;Object.assign(a.hvac,{cooling_setpoint_c:current.hvac.setpointC,fan_command_percent:current.hvac.fanCommandPercent,enabled:current.hvac.enabled,mode:current.hvac.mode});a.floors=current.floors.map(row=>({id:row.id,label:row.label,allocation_percent:row.allocationPercent}));const result=saveScenarioProfile(this.state.scenario);if(result.errors.length){status(result.errors.join('. '),'error');return false;}mountScenarioPanel(this.state.scenario);return true;}
+ updateHvac(field,value){const inputs=this.simulationFor(this.state.selected).hvac;if(!Object.hasOwn(inputs,field))return;inputs[field]=field==='enabled'?Boolean(value):field==='mode'?String(value):Number(value);if(this.persistDrawer())this.renderDrawer();}
+ updateFloor(index,value){const floors=this.simulationFor(this.state.selected).floors;if(!floors[index])return;floors[index].allocationPercent=Number(value);if(this.persistDrawer())this.renderDrawer();}
+ resetDrawerSimulation(section){const current=this.simulationFor(this.state.selected);current[section]=createDrawerSimulation()[section];if(this.persistDrawer())this.renderDrawer();}
+ closeDrawer(){document.getElementById('velora-analytics-drawer').classList.add('translate-x-[110%]','opacity-0','pointer-events-none');}
+ resetView(){this.scene?.resetView();this.state.selected=null;this.closeDrawer();this.floorPicker();document.getElementById('breadcrumb-asset-name').textContent='Illustrative Township';}
+ setViewMode(mode){document.getElementById('township-3d-container').classList.toggle('hidden',mode==='2d');const plan=document.getElementById('floorplan-2d-container');plan.classList.toggle('hidden',mode!=='2d');if(mode==='2d')plan.innerHTML='<div class="p-6"><strong>Illustrative floor-plan visual</strong><p>No relationship to a BDG2 building, room meter or actual township is established.</p><img class="illustrative-plan" src="assets/spatial/floorplan.svg" alt="Illustrative reference plan, no measured room data"></div>';for(const [id,active] of [['btn-view-3d',mode==='3d'],['btn-view-2d',mode==='2d']]){const button=document.getElementById(id);button.classList.toggle('active',active);button.setAttribute('aria-pressed',String(active));}status(`${mode==='2d'?'Illustrative 2D plan':'Illustrative 3D township'} view opened. No measured spatial or equipment telemetry is shown.`,'info');}
+ toggleMacroMetrics(){const n=document.getElementById('macro-metrics-cards');n.hidden=!n.hidden;document.getElementById('macro-toggle-text').textContent=n.hidden?'Expand':'Collapse';status(`Derived portfolio metrics ${n.hidden?'collapsed':'expanded'}. Values use matching observed BDG2 intervals; the scene remains illustrative.`,'info');}
+ toggleVisual(id,action,label){action?.();const button=document.getElementById(id);const active=button?.getAttribute('aria-pressed')!=='true';button?.setAttribute('aria-pressed',String(active));status(`${label} ${active?'enabled':'disabled'} for the illustrative scene only. No building control action occurred.`,'info');}
+ toggleEnergyFlow(){this.toggleVisual('btn-energy-flow',()=>this.scene?.toggleEnergyFlow(),'Animated energy flow');}
+ toggleNightMode(){this.toggleVisual('btn-night-mode',()=>this.scene?.toggleNightMode(),'Night lighting');}
+ toggleWireframe(){this.toggleVisual('btn-wireframe',()=>this.scene?.toggleWireframe(),'Wireframe view');}
+ openAlertDetails(){if(!this.state.currentBuilding)return status('Select a BDG2 building to load unusual-consumption-pattern evidence.','info');location.href=`diagnostics.html?asset=${encodeURIComponent(this.state.currentBuilding.id)}&openAlerts=1`;}
+ showToast(message){status(message,'info');}
 }
-
-window.twinApp = new EnergiOSTwinApp();
-document.addEventListener('DOMContentLoaded', () => window.twinApp.init());
+window.twinApp=new TownshipDemo();ready(()=>window.twinApp.init());

@@ -26,13 +26,13 @@ def test_docs_reference_the_served_openapi_contract():
     assert schema_response.status_code == 200
     schema = schema_response.json()
     assert schema["info"]["version"] == "1"
-    assert set(schema["paths"]) == {
+    assert {
         "/health",
         "/assets",
         "/assets/{asset_id}/readings",
         "/assets/{asset_id}/forecast",
         "/assets/{asset_id}/anomalies",
-    }
+    } <= set(schema["paths"])
     health_schema = schema["components"]["schemas"]["HealthResponse"]
     assert health_schema["properties"]["status"]["const"] == "ok"
     assert health_schema["properties"]["version"]["const"] == "1"

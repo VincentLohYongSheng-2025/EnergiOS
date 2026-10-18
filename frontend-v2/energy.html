@@ -51,6 +51,7 @@
 
   <!-- Verified Backend & BDG2 Telemetry Sync -->
   <script type="module" src="src/js/api.js"></script>
+<link rel="stylesheet" href="src/css/demo.css">
 </head>
 
 <body class="bg-[#FAF8F5] text-[#1E2022] antialiased min-h-screen flex flex-col p-6 lg:p-8 selection:bg-orange-100 selection:text-orange-900">
@@ -128,23 +129,15 @@
             <span class="text-xs font-semibold text-neutral-400 block mb-2 font-sans">Chat Assistant</span>
             <!-- Agent Message Bubble (Styled identically to dynamic_island.jpeg) -->
             <div class="bg-[#1C1D21] border border-white/5 rounded-2xl p-4 text-xs text-neutral-200 leading-relaxed shadow-sm">
-              <p id="island-agent-bubble-text">
-                Here's an analysis of your energy consumption. Hog_office_Bill consumed <b>4,440 kWh</b> so far, which is up <b>12.4%</b> compared to 24h prior. 118 statistical anomalies detected. Would you like me to analyze peak usage?
-              </p>
+              <p id="island-agent-bubble-text">Read-only energy assistant. Open the panel to check availability.</p>
             </div>
           </div>
 
           <!-- Interactive Quick Prompt Chips -->
           <div class="flex items-center gap-1.5 flex-wrap pt-0.5">
-            <button onclick="dynamicIsland.sendQuickPrompt('Analyze peak usage')" class="px-2.5 py-1 rounded-full text-[10px] font-medium bg-[#1C1D21] hover:bg-[#282A30] text-neutral-300 border border-white/5 transition-all">
-              ⚡ Analyze peak usage
-            </button>
-            <button onclick="dynamicIsland.sendQuickPrompt('Audit 118 anomalies')" class="px-2.5 py-1 rounded-full text-[10px] font-medium bg-[#1C1D21] hover:bg-[#282A30] text-neutral-300 border border-white/5 transition-all">
-              ⚠️ Audit 118 anomalies
-            </button>
-            <button onclick="dynamicIsland.sendQuickPrompt('Calculate TNB tariff cost')" class="px-2.5 py-1 rounded-full text-[10px] font-medium bg-[#1C1D21] hover:bg-[#282A30] text-neutral-300 border border-white/5 transition-all">
-              💰 Calculate TNB cost
-            </button>
+            <button onclick="dynamicIsland.sendQuickPrompt('Explain the calculated forecast')" class="px-2.5 py-1 rounded-full text-[10px] font-medium bg-[#1C1D21] hover:bg-[#282A30] text-neutral-300 border border-white/5 transition-all">Forecast evidence</button>
+            <button onclick="dynamicIsland.sendQuickPrompt('Explain unusual consumption patterns without assuming causes')" class="px-2.5 py-1 rounded-full text-[10px] font-medium bg-[#1C1D21] hover:bg-[#282A30] text-neutral-300 border border-white/5 transition-all">Unusual patterns</button>
+            <button onclick="dynamicIsland.sendQuickPrompt('What information is unavailable for this building?')" class="px-2.5 py-1 rounded-full text-[10px] font-medium bg-[#1C1D21] hover:bg-[#282A30] text-neutral-300 border border-white/5 transition-all">Scope limits</button>
           </div>
 
           <!-- Input Bar (Exact 1:1 match to dynamic_island.jpeg) -->
@@ -154,35 +147,18 @@
               <span class="w-1.5 h-1.5 rounded-full bg-neutral-500"></span>
               <span class="w-1.5 h-1.5 rounded-full bg-neutral-500"></span>
             </div>
-            <input id="island-user-input" type="text" placeholder="Quick user mean natural prompt..." class="bg-transparent text-xs text-white placeholder:text-neutral-500 outline-none flex-1 px-1 font-sans">
+            <input id="island-user-input" type="text" placeholder="Ask about this building’s evidence…" class="bg-transparent text-xs text-white placeholder:text-neutral-500 outline-none flex-1 px-1 font-sans">
             <button type="submit" class="w-6 h-6 rounded-full bg-white text-black flex items-center justify-center hover:bg-neutral-200 transition-colors shrink-0" title="Send">
               <span class="material-symbols-outlined text-[14px]">arrow_upward</span>
             </button>
           </form>
         </div>
 
-        <!-- Right Column: Agent Logs (5 Cols) -->
+        <!-- Right Column: Assistant status (5 Cols) -->
         <div class="md:col-span-5 flex flex-col justify-between border-t md:border-t-0 md:border-l border-white/10 md:pl-5 pt-3 md:pt-0">
           <div>
-            <span class="text-xs font-semibold text-neutral-400 block mb-2 font-sans">Agent Logs</span>
-            <div id="island-agent-logs-list" class="space-y-2.5 font-mono text-[11px] max-h-[190px] overflow-y-auto pr-1">
-              <div class="flex items-start gap-1.5 leading-snug">
-                <span class="text-neutral-500 whitespace-nowrap">• 14:12:05 —</span>
-                <span class="text-neutral-300">Analyzing peak consumption metrics for current day...</span>
-              </div>
-              <div class="flex items-start gap-1.5 leading-snug">
-                <span class="text-neutral-500 whitespace-nowrap">• 14:12:12 —</span>
-                <span class="text-neutral-300">Detecting anomaly in Building 3 HVAC draw (high) <span class="text-amber-400">⚠️</span></span>
-              </div>
-              <div class="flex items-start gap-1.5 leading-snug">
-                <span class="text-neutral-500 whitespace-nowrap">• 14:14:02 —</span>
-                <span class="text-neutral-300">Optimized solar storage battery allocation <span class="text-emerald-400">✅</span></span>
-              </div>
-              <div class="flex items-start gap-1.5 leading-snug">
-                <span class="text-neutral-500 whitespace-nowrap">• 14:15:30 —</span>
-                <span class="text-neutral-300">Generating hourly 24h efficiency report...</span>
-              </div>
-            </div>
+            <span class="text-xs font-semibold text-neutral-400 block mb-2 font-sans">Assistant status</span>
+            <div id="island-agent-logs-list" class="space-y-2.5 font-mono text-[11px] max-h-[190px] overflow-y-auto pr-1">No request sent.</div>
           </div>
         </div>
 
@@ -225,7 +201,7 @@
       <!-- Live API Status Tag -->
       <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200/80 dark:border-emerald-800/60 text-emerald-800 dark:text-emerald-300 text-[11px] font-semibold">
         <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-        <span class="font-mono">Live API Connected</span>
+        <span class="font-mono" id="api-connection-status">Connecting API...</span>
       </div>
 
       <!-- Theme Toggle Button -->
@@ -282,7 +258,7 @@
         <span class="material-symbols-outlined text-[19px]">warning</span>
       </button>
       <!-- 6. Document Sheet -->
-      <button class="velora-nav-btn" title="Provenance & Reports" onclick="energyApp.showToast('Public Benchmark: BDG2 v1.0 · DOE Whole-Building Dataset')">
+      <button class="velora-nav-btn" title="Provenance & Reports" onclick="location.href='methodology.html'">
         <span class="material-symbols-outlined text-[19px]">description</span>
       </button>
     </aside>
@@ -299,7 +275,7 @@
             Energy Storage & Flow
           </h1>
           <p class="text-xs text-[#71767B] font-medium mt-1">
-            Real-time battery performance, building load capacity and energy flow optimization
+            Simulated solar and storage using the calculated BDG2 forecast and declared inputs below.
           </p>
 
           <!-- Building Selector Pills -->
@@ -315,13 +291,13 @@
         <div class="flex items-center gap-2">
           <div class="velora-pill-container bg-white border border-[#EBE7DF] shadow-xs">
             <button class="velora-pill timeframe-btn active" data-timeframe="Hourly" onclick="energyApp.setTimeframe('Hourly')">Hourly</button>
-            <button class="velora-pill timeframe-btn" data-timeframe="Daily" onclick="energyApp.setTimeframe('Daily')">Daily</button>
-            <button class="velora-pill timeframe-btn" data-timeframe="Monthly" onclick="energyApp.setTimeframe('Monthly')">Monthly</button>
+            <button class="velora-pill timeframe-btn" title="Summarise the current 24-hour representative scenario" data-timeframe="Daily" onclick="energyApp.setTimeframe('Daily')">Daily</button>
+            <button class="velora-pill timeframe-btn" title="Illustrative 30-day repetition of the current scenario" data-timeframe="Monthly" onclick="energyApp.setTimeframe('Monthly')">Monthly</button>
           </div>
           <button class="velora-icon-btn" title="Filters" onclick="energyApp.showToast('Filter: Whole-Building Electricity Meter')">
             <span class="material-symbols-outlined text-[18px]">tune</span>
           </button>
-          <button class="velora-icon-btn" title="Export" onclick="energyApp.showToast('Exporting energy flow dataset...')">
+          <button class="velora-icon-btn" title="Export labelled scenario JSON" onclick="energyApp.exportData()">
             <span class="material-symbols-outlined text-[18px]">download</span>
           </button>
         </div>
@@ -337,10 +313,10 @@
         <div class="lg:col-span-4 velora-card flex flex-col justify-between overflow-hidden relative p-0 min-h-[300px]">
           <div class="p-6 pb-2 z-10">
             <div class="flex items-center justify-between">
-              <span id="building-name-tag" class="text-xs font-bold font-mono uppercase text-[#71767B]">HOG OFFICE BILL</span>
-              <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/60">Active Meter</span>
+              <span id="building-name-tag" class="text-xs font-bold font-mono uppercase text-[#71767B]">Loading scenario…</span>
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/60">Public benchmark</span>
             </div>
-            <p id="building-area-tag" class="text-[11px] text-[#71767B] font-mono mt-0.5">13,375.5 m² · Whole-Building Electricity</p>
+            <p id="building-area-tag" class="text-[11px] text-[#71767B] font-mono mt-0.5">Loading scenario…</p>
           </div>
 
           <!-- Exact Architectural Photo with Gradient Bottom Fade -->
@@ -354,7 +330,7 @@
         <div class="lg:col-span-3 velora-card flex flex-col justify-between">
           <div class="flex items-center justify-between">
             <h2 class="text-base font-bold text-[#1E2022]">Battery Storage</h2>
-            <span class="text-xs font-semibold text-[#22C55E] bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200/50">Charging</span>
+            <span class="text-xs font-semibold text-[#22C55E] bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200/50">Simulated</span>
           </div>
 
           <!-- Circular Radial Progress Gauge -->
@@ -366,24 +342,24 @@
               <line x1="70" y1="10" x2="70" y2="22" stroke="#EF4444" stroke-width="3" stroke-linecap="round" />
             </svg>
             <div class="absolute inset-0 flex flex-col items-center justify-center">
-              <span id="gauge-percent" class="text-3xl font-extrabold text-[#1E2022] tracking-tight">68<span class="text-sm font-semibold text-[#71767B]">%</span></span>
-              <span class="text-[11px] text-[#22C55E] font-semibold mt-0.5">+2% / hour</span>
+              <span id="gauge-percent" class="text-3xl font-extrabold text-[#1E2022] tracking-tight">Loading scenario…</span>
+              <span class="text-[11px] text-[#22C55E] font-semibold mt-0.5">Simulated ending state</span>
             </div>
           </div>
 
           <!-- Bottom 3 Key Metrics List -->
           <div class="space-y-2 pt-2 border-t border-slate-100 text-xs">
             <div class="flex items-center justify-between">
-              <span class="text-[#71767B]">Current Power</span>
-              <span id="metric-current-power" class="font-bold text-[#1E2022]">185.0 kW</span>
+              <span class="text-[#71767B]">Simulated Peak Grid</span>
+              <span id="metric-current-power" class="font-bold text-[#1E2022]">Loading scenario…</span>
             </div>
             <div class="flex items-center justify-between">
-              <span class="text-[#71767B]">Backup Duration</span>
-              <span id="metric-duration" class="font-bold text-[#1E2022]">~12.5 hrs</span>
+              <span class="text-[#71767B]">Ending Stored Energy</span>
+              <span id="metric-duration" class="font-bold text-[#1E2022]">Loading scenario…</span>
             </div>
             <div class="flex items-center justify-between">
               <span class="text-[#71767B]">Capacity</span>
-              <span id="metric-capacity" class="font-bold text-[#1E2022]">452.9 kWh</span>
+              <span id="metric-capacity" class="font-bold text-[#1E2022]">Loading scenario…</span>
             </div>
           </div>
         </div>
@@ -393,21 +369,21 @@
           <div class="flex items-center justify-between mb-2">
             <div>
               <h2 class="text-base font-bold text-[#1E2022]">Battery Level</h2>
-              <p class="text-xs text-[#71767B]">Real-time storage and usage overview</p>
+              <p class="text-xs text-[#71767B]">Simulated 24-hour stored state; not battery telemetry</p>
             </div>
             <!-- Legend (Good / Medium / Low) -->
             <div class="flex items-center gap-3 text-xs text-[#71767B]">
               <div class="flex items-center gap-1.5">
                 <span class="w-2 h-2 rounded-full bg-[#FF7A00]"></span>
-                <span>Good</span>
+                <span>Simulated SOC</span>
               </div>
               <div class="flex items-center gap-1.5">
                 <span class="w-2 h-2 rounded-full bg-[#FACC15]"></span>
-                <span>Medium</span>
+                <span>Capacity %</span>
               </div>
               <div class="flex items-center gap-1.5">
                 <span class="w-2 h-2 rounded-full bg-slate-300"></span>
-                <span>Low</span>
+                <span>Simulated</span>
               </div>
             </div>
           </div>
@@ -426,18 +402,18 @@
       <!-- =============================================================== -->
       <section class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
 
-        <!-- Card 1: Usage Pattern (Scatter Bubble Chart) (4 Cols) -->
+        <!-- Card 1: Forecast vs Simulated Grid (Scatter Bubble Chart) (4 Cols) -->
         <div class="lg:col-span-4 velora-card flex flex-col justify-between">
           <div class="flex items-center justify-between mb-2">
-            <h2 class="text-base font-bold text-[#1E2022]">Usage Pattern</h2>
+            <h2 class="text-base font-bold text-[#1E2022]">Forecast vs Simulated Grid</h2>
             <div class="flex items-center gap-3 text-xs text-[#71767B]">
               <div class="flex items-center gap-1.5">
                 <span class="w-2 h-2 rounded-full bg-[#FF7A00]"></span>
-                <span>High</span>
+                <span>Forecast</span>
               </div>
               <div class="flex items-center gap-1.5">
                 <span class="w-2 h-2 rounded-full bg-[#FDE047]"></span>
-                <span>Low</span>
+                <span>Simulated</span>
               </div>
             </div>
           </div>
@@ -472,7 +448,7 @@
 
         <!-- Card 3: Energy Flow (Sankey Flow Diagram) (4 Cols) -->
         <div class="lg:col-span-4 velora-card flex flex-col justify-between">
-          <h2 class="text-base font-bold text-[#1E2022] mb-2">Energy Flow</h2>
+          <h2 class="text-base font-bold text-[#1E2022] mb-2">Simulated Energy Flow</h2><p class="scope-note">Illustrative flow links; values are simulated horizon totals. No export is modelled.</p>
 
           <!-- Visual Sankey Diagram Flow (Exact 1:1 replica of idea-01) -->
           <div class="relative w-full h-[120px] flex items-center justify-center my-auto">
@@ -518,7 +494,7 @@
 
               <!-- Node 3: Home (Yellow) -->
               <rect x="296" y="15" width="4" height="50" rx="2" fill="#FACC15" />
-              <text x="264" y="32" font-size="9" font-family="Inter" font-weight="600" fill="#71767B">Home</text>
+              <text x="264" y="32" font-size="9" font-family="Inter" font-weight="600" fill="#71767B">Building</text>
 
               <!-- Node 4: Grid (Blue) -->
               <rect x="296" y="85" width="4" height="30" rx="2" fill="#0284C7" />
@@ -530,19 +506,19 @@
           <div class="grid grid-cols-2 gap-y-2 gap-x-4 pt-3 border-t border-slate-100 text-xs">
             <div class="flex items-center justify-between">
               <span class="text-[#71767B]">Solar</span>
-              <span id="flow-val-solar" class="font-bold text-[#1E2022]">7.0 kWh</span>
+              <span id="flow-val-solar" class="font-bold text-[#1E2022]">Loading scenario…</span>
             </div>
             <div class="flex items-center justify-between">
               <span class="text-[#71767B]">Battery</span>
-              <span id="flow-val-battery" class="font-bold text-[#1E2022]">3.6 kWh</span>
+              <span id="flow-val-battery" class="font-bold text-[#1E2022]">Loading scenario…</span>
             </div>
             <div class="flex items-center justify-between">
-              <span class="text-[#71767B]">Home</span>
-              <span id="flow-val-home" class="font-bold text-[#1E2022]">7.1 kWh</span>
+              <span class="text-[#71767B]">Building</span>
+              <span id="flow-val-home" class="font-bold text-[#1E2022]">Loading scenario…</span>
             </div>
             <div class="flex items-center justify-between">
               <span class="text-[#71767B]">Grid</span>
-              <span id="flow-val-grid" class="font-bold text-[#1E2022]">1.9 kWh</span>
+              <span id="flow-val-grid" class="font-bold text-[#1E2022]">Loading scenario…</span>
             </div>
           </div>
         </div>
@@ -586,5 +562,6 @@
 
   <!-- Controller Scripts -->
   <script type="module" src="src/js/energy_simulator.js"></script>
+  <script type="module" src="src/js/shell.js"></script>
 </body>
 </html>

@@ -51,6 +51,7 @@
 
   <!-- Verified Backend & BDG2 Telemetry Sync -->
   <script type="module" src="src/js/api.js"></script>
+<link rel="stylesheet" href="src/css/demo.css">
 </head>
 
 <body class="bg-[#FAF8F5] text-[#1E2022] antialiased min-h-screen flex flex-col p-6 lg:p-8 selection:bg-orange-100 selection:text-orange-900">
@@ -128,23 +129,15 @@
             <span class="text-xs font-semibold text-neutral-400 block mb-2 font-sans">Chat Assistant</span>
             <!-- Agent Message Bubble (Styled identically to dynamic_island.jpeg) -->
             <div class="bg-[#1C1D21] border border-white/5 rounded-2xl p-4 text-xs text-neutral-200 leading-relaxed shadow-sm">
-              <p id="island-agent-bubble-text">
-                Here's an analysis of your energy consumption. Hog_office_Bill consumed <b>4,440 kWh</b> so far, which is up <b>12.4%</b> compared to 24h prior. 118 statistical anomalies detected. Would you like me to analyze peak usage?
-              </p>
+              <p id="island-agent-bubble-text">Read-only energy assistant. Open the panel to check availability.</p>
             </div>
           </div>
 
           <!-- Interactive Quick Prompt Chips -->
           <div class="flex items-center gap-1.5 flex-wrap pt-0.5">
-            <button onclick="dynamicIsland.sendQuickPrompt('Analyze peak usage')" class="px-2.5 py-1 rounded-full text-[10px] font-medium bg-[#1C1D21] hover:bg-[#282A30] text-neutral-300 border border-white/5 transition-all">
-              ⚡ Analyze peak usage
-            </button>
-            <button onclick="dynamicIsland.sendQuickPrompt('Audit 118 anomalies')" class="px-2.5 py-1 rounded-full text-[10px] font-medium bg-[#1C1D21] hover:bg-[#282A30] text-neutral-300 border border-white/5 transition-all">
-              ⚠️ Audit 118 anomalies
-            </button>
-            <button onclick="dynamicIsland.sendQuickPrompt('Calculate TNB tariff cost')" class="px-2.5 py-1 rounded-full text-[10px] font-medium bg-[#1C1D21] hover:bg-[#282A30] text-neutral-300 border border-white/5 transition-all">
-              💰 Calculate TNB cost
-            </button>
+            <button onclick="dynamicIsland.sendQuickPrompt('Explain the calculated forecast')" class="px-2.5 py-1 rounded-full text-[10px] font-medium bg-[#1C1D21] hover:bg-[#282A30] text-neutral-300 border border-white/5 transition-all">Forecast evidence</button>
+            <button onclick="dynamicIsland.sendQuickPrompt('Explain unusual consumption patterns without assuming causes')" class="px-2.5 py-1 rounded-full text-[10px] font-medium bg-[#1C1D21] hover:bg-[#282A30] text-neutral-300 border border-white/5 transition-all">Unusual patterns</button>
+            <button onclick="dynamicIsland.sendQuickPrompt('What information is unavailable for this building?')" class="px-2.5 py-1 rounded-full text-[10px] font-medium bg-[#1C1D21] hover:bg-[#282A30] text-neutral-300 border border-white/5 transition-all">Scope limits</button>
           </div>
 
           <!-- Input Bar (Exact 1:1 match to dynamic_island.jpeg) -->
@@ -154,35 +147,18 @@
               <span class="w-1.5 h-1.5 rounded-full bg-neutral-500"></span>
               <span class="w-1.5 h-1.5 rounded-full bg-neutral-500"></span>
             </div>
-            <input id="island-user-input" type="text" placeholder="Quick user mean natural prompt..." class="bg-transparent text-xs text-white placeholder:text-neutral-500 outline-none flex-1 px-1 font-sans">
+            <input id="island-user-input" type="text" placeholder="Ask about this building’s evidence…" class="bg-transparent text-xs text-white placeholder:text-neutral-500 outline-none flex-1 px-1 font-sans">
             <button type="submit" class="w-6 h-6 rounded-full bg-white text-black flex items-center justify-center hover:bg-neutral-200 transition-colors shrink-0" title="Send">
               <span class="material-symbols-outlined text-[14px]">arrow_upward</span>
             </button>
           </form>
         </div>
 
-        <!-- Right Column: Agent Logs (5 Cols) -->
+        <!-- Right Column: Assistant status (5 Cols) -->
         <div class="md:col-span-5 flex flex-col justify-between border-t md:border-t-0 md:border-l border-white/10 md:pl-5 pt-3 md:pt-0">
           <div>
-            <span class="text-xs font-semibold text-neutral-400 block mb-2 font-sans">Agent Logs</span>
-            <div id="island-agent-logs-list" class="space-y-2.5 font-mono text-[11px] max-h-[190px] overflow-y-auto pr-1">
-              <div class="flex items-start gap-1.5 leading-snug">
-                <span class="text-neutral-500 whitespace-nowrap">• 14:12:05 —</span>
-                <span class="text-neutral-300">Analyzing peak consumption metrics for current day...</span>
-              </div>
-              <div class="flex items-start gap-1.5 leading-snug">
-                <span class="text-neutral-500 whitespace-nowrap">• 14:12:12 —</span>
-                <span class="text-neutral-300">Detecting anomaly in Building 3 HVAC draw (high) <span class="text-amber-400">⚠️</span></span>
-              </div>
-              <div class="flex items-start gap-1.5 leading-snug">
-                <span class="text-neutral-500 whitespace-nowrap">• 14:14:02 —</span>
-                <span class="text-neutral-300">Optimized solar storage battery allocation <span class="text-emerald-400">✅</span></span>
-              </div>
-              <div class="flex items-start gap-1.5 leading-snug">
-                <span class="text-neutral-500 whitespace-nowrap">• 14:15:30 —</span>
-                <span class="text-neutral-300">Generating hourly 24h efficiency report...</span>
-              </div>
-            </div>
+            <span class="text-xs font-semibold text-neutral-400 block mb-2 font-sans">Assistant status</span>
+            <div id="island-agent-logs-list" class="space-y-2.5 font-mono text-[11px] max-h-[190px] overflow-y-auto pr-1">No request sent.</div>
           </div>
         </div>
 
@@ -232,7 +208,7 @@
       <!-- Live API Status Tag -->
       <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200/80 dark:border-emerald-800/60 text-emerald-800 dark:text-emerald-300 text-[11px] font-semibold">
         <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-        <span class="font-mono">Live API</span>
+        <span class="font-mono" id="api-connection-status">Connecting API...</span>
       </div>
 
       <!-- Theme Toggle Button -->
@@ -286,7 +262,7 @@
         <span class="material-symbols-outlined text-[19px]">warning</span>
       </button>
       <!-- 6. Document Sheet -->
-      <button class="velora-nav-btn" title="Provenance & Reports" onclick="diagApp.showToast('Public Benchmark: BDG2 v1.0 · DOE Whole-Building Dataset')">
+      <button class="velora-nav-btn" title="Provenance & Reports" onclick="location.href='methodology.html'">
         <span class="material-symbols-outlined text-[19px]">description</span>
       </button>
     </aside>
@@ -303,7 +279,7 @@
             Asset Diagnostics & Subsystems
           </h1>
           <p class="text-xs text-[#71767B] font-medium mt-1">
-            Subsystem telemetry breakdown, architectural callouts, and peak demand horizon
+            Observed building history and unusual patterns; equipment callouts are illustrative only.
           </p>
 
           <!-- Building Selector Pills -->
@@ -318,9 +294,9 @@
         <!-- Right Filter Pills -->
         <div class="flex items-center gap-2">
           <div class="velora-pill-container bg-white border border-[#EBE7DF] shadow-xs">
-            <button class="velora-pill active">Subsystems</button>
-            <button class="velora-pill" onclick="diagApp.showToast('Filter: Chiller Loop Active')">Chillers</button>
-            <button class="velora-pill" onclick="diagApp.showToast('Filter: AHU Ventilation Active')">AHU</button>
+            <button id="diag-tab-whole" class="velora-pill active diag-subsystem-tab" aria-pressed="true" onclick="diagApp.setSubsystem('whole')">Whole building</button>
+            <button id="diag-tab-chiller" class="velora-pill diag-subsystem-tab" aria-pressed="false" onclick="diagApp.setSubsystem('chiller')">Chillers</button>
+            <button id="diag-tab-ahu" class="velora-pill diag-subsystem-tab" aria-pressed="false" onclick="diagApp.setSubsystem('ahu')">AHU</button>
           </div>
           <button class="velora-icon-btn" title="Filters" onclick="diagApp.showToast('Filter: Validation MAD Anomaly Flags')">
             <span class="material-symbols-outlined text-[18px]">tune</span>
@@ -340,28 +316,28 @@
           <div class="p-6 pb-2 z-10 flex items-center justify-between">
             <div>
               <span id="hero-building-name" class="text-xs font-bold font-mono uppercase text-[#71767B]">HOG OFFICE BILL</span>
-              <h3 class="text-lg font-bold text-[#1E2022] mt-0.5">Architectural Subsystem Mapping</h3>
+              <h3 class="text-lg font-bold text-[#1E2022] mt-0.5">Illustrative Architectural Context</h3>
             </div>
-            <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200/60 font-mono">100% Monitored</span>
+            <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200/60 font-mono">Illustrative architecture</span>
           </div>
 
           <!-- Architectural Render Image with Soft Mist -->
-          <div class="relative w-full flex-1 flex items-center justify-center p-6">
+          <div class="diag-illustration relative w-full flex-1 flex items-center justify-center p-6">
             <img id="diag-building-photo" src="assets/idea_crops/exact_building_perfect.jpeg" alt="Architectural Render" class="w-full max-h-[300px] object-cover rounded-xl shadow-xs">
 
             <!-- Interactive Callout Pin 1: Rooftop Solar Array -->
-            <div class="absolute top-1/4 left-1/3 transform -translate-x-1/2 -translate-y-1/2 flex items-center gap-2 group cursor-pointer">
+            <div class="diag-callout absolute top-1/4 left-1/3 transform -translate-x-1/2 -translate-y-1/2 flex items-center gap-2 group cursor-pointer">
               <span class="w-3.5 h-3.5 rounded-full bg-[#0284C7] ring-4 ring-sky-100 flex items-center justify-center text-white text-[9px] font-bold">1</span>
               <div class="bg-white/95 backdrop-blur-xs px-2.5 py-1 rounded-lg shadow-md border border-slate-200 text-[11px] font-medium text-slate-800 transition-all group-hover:scale-105">
-                Rooftop Solar PV Array
+                Illustrative solar location
               </div>
             </div>
 
             <!-- Interactive Callout Pin 2: Chiller Plant -->
-            <div class="absolute bottom-1/3 right-1/4 transform -translate-x-1/2 -translate-y-1/2 flex items-center gap-2 group cursor-pointer">
+            <div class="diag-callout absolute bottom-1/3 right-1/4 transform -translate-x-1/2 -translate-y-1/2 flex items-center gap-2 group cursor-pointer">
               <span class="w-3.5 h-3.5 rounded-full bg-[#FF7A00] ring-4 ring-orange-100 flex items-center justify-center text-white text-[9px] font-bold">2</span>
               <div class="bg-white/95 backdrop-blur-xs px-2.5 py-1 rounded-lg shadow-md border border-slate-200 text-[11px] font-medium text-slate-800 transition-all group-hover:scale-105">
-                Central Chiller Plant Loop
+                Illustrative chiller location
               </div>
             </div>
 
@@ -373,7 +349,7 @@
         <!-- Right Side: 2 Metric Cards Stack (4 Cols) -->
         <div class="lg:col-span-4 flex flex-col gap-6 justify-between">
 
-          <!-- Card A: Estimate Run Time to Peak Capacity (Exact 1:1 match to idea-03) -->
+          <!-- Card A: Latest Observed Interval to Peak Capacity (Exact 1:1 match to idea-03) -->
           <div class="velora-card flex-1 flex flex-col justify-between">
             <div class="flex items-start gap-4">
               <!-- Blue Battery / Power Graphic Icon -->
@@ -382,10 +358,10 @@
                 <span class="text-[9px] font-mono font-bold mt-1">BAT</span>
               </div>
               <div class="flex-1">
-                <span class="text-xs font-semibold text-[#1E2022] block">Estimate Run Time</span>
-                <span class="text-[11px] text-[#71767B] block mt-0.5">Estimated time to peak capacity</span>
+                <span class="text-xs font-semibold text-[#1E2022] block">Latest Observed Interval</span>
+                <span class="text-[11px] text-[#71767B] block mt-0.5"><span id="diag-latest-time">Loading source timestamp...</span></span>
                 <div class="text-2xl font-extrabold text-[#1E2022] tracking-tight mt-1">
-                  2 hr 47 min
+                  <span id="diag-latest">Loading...</span>
                 </div>
               </div>
             </div>
@@ -393,38 +369,38 @@
             <!-- Solid Blue Progress Bar with Percentage Tag -->
             <div class="mt-4">
               <div class="w-full bg-sky-100 h-7 rounded-xl p-1 flex items-center overflow-hidden">
-                <div class="bg-[#38BDF8] h-full rounded-lg flex items-center px-2.5 text-white text-xs font-bold transition-all duration-500" style="width: 76%">
-                  76%
+                <div id="diag-coverage" class="bg-[#38BDF8] h-full rounded-lg flex items-center px-2.5 text-white text-xs font-bold transition-all duration-500" style="width: 0%">
+                  Loading interval coverage
                 </div>
               </div>
             </div>
           </div>
 
-          <!-- Card B: Estimated Full & Production Kw (2 Columns in idea-03) -->
+          <!-- Card B: Held-out Forecast MAE & Unusual Patterns (2 Columns in idea-03) -->
           <div class="grid grid-cols-2 gap-4">
-            <!-- Left: Estimated Full (1hr 56m) -->
+            <!-- Left: Held-out Forecast MAE (<span id="diag-mae">Loading...</span>) -->
             <div class="velora-card flex flex-col justify-between">
               <div class="flex items-center justify-between">
-                <span class="text-xs text-[#71767B] font-medium">Estimated Full</span>
+                <span class="text-xs text-[#71767B] font-medium">Held-out Forecast MAE</span>
                 <span class="material-symbols-outlined text-[16px] text-slate-400">arrow_outward</span>
               </div>
               <div class="text-xl font-extrabold text-[#0284C7] mt-3 tracking-tight">
-                1hr 56m
+                <span id="diag-mae">Loading...</span>
               </div>
             </div>
 
-            <!-- Right: Production Kw (32.8) -->
+            <!-- Right: Unusual Patterns (32.8) -->
             <div class="velora-card flex flex-col justify-between">
               <div class="flex items-center justify-between">
-                <span class="text-xs text-[#71767B] font-medium">Production Kw</span>
+                <span class="text-xs text-[#71767B] font-medium">Unusual Patterns</span>
                 <span class="material-symbols-outlined text-[16px] text-slate-400">arrow_outward</span>
               </div>
               <div id="metric-prod-kw" class="text-xl font-extrabold text-[#1E2022] mt-3 tracking-tight">
-                32.8
+                Loading...
               </div>
               <!-- Small scale track indicator -->
               <div class="w-full bg-slate-100 h-1.5 rounded-full mt-2 overflow-hidden">
-                <div class="bg-sky-500 h-full rounded-full" style="width: 33%"></div>
+                <div class="bg-sky-500 h-full rounded-full" style="width: 0%"></div>
               </div>
             </div>
           </div>
@@ -439,22 +415,20 @@
       <!-- =============================================================== -->
       <section class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
 
-        <!-- Card 1: Site Power Breakdown (Stacked Bar by Day) (8 Cols) -->
+        <!-- Card 1: Observed Building Energy by Source-Local Day (Stacked Bar by Day) (8 Cols) -->
         <div class="lg:col-span-8 velora-card flex flex-col justify-between">
           <div class="flex items-center justify-between mb-4">
-            <h2 class="text-base font-bold text-[#1E2022]">Site Power Breakdown</h2>
+            <h2 class="text-base font-bold text-[#1E2022]">Observed Building Energy by Source-Local Day</h2>
             <div class="flex items-center gap-4 text-xs text-[#71767B]">
               <div class="flex items-center gap-1.5">
                 <span class="w-2.5 h-2.5 rounded-full bg-[#0284C7]"></span>
-                <span>Production (55%)</span>
+                <span>Observed kWh</span>
               </div>
               <div class="flex items-center gap-1.5">
                 <span class="w-2.5 h-2.5 rounded-full bg-[#BAE6FD]"></span>
-                <span>Consumption (30%)</span>
+                <span>Partial days labelled by returned hours</span>
               </div>
-              <div class="px-2 py-0.5 rounded-lg border border-slate-200 text-[11px] font-semibold text-slate-700 bg-white cursor-pointer">
-                Week ▾
-              </div>
+              <button type="button" onclick="diagApp.describeWindow()" class="px-2 py-0.5 rounded-lg border border-slate-200 text-[11px] font-semibold text-slate-700 bg-white">Returned window · info</button>
             </div>
           </div>
 
@@ -466,42 +440,11 @@
 
         <!-- Card 2: Appliance / Subsystem Usage (4 Cols) -->
         <div class="lg:col-span-4 velora-card flex flex-col justify-between">
-          <div class="flex items-center justify-between">
-            <h2 class="text-base font-bold text-[#1E2022]">Appliance Usage</h2>
-            <span class="material-symbols-outlined text-[16px] text-slate-400">arrow_outward</span>
-          </div>
-
-          <div class="my-2">
-            <div class="text-3xl font-extrabold text-[#1E2022] tracking-tight">100%</div>
-            <p class="text-xs text-[#71767B] mt-0.5">Subsystem power allocation</p>
-          </div>
-
-          <!-- Subsystem Progress Items List (Air Conditioner, Smart TV, Lamp) -->
-          <div class="space-y-3 pt-2 border-t border-slate-100 text-xs">
-            <div class="flex items-center justify-between text-slate-700">
-              <span>Air Conditioner</span>
-              <span id="load-ac-val" class="font-bold text-[#1E2022]">26 kWh</span>
-            </div>
-            <div class="w-full bg-sky-100 h-4 rounded-lg overflow-hidden flex">
-              <div class="bg-[#0284C7] h-full" style="width: 55%" title="Air Conditioner"></div>
-              <div class="bg-[#38BDF8] h-full" style="width: 25%" title="Smart TV / IT"></div>
-              <div class="bg-[#BAE6FD] h-full" style="width: 20%" title="Lighting"></div>
-            </div>
-
-            <div class="flex items-center justify-between text-[11px] text-slate-500 pt-1">
-              <div>
-                <span class="block font-semibold text-slate-700">Smart TV / IT</span>
-                <span id="load-it-val">16 kWh</span>
-              </div>
-              <div class="text-right">
-                <span class="block font-semibold text-slate-700">Lighting</span>
-                <span id="load-light-val">10 kWh</span>
-              </div>
-            </div>
-          </div>
+          <div id="equipment-mapping-content" aria-live="polite"></div>
         </div>
 
       </section>
+<p class="scope-note">Floor, room, AHU and chiller diagnosis requires authorised submeters, equipment mapping and BMS measurements. The architectural image and pins are illustrative; no fault cause or runtime is inferred.</p>
 
     </div>
   </div>
@@ -539,7 +482,9 @@
   </div>
 
   <!-- Controller Scripts -->
-  <script type="module" src="src/js/scope_guard.js"></script>
+
   <script type="module" src="src/js/data_classification.js"></script>
+  <script type="module" src="src/js/shell.js"></script>
+<script type="module" src="src/js/diagnostics_app.js"></script>
 </body>
 </html>

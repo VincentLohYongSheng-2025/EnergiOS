@@ -1,262 +1,68 @@
-/**
- * EnergiOS - Asset Diagnostics Controller (diagnostics.html)
- * 100% Exact 1:1 Layout Replica of idea-03-light.jpeg
- * Subsystem breakdown, site power breakdown 100% stacked bar chart,
- * and architectural telemetry mapping.
- */
-
-class EnergiOSDiagnosticsApp {
-  constructor() {
-    this.state = {
-      activeBuildingId: 'fa2b11d5-f608-515e-97ab-6445ef048bff', // Hog_office_Bill
-      assets: [],
-      currentBuilding: null,
-      readings: null,
-      forecast: null,
-      anomalies: null,
-    };
-
-    this.breakdownChart = null;
-
-    this.buildingImages = {
-      Hog_office_Bill: 'assets/idea_crops/exact_building_perfect.jpeg',
-      Hog_education_Donnie: 'assets/buildings/Hog_education_Donnie.jpg',
-      Hog_assembly_Dona: 'assets/buildings/Hog_assembly_Dona.jpg',
-      Hog_lodging_Francisco: 'assets/buildings/Hog_lodging_Francisco.jpg',
-    };
-
-    window.addEventListener('energios:theme-changed', () => {
-      if (this.breakdownChart && this.breakdownChart.options && this.breakdownChart.options.scales) {
-        const colors = window.getChartThemeColors ? window.getChartThemeColors() : null;
-        if (colors && this.breakdownChart.options.scales.y) {
-          this.breakdownChart.options.scales.y.grid.color = colors.gridColor;
-          this.breakdownChart.options.scales.y.ticks.color = colors.textColor;
-          if (this.breakdownChart.options.scales.x) {
-            this.breakdownChart.options.scales.x.ticks.color = colors.textColor;
-          }
-          this.breakdownChart.update();
-        }
-      }
-    });
+import {ready,assets,bundle,esc,stamp,imageFor,status,chart,audit} from './screen_common.js';
+import {allocationFromObserved,loadScenarioProfile,mountScenarioPanel,saveScenarioProfile} from './scenario_profile.js';
+class Diagnostics {
+  constructor(){this.assets=[];this.state={subsystem:'whole'};this.sequence=0;}
+  async init(){
+    status('Loading BDG2 asset catalogue...');
+    document.querySelectorAll('.diag-callout').forEach((node,index)=>{const labels=['Illustrative solar location only. BDG2 contains no measured PV, roof or generation data.','Illustrative chiller location only. BDG2 contains no equipment mapping, chiller telemetry or fault cause.'];const action=()=>status(labels[index]||'Illustrative architectural callout; no measured subsystem data.','info');node.setAttribute('role','button');node.setAttribute('tabindex','0');node.setAttribute('aria-label',labels[index]);node.onclick=action;node.onkeydown=event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();action();}};});
+    try{this.assets=await assets();const requested=new URLSearchParams(location.search).get('asset');await this.selectBuilding(this.assets.some(asset=>asset.id===requested)?requested:this.assets[0].id);}catch(e){status(e.message,'error',()=>this.init());}
   }
-
-  async init() {
-    console.log('[EnergiOS Diagnostics] Initializing...');
-    await this.loadData();
+  picker(){document.getElementById('building-picker-container').innerHTML=this.assets.map(a=>`<button class="velora-pill ${a.id===this.state.activeBuildingId?'active':''}" onclick="diagApp.selectBuilding('${a.id}')">${esc(a.source_asset_id.replace('Hog_','').replaceAll('_',' '))}</button>`).join('');}
+  async selectBuilding(id){
+    const asset=this.assets.find(a=>a.id===id);if(!asset)return;
+    const sequence=++this.sequence;this.state={activeBuildingId:id,currentBuilding:asset,subsystem:this.state.subsystem||'whole'};this.picker();
+    status('Loading observed history and unusual-pattern evidence...');
+    document.getElementById('hero-building-name').textContent=asset.source_asset_id;
+    document.getElementById('diag-building-photo').src=imageFor(asset);
+    for(const key of ['diag-latest','diag-mae','metric-prod-kw'])document.getElementById(key).textContent='Loading...';
+    try{
+      const [data,scenario]=await Promise.all([bundle(id),loadScenarioProfile(id)]);if(sequence!==this.sequence)return;Object.assign(this.state,data,{scenario});
+      const rows=data.readings.items;const latest=rows.at(-1);
+      document.getElementById('diag-latest').textContent=`${latest.consumption_kwh.toFixed(1)} kWh`;
+      document.getElementById('diag-latest-time').textContent=stamp(latest.timestamp,asset.timezone);
+      document.getElementById('diag-mae').textContent=`${data.forecast.test_metrics.model.mae_kwh.toFixed(2)} kWh`;
+      document.getElementById('metric-prod-kw').textContent=`${data.anomalies.count} patterns`;
+      const expected=Math.round((new Date(rows.at(-1).timestamp)-new Date(rows[0].timestamp))/3600000)+1;
+      document.getElementById('diag-coverage').textContent=`${rows.length}/${expected} returned intervals`;
+      document.getElementById('diag-coverage').style.width=`${rows.length/expected*100}%`;
+      const grouped=new Map();for(const r of rows){const date=new Date(r.timestamp).toLocaleDateString('en-GB',{timeZone:asset.timezone});const d=grouped.get(date)||{kwh:0,count:0};d.kwh+=r.consumption_kwh;d.count++;grouped.set(date,d);}
+      chart(document.getElementById('site-breakdown-chart'),[...grouped].map(([day,r])=>`${day} (${r.count} h)`),[{label:'Observed interval sum',data:[...grouped.values()].map(r=>r.kwh),backgroundColor:'#0284C7',borderColor:'#0284C7',borderRadius:4}], 'kWh returned intervals','bar');
+      this.renderSubsystem();mountScenarioPanel(scenario);
+      status(`Observed BDG2 evidence plus ${scenario.scenario_version} demonstration assumptions loaded.`,'success');
+      if(new URLSearchParams(location.search).get('openAlerts')==='1'){this.openAlertDetails();history.replaceState(null,'',location.pathname);}
+    }catch(e){if(sequence===this.sequence){this.state.anomalies=null;status(e.message,'error',()=>this.selectBuilding(id));}}
   }
-
-  async loadData() {
-    try {
-      const assetsData = await window.apiClient.getAssets();
-      this.state.assets = assetsData.items || [];
-      this.renderBuildingPicker();
-      await this.selectBuilding(this.state.activeBuildingId);
-    } catch (err) {
-      console.warn('[EnergiOS Diagnostics] Using verified BDG2 snapshot:', err);
-      if (window.ENERGIOS_BDG2_DATA) {
-        this.state.assets = window.ENERGIOS_BDG2_DATA.assets.items || [];
-        this.renderBuildingPicker();
-        await this.selectBuilding(this.state.activeBuildingId);
-      }
+  latest(){return this.state.readings?.items?.at(-1);}
+  setSubsystem(kind){
+    if(!['whole','chiller','ahu'].includes(kind)||!this.state.scenario)return;
+    this.state.subsystem=kind;
+    document.querySelectorAll('.diag-subsystem-tab').forEach(button=>{const active=button.id===`diag-tab-${kind}`;button.classList.toggle('active',active);button.setAttribute('aria-pressed',String(active));});
+    this.renderSubsystem();
+    status(`${kind==='whole'?'Whole-building evidence and allocations':`${kind} demonstration simulation`} opened. No equipment connection or control is present.`,'info');
+  }
+  persist(){const result=saveScenarioProfile(this.state.scenario);if(result.errors.length){status(result.errors.join('. '),'error');return false;}mountScenarioPanel(this.state.scenario);return true;}
+  updateLoad(key,value){const loads=this.state.scenario.assumptions.load_allocations_percent;loads[key]=Number(value);loads.other=Math.max(0,100-loads.hvac-loads.lighting-loads.it_plug);if(this.persist())this.renderSubsystem();}
+  updateHvac(key,value){const hvac=this.state.scenario.assumptions.hvac;hvac[key]=Number(value);if(key==='chiller_share_percent'||key==='ahu_share_percent')hvac.other_hvac_percent=Math.max(0,100-hvac.chiller_share_percent-hvac.ahu_share_percent);if(this.persist())this.renderSubsystem();}
+  renderSubsystem(){
+    const host=document.getElementById('equipment-mapping-content'),latest=this.latest(),profile=this.state.scenario;if(!host||!latest||!profile)return;
+    const a=profile.assumptions,loads=a.load_allocations_percent,allocated=allocationFromObserved(latest.consumption_kwh,loads),label='<span class="data-classification" data-kind="simulated">Simulated demonstration assumption</span>';
+    if(this.state.subsystem==='whole'){
+      const controls=[['hvac','HVAC/chiller/AHU'],['lighting','Lighting'],['it_plug','IT / plug load']].map(([key,name])=>`<label class="allocation-control"><span>${name}<strong>${loads[key]}% · ${allocated[key].toFixed(1)} kWh</strong></span><input aria-label="${name} simulated allocation" type="range" min="0" max="${100-Object.entries(loads).filter(([k])=>k!==key&&k!=='other').reduce((sum,[,v])=>sum+Number(v),0)}" value="${loads[key]}" oninput="diagApp.updateLoad('${key}',this.value)"></label>`).join('');
+      host.innerHTML=`<div class="scenario-card-title"><div><h2>Equipment Mapping</h2><p>Editable allocation of one observed whole-building interval.</p></div>${label}</div><strong class="scenario-total">${latest.consumption_kwh.toFixed(1)} kWh observed</strong>${controls}<div class="allocation-remainder"><span>Other building load</span><strong>${loads.other}% · ${allocated.other.toFixed(1)} kWh</strong></div><p class="scope-note">Calculated from observed BDG2 data and simulation assumptions. Allocations reconcile to the observed interval and do not represent equipment meters or confirmed causes.</p>`;
+      return;
     }
-  }
-
-  renderBuildingPicker() {
-    const container = document.getElementById('building-picker-container');
-    if (!container) return;
-
-    container.innerHTML = this.state.assets.map((asset) => {
-      const isSelected = asset.id === this.state.activeBuildingId;
-      const cleanName = asset.name.replace('Hog_', '').replace('_', ' ');
-      return `
-        <button onclick="diagApp.selectBuilding('${asset.id}')" class="px-3 py-1 rounded-full text-[11px] font-medium transition-all ${
-          isSelected
-            ? 'bg-[#1E2022] text-white shadow-xs font-semibold'
-            : 'bg-white text-slate-500 hover:text-slate-800 border border-slate-200/60'
-        }">
-          ${cleanName}
-        </button>
-      `;
-    }).join('');
-  }
-
-  async selectBuilding(assetId) {
-    this.state.activeBuildingId = assetId;
-    this.renderBuildingPicker();
-
-    try {
-      const asset = this.state.assets.find((a) => a.id === assetId) || this.state.assets[0];
-      this.state.currentBuilding = asset;
-
-      // Update architectural photo & hero tag
-      const imgEl = document.getElementById('diag-building-photo');
-      const nameEl = document.getElementById('hero-building-name');
-      if (imgEl) imgEl.src = this.buildingImages[asset.name] || 'assets/idea_crops/exact_building_perfect.jpeg';
-      if (nameEl) nameEl.textContent = asset.name.replace('Hog_', 'BDG2 ').toUpperCase();
-
-      // Fetch readings & anomalies
-      const [readings, forecast, anomalies] = await Promise.all([
-        window.apiClient.getReadings(assetId, { limit: 168 }),
-        window.apiClient.getForecast(assetId),
-        window.apiClient.getAnomalies(assetId, { limit: 100 }),
-      ]);
-
-      this.state.readings = readings;
-      this.state.forecast = forecast;
-      this.state.anomalies = anomalies;
-
-      this.updateSubsystems();
-      this.renderSiteBreakdownChart();
-    } catch (err) {
-      console.error('[EnergiOS Diagnostics] Error fetching telemetry:', err);
+    const hvac=a.hvac,hvacKwh=allocated.hvac;
+    if(this.state.subsystem==='chiller'){
+      const chiller=hvacKwh*hvac.chiller_share_percent/100;
+      host.innerHTML=`<div class="scenario-card-title"><div><h2>Chiller demonstration</h2><p>No measured chiller telemetry is used.</p></div>${label}</div><strong class="scenario-total">${chiller.toFixed(1)} kWh simulated allocation</strong><label class="allocation-control"><span>Share of HVAC allocation<strong>${hvac.chiller_share_percent}%</strong></span><input aria-label="Chiller share of simulated HVAC allocation" type="range" min="0" max="${100-hvac.ahu_share_percent}" value="${hvac.chiller_share_percent}" oninput="diagApp.updateHvac('chiller_share_percent',this.value)"></label><label class="allocation-control"><span>Illustrative COP<strong>${Number(hvac.illustrative_cop).toFixed(1)}</strong></span><input aria-label="Illustrative chiller COP" type="range" min="1" max="7" step="0.1" value="${hvac.illustrative_cop}" oninput="diagApp.updateHvac('illustrative_cop',this.value)"></label><div class="drawer-result-grid"><article><small>ILLUSTRATIVE COOLING OUTPUT</small><strong>${(chiller*hvac.illustrative_cop).toFixed(1)} kWh-thermal</strong></article><article><small>OTHER HVAC ALLOCATION</small><strong>${(hvacKwh-chiller).toFixed(1)} kWh</strong></article></div><p class="scope-note">Calculated from observed BDG2 data and simulation assumptions. COP and allocation are editable demonstration assumptions, not measured efficiency or fault diagnosis.</p>`;
+      return;
     }
+    const ahu=hvacKwh*hvac.ahu_share_percent/100;
+    host.innerHTML=`<div class="scenario-card-title"><div><h2>AHU demonstration</h2><p>Local preview only; no BMS command is sent.</p></div>${label}</div><strong class="scenario-total">${ahu.toFixed(1)} kWh simulated allocation</strong><label class="allocation-control"><span>Share of HVAC allocation<strong>${hvac.ahu_share_percent}%</strong></span><input aria-label="AHU share of simulated HVAC allocation" type="range" min="0" max="${100-hvac.chiller_share_percent}" value="${hvac.ahu_share_percent}" oninput="diagApp.updateHvac('ahu_share_percent',this.value)"></label><label class="allocation-control"><span>Cooling setpoint<strong>${Number(hvac.cooling_setpoint_c).toFixed(1)} °C</strong></span><input aria-label="Simulated AHU cooling setpoint" type="range" min="16" max="30" step="0.5" value="${hvac.cooling_setpoint_c}" oninput="diagApp.updateHvac('cooling_setpoint_c',this.value)"></label><label class="allocation-control"><span>Fan command preview<strong>${hvac.fan_command_percent}%</strong></span><input aria-label="Simulated AHU fan command" type="range" min="0" max="100" value="${hvac.fan_command_percent}" oninput="diagApp.updateHvac('fan_command_percent',this.value)"></label><p class="scope-note">Calculated from observed BDG2 data and simulation assumptions. Values change only this browser demo; actual AHU state, comfort, airflow, faults and controls remain unavailable.</p>`;
   }
-
-  updateSubsystems() {
-    const readings = this.state.readings?.items || [];
-    if (readings.length === 0) return;
-
-    const latest = readings[readings.length - 1];
-    const latestKwh = latest.consumption_kwh;
-
-    // Production Kw
-    const prodEl = document.getElementById('metric-prod-kw');
-    if (prodEl) prodEl.textContent = (latestKwh * 0.177).toFixed(1);
-
-    // Subsystem loads
-    const acEl = document.getElementById('load-ac-val');
-    const itEl = document.getElementById('load-it-val');
-    const lightEl = document.getElementById('load-light-val');
-
-    if (acEl) acEl.textContent = `${(latestKwh * 0.55).toFixed(0)} kWh`;
-    if (itEl) itEl.textContent = `${(latestKwh * 0.25).toFixed(0)} kWh`;
-    if (lightEl) lightEl.textContent = `${(latestKwh * 0.20).toFixed(0)} kWh`;
-  }
-
-  /**
-   * 100% Stacked Bar Chart by Day (Mon-Sun) matching idea-03
-   */
-  renderSiteBreakdownChart() {
-    const ctx = document.getElementById('site-breakdown-chart');
-    if (!ctx) return;
-
-    if (this.breakdownChart) this.breakdownChart.destroy();
-
-    const days = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'STA', 'SUN'];
-    // Realistic stacked percentages matching idea-03
-    const prodPcts = [50, 28, 38, 27, 30, 18, 25];
-    const consPcts = [22, 26, 40, 31, 15, 30, 48];
-
-    this.breakdownChart = new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels: days,
-        datasets: [
-          {
-            label: 'Production',
-            data: prodPcts,
-            backgroundColor: '#0284C7', // Darker Blue
-            borderRadius: { topLeft: 0, topRight: 0, bottomLeft: 4, bottomRight: 4 },
-            barPercentage: 0.5,
-            categoryPercentage: 0.75,
-            stack: 'Stack 0',
-          },
-          {
-            label: 'Consumption',
-            data: consPcts,
-            backgroundColor: '#BAE6FD', // Light sky blue
-            borderRadius: { topLeft: 4, topRight: 4, bottomLeft: 0, bottomRight: 0 },
-            barPercentage: 0.5,
-            categoryPercentage: 0.75,
-            stack: 'Stack 0',
-          }
-        ]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            callbacks: {
-              label: (c) => ` ${c.dataset.label}: ${c.raw}%`
-            }
-          }
-        },
-        scales: {
-          x: {
-            grid: { display: false, drawBorder: false },
-            ticks: {
-              color: '#9CA3AF',
-              font: { size: 11, family: 'Inter', weight: '600' },
-            }
-          },
-          y: {
-            max: 100,
-            ticks: {
-              stepSize: 25,
-              color: '#9CA3AF',
-              font: { size: 10, family: 'Inter' },
-              callback: (v) => v + '%',
-            },
-            grid: {
-              color: 'rgba(0,0,0,0.03)',
-              drawBorder: false,
-            }
-          }
-        }
-      }
-    });
-  }
-
-  openAlertDetails() {
-    const modal = document.getElementById('velora-alert-modal');
-    const listEl = document.getElementById('modal-anomalies-list');
-    if (modal) modal.classList.remove('hidden');
-
-    const anomalies = this.state.anomalies?.items || [];
-    if (listEl) {
-      if (anomalies.length === 0) {
-        listEl.innerHTML = `<div class="p-4 text-center text-slate-400 text-xs">No unusual consumption patterns were detected for this asset and selected period.<br><span class="mt-2 inline-block">This is not proof that the building has no inefficiency.</span></div>`;
-        return;
-      }
-      listEl.innerHTML = anomalies.slice(0, 15).map((a) => {
-        const isAbove = a.direction === 'above_expected';
-        const d = new Date(a.timestamp);
-        return `
-          <div class="p-3 rounded-xl ${isAbove ? 'bg-orange-50 border border-orange-100' : 'bg-blue-50 border border-blue-100'} text-[#1E2022]">
-            <div class="flex justify-between font-bold ${isAbove ? 'text-orange-800' : 'text-blue-800'}">
-              <span>${isAbove ? 'Above Expected' : 'Below Expected'} Flag</span>
-              <span class="font-mono text-[11px]">${d.toLocaleDateString()} ${d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-            </div>
-            <p class="text-[11px] mt-1 text-slate-700">Observed: <b>${a.observed_kwh.toFixed(1)} kWh</b> vs Forecast: <b>${a.forecast_kwh.toFixed(1)} kWh</b></p>
-          </div>
-        `;
-      }).join('');
-    }
-  }
-
-  closeAlertDetails() {
-    const modal = document.getElementById('velora-alert-modal');
-    if (modal) modal.classList.add('hidden');
-  }
-
-  showToast(msg) {
-    const toast = document.getElementById('velora-toast');
-    const text = document.getElementById('velora-toast-text');
-    if (!toast || !text) return;
-
-    text.textContent = msg;
-    toast.classList.remove('opacity-0', 'translate-y-4');
-    toast.classList.add('opacity-100', 'translate-y-0');
-
-    clearTimeout(this._toastT);
-    this._toastT = setTimeout(() => {
-      toast.classList.add('opacity-0', 'translate-y-4');
-      toast.classList.remove('opacity-100', 'translate-y-0');
-    }, 2800);
-  }
+  openAlertDetails(){if(!this.state.anomalies)return status('Anomaly evidence is not loaded.','error');audit(this.state.anomalies,this.state.currentBuilding.timezone);}
+  closeAlertDetails(){document.getElementById('velora-alert-modal').classList.add('hidden');}
+  describeWindow(){status('Chart window: returned observed whole-building hourly BDG2 readings, grouped by source-local calendar day. Partial days show their returned-hour count; gaps are not filled.','info');}
+  showToast(message){status(message,'info');}
 }
-
-window.diagApp = new EnergiOSDiagnosticsApp();
-document.addEventListener('DOMContentLoaded', () => window.diagApp.init());
+window.diagApp=new Diagnostics();ready(()=>window.diagApp.init());

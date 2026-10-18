@@ -48,6 +48,7 @@
 
   <!-- Verified Backend & BDG2 Telemetry Sync -->
   <script type="module" src="src/js/api.js"></script>
+<link rel="stylesheet" href="src/css/demo.css">
 </head>
 
 <body class="bg-[#FAF8F5] text-[#1E2022] antialiased min-h-screen flex flex-col p-6 lg:p-8 selection:bg-orange-100 selection:text-orange-900">
@@ -119,9 +120,7 @@
           <div>
             <span class="text-xs font-semibold text-neutral-400 block mb-2 font-sans">Preferences Assistant</span>
             <div class="bg-[#1C1D21] border border-white/5 rounded-2xl p-4 text-xs text-neutral-200 leading-relaxed shadow-sm">
-              <p id="island-agent-bubble-text">
-                System preferences active. You can calibrate <b>AI Copilot autonomy</b>, set statistical <b>MAD anomaly thresholds</b>, and configure regional <b>TNB utility tariffs</b>. Changes persist to local storage.
-              </p>
+              <p id="island-agent-bubble-text">Read-only energy assistant. Open the panel to check availability.</p>
             </div>
           </div>
 
@@ -149,20 +148,11 @@
           </form>
         </div>
 
-        <!-- Right Column: Agent Logs -->
+        <!-- Right Column: Assistant status -->
         <div class="md:col-span-5 flex flex-col justify-between border-t md:border-t-0 md:border-l border-white/10 md:pl-5 pt-3 md:pt-0">
           <div>
             <span class="text-xs font-semibold text-neutral-400 block mb-2 font-sans">System Diagnostics & Storage</span>
-            <div id="island-agent-logs-list" class="space-y-2.5 font-mono text-[11px] max-h-[190px] overflow-y-auto pr-1">
-              <div class="flex items-start gap-1.5 leading-snug">
-                <span class="text-neutral-500 whitespace-nowrap">• 14:20:00 —</span>
-                <span class="text-neutral-300">Preferences module initialized (localStorage sync active)</span>
-              </div>
-              <div class="flex items-start gap-1.5 leading-snug">
-                <span class="text-neutral-500 whitespace-nowrap">• 14:20:15 —</span>
-                <span class="text-neutral-300">TNB C1 Commercial Tariff matrices loaded <span class="text-emerald-400">✅</span></span>
-              </div>
-            </div>
+            <div id="island-agent-logs-list" class="space-y-2.5 font-mono text-[11px] max-h-[190px] overflow-y-auto pr-1">No request sent.</div>
           </div>
         </div>
 
@@ -245,10 +235,10 @@
       <a href="settings.html" class="velora-nav-btn active" title="System Settings">
         <span class="material-symbols-outlined text-[19px]">settings</span>
       </a>
-      <button class="velora-nav-btn" title="Anomaly Alerts" onclick="settingsManager.showToast('Anomaly triage gates active')">
+      <button class="velora-nav-btn" title="Anomaly Alerts" onclick="location.href='diagnostics.html?openAlerts=1'">
         <span class="material-symbols-outlined text-[19px]">warning</span>
       </button>
-      <button class="velora-nav-btn" title="Provenance & Reports" onclick="settingsManager.showToast('Settings persist to browser localStorage')">
+      <button class="velora-nav-btn" title="Provenance & Reports" onclick="location.href='methodology.html'">
         <span class="material-symbols-outlined text-[19px]">description</span>
       </button>
     </aside>
@@ -269,7 +259,7 @@
               System Settings & Preferences
             </h1>
             <p class="text-xs text-[#71767B] font-medium mt-1">
-              Configure AI Copilot autonomy, calibrate statistical anomaly gates, and define utility tariff matrices.
+              Appearance, local preferences and explicit simulation assumptions. No operational configuration is changed.
             </p>
           </div>
 
@@ -413,8 +403,8 @@
             <span class="material-symbols-outlined text-[17px]">smart_toy</span>
           </div>
           <div>
-            <h2 class="text-sm font-bold text-[#1E2022] font-sans">AI Agent & Dynamic Island Preferences</h2>
-            <p class="text-[11px] text-[#71767B]">Configure copilot autonomy level, polling heartbeat, and proactive advisory stream</p>
+            <h2 class="text-sm font-bold text-[#1E2022] font-sans">AI Panel & Integration Availability</h2>
+            <p class="text-[11px] text-[#71767B]">The header panel checks the backend-only Gemini configuration. Autonomous operation and equipment controls remain unavailable.</p>
           </div>
         </div>
 
@@ -426,19 +416,19 @@
             <div class="max-w-xl">
               <span class="text-sm font-bold text-[#1E2022] block">Copilot Operation Mode</span>
               <p class="text-xs text-[#71767B] mt-0.5 leading-relaxed">
-                Choose whether EnergiOS AI proactively analyzes building baseloads and logs real-time insights, or operates only on-demand when explicitly engaged.
+                The assistant explains selected-building BDG2 evidence only. Its current availability is shown inside the panel; it cannot change settings or control equipment.
               </p>
             </div>
 
             <!-- Segmented Control Pill -->
             <div class="velora-pill-container shrink-0">
-              <button type="button" data-value="autonomous" class="velora-pill op-mode-btn active bg-white text-[#1E2022] shadow-xs font-semibold flex items-center gap-1.5">
-                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                <span>Autonomous</span>
-              </button>
-              <button type="button" data-value="manual" class="velora-pill op-mode-btn flex items-center gap-1.5">
+              <button type="button" data-value="autonomous" class="velora-pill op-mode-btn flex items-center gap-1.5">
                 <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
-                <span>On-Demand Only</span>
+                <span>No autonomous mode</span>
+              </button>
+              <button type="button" data-value="manual" class="velora-pill op-mode-btn active bg-white text-[#1E2022] shadow-xs font-semibold flex items-center gap-1.5">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                <span>Read-only demo</span>
               </button>
             </div>
           </div>
@@ -448,7 +438,7 @@
             <div class="max-w-xl">
               <span class="text-sm font-bold text-[#1E2022] block">Telemetry Polling Interval</span>
               <p class="text-xs text-[#71767B] mt-0.5 leading-relaxed">
-                Frequency at which the background copilot queries building meters and SCADA nodes for updated consumption and chiller loops.
+                Polling is disabled. BDG2 is historical benchmark data; no live SCADA or chiller feed is connected.
               </p>
             </div>
 
@@ -471,7 +461,7 @@
             <div class="max-w-xl">
               <span class="text-sm font-bold text-[#1E2022] block">Proactive Optimization Insights</span>
               <p class="text-xs text-[#71767B] mt-0.5 leading-relaxed">
-                Allow the agent to generate peak-shaving recommendations, setpoint adjustments, and energy arbitrage tips directly inside the Dynamic Island chat.
+                Automated recommendations and setpoint changes are unavailable. Scenarios require explicit user inputs and perform no equipment control.
               </p>
             </div>
 
@@ -495,8 +485,8 @@
             <span class="material-symbols-outlined text-[17px]">warning</span>
           </div>
           <div>
-            <h2 class="text-sm font-bold text-[#1E2022] font-sans">Anomaly & Alert Thresholds</h2>
-            <p class="text-[11px] text-[#71767B]">Calibrate BDG2 statistical deviation gates and notification dispatch channels</p>
+            <h2 class="text-sm font-bold text-[#1E2022] font-sans">Anomaly & Notification Integration</h2>
+            <p class="text-[11px] text-[#71767B]">The evaluated backend detection rule is fixed. Notification and BMS services are not connected.</p>
           </div>
         </div>
 
@@ -506,22 +496,22 @@
           <!-- Row 1: Detection Sensitivity (Low, Balanced, High) -->
           <div class="p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div class="max-w-xl">
-              <span class="text-sm font-bold text-[#1E2022] block">Statistical Detection Sensitivity</span>
+              <span class="text-sm font-bold text-[#1E2022] block">Local Anomaly Display Filter</span>
               <p class="text-xs text-[#71767B] mt-0.5 leading-relaxed">
-                Controls the Median Absolute Deviation (MAD) multiplier used to flag unexpected meter spikes and HVAC auxiliary drifts.
+                Filters already detected unusual patterns by residual size in this browser only. The evaluated backend rule and stored detections never change.
               </p>
             </div>
 
             <!-- 3-Step Segmented Control -->
             <div class="velora-pill-container shrink-0">
-              <button type="button" data-value="low" class="velora-pill sensitivity-btn">
-                Low <span class="text-[10px] font-mono opacity-60">(8× MAD)</span>
+              <button type="button" data-value="all" class="velora-pill sensitivity-btn active bg-white text-[#1E2022] shadow-xs font-semibold">
+                All detected
               </button>
-              <button type="button" data-value="balanced" class="velora-pill sensitivity-btn active bg-white text-[#1E2022] shadow-xs font-semibold">
-                Balanced <span class="text-[10px] font-mono opacity-60">(6× MAD)</span>
+              <button type="button" data-value="medium" class="velora-pill sensitivity-btn">
+                Residual &gt;= 25%
               </button>
-              <button type="button" data-value="high" class="velora-pill sensitivity-btn">
-                High <span class="text-[10px] font-mono opacity-60">(4× MAD)</span>
+              <button type="button" data-value="large" class="velora-pill sensitivity-btn">
+                Residual &gt;= 50%
               </button>
             </div>
           </div>
@@ -529,9 +519,9 @@
           <!-- Row 2: Dynamic Island Alert Badges -->
           <div class="p-5 flex items-center justify-between gap-4">
             <div class="max-w-xl">
-              <span class="text-sm font-bold text-[#1E2022] block">Dynamic Island Alert Badges</span>
+              <span class="text-sm font-bold text-[#1E2022] block">Show EnergiOS AI Panel</span>
               <p class="text-xs text-[#71767B] mt-0.5 leading-relaxed">
-                Display pulsing warning badges and active severity indicators on the top Dynamic Island pill when anomalies are detected.
+                Browser-local display preference for Norman's read-only assistant panel. It does not enable autonomous actions or alter Gemini access.
               </p>
             </div>
 
@@ -553,8 +543,8 @@
                 <div class="flex items-center gap-2.5">
                   <span class="material-symbols-outlined text-[20px] text-[#FF7A00]">notifications_active</span>
                   <div>
-                    <span class="text-xs font-bold text-[#1E2022] block">In-App Banners</span>
-                    <span class="text-[10px] text-[#71767B]">Real-time visual toasts</span>
+                    <span class="text-xs font-bold text-[#1E2022] block">Alert Badges</span>
+                    <span class="text-[10px] text-[#71767B]">Browser-local visual dots only</span>
                   </div>
                 </div>
                 <label class="relative inline-flex items-center cursor-pointer select-none shrink-0">
@@ -602,15 +592,15 @@
       <!-- =============================================================== -->
       <!-- SECTION 3: BUILDING CONTEXT & UTILITY RATES                     -->
       <!-- =============================================================== -->
-      <section class="space-y-3">
+      <section id="scenario-assumptions" class="space-y-3 scroll-mt-24">
         <!-- Section Header with Apple-Style Icon Badge -->
         <div class="flex items-center gap-2.5">
           <div class="w-7 h-7 rounded-lg bg-emerald-600 text-white flex items-center justify-center shadow-xs">
             <span class="material-symbols-outlined text-[17px]">apartment</span>
           </div>
           <div>
-            <h2 class="text-sm font-bold text-[#1E2022] font-sans">Building Context & Utility Rates</h2>
-            <p class="text-[11px] text-[#71767B]">Default cohort asset, Malaysian TNB / regional tariff structures, and benchmark visibility</p>
+            <h2 class="text-sm font-bold text-[#1E2022] font-sans">Building Context & Simulation Assumptions</h2>
+            <p class="text-[11px] text-[#71767B]">User-entered inputs only; no Malaysian tariff or official carbon factor is preselected.</p>
           </div>
         </div>
 
@@ -622,18 +612,13 @@
             <div class="max-w-xl">
               <span class="text-sm font-bold text-[#1E2022] block">Default Launch Building</span>
               <p class="text-xs text-[#71767B] mt-0.5 leading-relaxed">
-                Primary BDG2 asset selected automatically when opening the overview dashboard or 3D spatial twin.
+                Choose an API-returned BDG2 asset for the dashboard and estimates.
               </p>
             </div>
 
             <!-- Styled Apple Select Dropdown -->
             <div class="relative shrink-0">
-              <select id="select-default-building" class="appearance-none bg-white border border-[#EBE7DF] hover:border-slate-300 text-xs font-semibold text-[#1E2022] rounded-xl px-4 py-2.5 pr-8 shadow-2xs outline-none focus:ring-2 focus:ring-[#FF7A00] transition-all cursor-pointer font-sans min-w-[280px]">
-                <option value="fa2b11d5-f608-515e-97ab-6445ef048bff">Hog_office_Bill (Bull Tower - Office & Retail)</option>
-                <option value="b8908328-98e9-5369-ba4f-1e96a40a5a4d">Hog_assembly_Dona (Fox Hub - CleanTech R&D)</option>
-                <option value="c6dc7ff6-0563-549b-be00-e7cf49c4033b">Hog_education_Donnie (Bear Center - Civic & Library)</option>
-                <option value="e1026bb8-7a54-5aa8-a7ce-b6209eeae881">Hog_lodging_Francisco (Hog Arena - Sports & Pool)</option>
-              </select>
+              <select id="select-default-building" class="appearance-none bg-white border border-[#EBE7DF] hover:border-slate-300 text-xs font-semibold text-[#1E2022] rounded-xl px-4 py-2.5 pr-8 shadow-2xs outline-none focus:ring-2 focus:ring-[#FF7A00] transition-all cursor-pointer font-sans min-w-[280px]"><option>Loading BDG2 assets...</option></select>
               <span class="material-symbols-outlined text-[18px] text-[#71767B] pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2">
                 expand_more
               </span>
@@ -644,16 +629,16 @@
           <div class="p-5 space-y-3">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div>
-                <span class="text-sm font-bold text-[#1E2022] block">Electricity Tariff Rates</span>
+                <span class="text-sm font-bold text-[#1E2022] block">Optional Cost & Carbon Assumptions</span>
                 <p class="text-xs text-[#71767B] mt-0.5 leading-relaxed">
-                  Translates metered kilowatt-hour telemetry into real currency costs and solar arbitrage savings across all charts.
+                  Estimate the returned complete 24-hour BDG2 window using explicit user assumptions. Missing inputs show Not calculated.
                 </p>
               </div>
 
               <!-- Currency Symbol Pill Input -->
               <div class="flex items-center gap-1.5 self-start sm:self-auto">
                 <span class="text-[11px] font-mono text-[#71767B]">Currency:</span>
-                <input type="text" id="input-currency-symbol" value="RM" maxlength="4" class="w-14 px-2 py-1 text-center font-mono font-bold text-xs bg-white border border-[#EBE7DF] rounded-lg shadow-2xs outline-none focus:border-[#FF7A00]">
+                <input type="text" id="input-currency-symbol" value="" placeholder="MYR" maxlength="3" aria-label="Currency code; current calculation supports MYR" class="w-16 px-2 py-1 text-center font-mono font-bold text-xs bg-white border border-[#EBE7DF] rounded-lg shadow-2xs outline-none focus:border-[#FF7A00]">
               </div>
             </div>
 
@@ -663,29 +648,31 @@
               <!-- Peak Rate Input -->
               <div class="p-3.5 rounded-2xl bg-[#FAF8F5] border border-[#EBE7DF] space-y-1.5">
                 <div class="flex justify-between items-center">
-                  <span class="text-xs font-bold text-[#1E2022]">Peak Window Rate</span>
-                  <span class="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-amber-50 text-amber-800 border border-amber-200">08:00 – 22:00</span>
+                  <span class="text-xs font-bold text-[#1E2022]">Flat Price Assumption</span>
+                  <span class="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-amber-50 text-amber-800 border border-amber-200">USER INPUT</span>
                 </div>
                 <div class="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-[#EBE7DF] shadow-inner">
                   <span class="text-xs font-mono font-bold text-[#71767B]">RM</span>
-                  <input type="number" id="input-peak-rate" step="0.001" min="0" value="0.584" class="w-full text-sm font-mono font-bold text-[#1E2022] bg-transparent outline-none">
+                  <input type="number" aria-label="Flat tariff assumption in MYR per kWh" id="input-peak-rate" step="0.001" min="0" value="" class="w-full text-sm font-mono font-bold text-[#1E2022] bg-transparent outline-none">
                   <span class="text-[11px] font-mono text-[#71767B]">/ kWh</span>
                 </div>
-                <span class="text-[10px] text-[#71767B] block font-mono">TNB Commercial C1 Peak Tariff standard</span>
+                <span class="text-[10px] text-[#71767B] block font-mono">Hypothetical flat MYR/kWh; excludes demand charges and taxes.</span>
+                <input id="tariff-source" class="module-input" maxlength="240" placeholder="Source URL or User assumption" aria-label="Tariff source or user assumption disclosure">
               </div>
 
               <!-- Off-Peak Rate Input -->
               <div class="p-3.5 rounded-2xl bg-[#FAF8F5] border border-[#EBE7DF] space-y-1.5">
                 <div class="flex justify-between items-center">
-                  <span class="text-xs font-bold text-[#1E2022]">Off-Peak Window Rate</span>
-                  <span class="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">22:00 – 08:00</span>
+                  <span class="text-xs font-bold text-[#1E2022]">Carbon Factor Assumption</span>
+                  <span class="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">USER INPUT</span>
                 </div>
                 <div class="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-[#EBE7DF] shadow-inner">
-                  <span class="text-xs font-mono font-bold text-[#71767B]">RM</span>
-                  <input type="number" id="input-offpeak-rate" step="0.001" min="0" value="0.220" class="w-full text-sm font-mono font-bold text-[#1E2022] bg-transparent outline-none">
+                  <span class="text-xs font-mono font-bold text-[#71767B]">kg CO2e</span>
+                  <input type="number" aria-label="Carbon factor in kg CO2e per kWh" id="input-offpeak-rate" step="0.001" min="0" value="" class="w-full text-sm font-mono font-bold text-[#1E2022] bg-transparent outline-none">
                   <span class="text-[11px] font-mono text-[#71767B]">/ kWh</span>
                 </div>
-                <span class="text-[10px] text-[#71767B] block font-mono">TNB Commercial C1 Off-Peak Night rate</span>
+                <span class="text-[10px] text-[#71767B] block font-mono">Hypothetical kg CO2e/kWh; no official factor is asserted.</span>
+                <input id="carbon-source" class="module-input" maxlength="240" placeholder="Source URL or User assumption" aria-label="Carbon factor source or user assumption disclosure">
               </div>
 
             </div>
@@ -696,7 +683,7 @@
             <div class="max-w-xl">
               <span class="text-sm font-bold text-[#1E2022] block">Public Benchmark Curves Visibility</span>
               <p class="text-xs text-[#71767B] mt-0.5 leading-relaxed">
-                Show official Building Data Genome Project 2 (BDG2) v1.0 reference lines and GBI Gold baselines on analytics charts.
+                Certified building ratings and GBI benchmark lines are not supplied by BDG2 and remain disabled.
               </p>
             </div>
 
@@ -710,6 +697,52 @@
         </div>
       </section>
 
+<section id="scenario-profile-editor" class="velora-card scenario-profile-editor" aria-labelledby="scenario-profile-editor-title"></section>
+<section class="velora-card"><form id="impact-form" class="space-y-4"><h2 class="text-lg font-bold">Simulated Impact & Investment Check</h2><p class="scope-note">Uses the selected building's observed 24-hour energy. Estimates require disclosed assumptions. Payback additionally requires all three investment inputs.</p><label class="block text-xs font-bold">Source or hypothetical assumption<input id="assumption-reference" class="module-input mt-2" maxlength="240" placeholder="Describe your price, factor and investment assumptions"></label><div class="estimate-grid"><label>CAPEX (MYR)<input id="capex-input" class="module-input" type="number" min="0" step="any"></label><label>Annual energy reduction assumption (kWh/year)<input id="annual-reduction-input" class="module-input" type="number" min="0" step="any"></label><label>Annual maintenance assumption (MYR/year)<input id="maintenance-input" class="module-input" type="number" min="0" step="any"></label></div><button class="module-button" type="submit">Calculate simulated estimate</button><div id="impact-results" aria-live="polite">Not calculated</div></form></section>
+
+<section class="velora-card space-y-4" aria-labelledby="green-cfo-title">
+  <div class="flex flex-wrap items-start justify-between gap-3">
+    <div>
+      <p class="text-[10px] font-black uppercase tracking-wider text-emerald-700">Green CFO · user assumptions</p>
+      <h2 id="green-cfo-title" class="mt-1 text-lg font-bold">Illustrative project comparison</h2>
+      <p class="scope-note">Compare two hypothetical candidates for the selected BDG2 building. No project performance, equipment inefficiency, tariff, carbon factor or savings is measured.</p>
+    </div>
+    <span class="data-classification" data-kind="simulated">Illustrative scenario ranking</span>
+  </div>
+  <form id="investment-comparison-form" class="space-y-4">
+    <div class="grid gap-4 lg:grid-cols-2">
+      <fieldset class="module-card p-4 space-y-3">
+        <legend class="text-xs font-black uppercase tracking-wider">Candidate A</legend>
+        <label class="block text-xs font-bold">Project name<input id="investment-a-name" class="module-input mt-2" maxlength="80" value="Candidate A"></label>
+        <div class="estimate-grid">
+          <label>CAPEX (MYR)<input id="investment-a-capex" class="module-input" type="number" min="0" step="any"></label>
+          <label>Expected annual energy change (kWh/year)<input id="investment-a-energy" class="module-input" type="number" min="0" step="any"></label>
+          <label>Tariff assumption (MYR/kWh)<input id="investment-a-tariff" class="module-input" type="number" min="0" step="any"></label>
+          <label>Carbon factor (kg CO2e/kWh)<input id="investment-a-carbon" class="module-input" type="number" min="0" step="any"></label>
+          <label>Annual operating-cost change (MYR/year)<input id="investment-a-opex" class="module-input" type="number" min="0" step="any"></label>
+        </div>
+        <label class="block text-xs font-bold">Assumption source<input id="investment-a-reference" class="module-input mt-2" maxlength="240" placeholder="User estimate, quote, or cited source"></label>
+      </fieldset>
+      <fieldset class="module-card p-4 space-y-3">
+        <legend class="text-xs font-black uppercase tracking-wider">Candidate B</legend>
+        <label class="block text-xs font-bold">Project name<input id="investment-b-name" class="module-input mt-2" maxlength="80" value="Candidate B"></label>
+        <div class="estimate-grid">
+          <label>CAPEX (MYR)<input id="investment-b-capex" class="module-input" type="number" min="0" step="any"></label>
+          <label>Expected annual energy change (kWh/year)<input id="investment-b-energy" class="module-input" type="number" min="0" step="any"></label>
+          <label>Tariff assumption (MYR/kWh)<input id="investment-b-tariff" class="module-input" type="number" min="0" step="any"></label>
+          <label>Carbon factor (kg CO2e/kWh)<input id="investment-b-carbon" class="module-input" type="number" min="0" step="any"></label>
+          <label>Annual operating-cost change (MYR/year)<input id="investment-b-opex" class="module-input" type="number" min="0" step="any"></label>
+        </div>
+        <label class="block text-xs font-bold">Assumption source<input id="investment-b-reference" class="module-input mt-2" maxlength="240" placeholder="User estimate, quote, or cited source"></label>
+      </fieldset>
+    </div>
+    <div class="rounded-2xl border border-[#EBE7DF] bg-[#FAF8F5] p-4 text-[11px] leading-5 text-[#5F6469]">
+      <strong class="text-[#1E2022]">Required for comparable outputs:</strong> CAPEX, expected annual energy change, tariff, carbon factor, annual operating-cost change and an assumption source for each candidate. Missing inputs remain “Not calculated”. Ranking uses simple payback only when annual net benefit is positive.
+    </div>
+    <button class="module-button" type="submit">Compare illustrative scenarios</button>
+    <div id="investment-comparison-results" aria-live="polite">Not calculated</div>
+  </form>
+</section>
       <!-- Bottom Help Note -->
       <div class="p-4 rounded-2xl bg-white border border-[#EBE7DF] flex items-center justify-between text-xs text-[#71767B]">
         <div class="flex items-center gap-2">
@@ -733,7 +766,9 @@
   </div>
 
   <!-- Controller Scripts -->
-  <script type="module" src="src/js/scope_guard.js"></script>
+
   <script type="module" src="src/js/data_classification.js"></script>
+  <script type="module" src="src/js/shell.js"></script>
+<script type="module" src="src/js/settings.js"></script>
 </body>
 </html>

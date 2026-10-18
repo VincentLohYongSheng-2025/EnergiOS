@@ -24,7 +24,9 @@ class EnergiOSApiClient {
     return this.baseUrl;
   }
 
-  async request(path, { signal, timeoutMs = 30000 } = {}) {
+  async request(path, { signal, timeoutMs = 45000, method = 'GET', body } = {}) {
+    const started = performance.now();
+    let status = 0;
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
     const abort = () => controller.abort();
@@ -32,15 +34,18 @@ class EnergiOSApiClient {
 
     try {
       const response = await fetch(`${this.baseUrl}${path}`, {
-        method: 'GET',
-        headers: { Accept: 'application/json' },
+        method,
+        headers: { Accept: 'application/json', ...(body ? { 'Content-Type': 'application/json' } : {}) },
+        ...(body ? { body: JSON.stringify(body) } : {}),
         signal: controller.signal,
       });
+      status = response.status;
       if (!response.ok) {
         let detail = `EnergiOS API returned HTTP ${response.status}`;
         try {
           const body = await response.json();
           if (typeof body.detail === 'string') detail = body.detail;
+          else if (Array.isArray(body.detail)) detail = body.detail.map(item => item.msg).join('; ');
         } catch {
           // Keep the sanitized HTTP message for non-JSON errors.
         }
@@ -54,10 +59,15 @@ class EnergiOSApiClient {
         : 'The EnergiOS API is temporarily unavailable.';
       throw new EnergiOSApiError(message, 0);
     } finally {
+      if (typeof window.dispatchEvent === 'function') {
+        window.dispatchEvent(new CustomEvent('energios:request', {detail: {path, status, ms: Math.round(performance.now()-started)}}));
+      }
       clearTimeout(timeoutId);
       if (signal) signal.removeEventListener('abort', abort);
     }
   }
+
+  post(path, body, options = {}) { return this.request(path, { ...options, method: 'POST', body }); }
 
   async checkHealth() {
     const startedAt = performance.now();
@@ -95,6 +105,15 @@ class EnergiOSApiClient {
     return this.request(path, options);
   }
 
+  async getObservedHistory(assetId, { granularity, periods, ...options } = {}) {
+    if (!['daily', 'monthly'].includes(granularity)) throw new EnergiOSApiError('History granularity must be daily or monthly.', 0);
+    const maximum = granularity === 'daily' ? 31 : 12;
+    const count = periods ?? maximum;
+    if (!Number.isInteger(count) || count < 1 || count > maximum) throw new EnergiOSApiError(`History periods must be between 1 and ${maximum}.`, 0);
+    const query = new URLSearchParams({ granularity, periods: String(count) });
+    return this.request(`/demo/assets/${encodeURIComponent(assetId)}/history?${query}`, options);
+  }
+
   async getForecast(assetId, options = {}) {
     return this.request(`/assets/${encodeURIComponent(assetId)}/forecast`, options);
   }
@@ -106,6 +125,10 @@ class EnergiOSApiClient {
       path += `&from=${encodeURIComponent(options.from)}&to=${encodeURIComponent(options.to)}`;
     }
     return this.request(path, options);
+  }
+
+  async getScenarioProfile(assetId, options = {}) {
+    return this.request(`/demo/scenario-profile/${encodeURIComponent(assetId)}`, options);
   }
 }
 

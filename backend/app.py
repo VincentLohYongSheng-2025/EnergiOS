@@ -283,3 +283,11 @@ async def asset_anomalies(
     except (AssetNotFound, DataUnavailable) as error:
         raise not_found_or_unavailable(error) from error
 
+
+
+# Additive, stateless demo calculations; existing route contracts remain unchanged.
+from src.demo_routes import router as demo_router
+app.include_router(demo_router)
+
+from src.gemini_assistant import router as assistant_router
+app.include_router(assistant_router)

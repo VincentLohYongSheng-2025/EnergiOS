@@ -9,6 +9,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="src/css/compliance.css">
+<link rel="stylesheet" href="src/css/demo.css">
 </head>
 <body class="module-surface font-sans">
   <main class="module-shell">
@@ -67,15 +68,16 @@
         <h2 class="text-xl font-black">Simulation assumptions</h2>
         <ul class="mt-4 space-y-3 text-sm leading-6 text-[#5F6469]">
           <li>The simulator uses the selected asset’s calculated 24-hour forecast as its demand input.</li>
-          <li>Solar follows a clearly labelled hypothetical normalized daytime curve; capacity is user-entered or a displayed default.</li>
-          <li>Battery capacity, charge/discharge limit, and starting state are simulated assumptions. The demo model is idealized with no losses.</li>
+          <li>Solar follows a clearly labelled hypothetical normalized daytime curve (not measured irradiance); capacity is user-entered or a displayed default.</li>
+          <li>Battery capacity, charge/discharge limit, and starting state are simulated assumptions. Charge and discharge efficiency is assumed 95% per leg, with discharge targeting 85% of the baseline peak after solar. A sine-shaped solar profile uses the asset source timezone, 06:00–18:00 local.</li>
           <li>Flexible load is shifted between user-selected forecast intervals. No live control action is performed.</li>
           <li>No financial output is shown unless the user enters a price. Any result is labelled “Illustrative estimate based on user-entered tariff”.</li>
           <li>One-hour interval kWh divided by one hour is labelled as derived interval-average kW, not instantaneous measured demand.</li>
         </ul>
       </article>
     </section>
-  </main>
+  <section class="module-card p-6 mt-7"><h2 class="text-xl font-black">Peer comparison and Green CFO rules</h2><ul class="mt-4 space-y-3 text-sm leading-6 text-[#5F6469]"><li>Peer totals, mean interval-average kW, peak interval-average kW and kWh/m² use only timestamps present for all four BDG2 buildings. Floor area comes from BDG2 metadata. Different building uses, schedules and weather prevent a normalized efficiency ranking.</li><li>Overnight share means observed energy from 00:00–05:59 in each source-local timezone divided by the common-window total. The highest share is only a candidate for investigation; without schedules, occupancy or equipment mapping it is not confirmed ghost load, waste or a fault.</li><li>Green CFO inputs are entered by the user. Annual cost change = expected annual energy change × tariff. Annual carbon change = expected annual energy change × carbon factor. Annual net benefit = cost change − annual operating-cost change. Simple payback = CAPEX ÷ positive annual net benefit.</li><li>Every candidate requires CAPEX, expected annual energy change, tariff, carbon factor, operating-cost change and an assumption source. Missing inputs show “Not calculated”. Eligible scenarios are ordered by shortest simple payback, then annual net benefit, and labelled “Illustrative scenario ranking”.</li></ul></section>
+  <section class="module-card p-6 mt-7"><h2 class="text-xl font-black">Local demo calculation rules</h2><p class="scope-note">Portfolio totals use only common observed timestamps. Storage uses solar-only charging, bounded power and capacity, no export credit, and explicit initial stored energy. Peak shifting moves entered kWh without changing total energy; a negative peak reduction indicates a worse peak. Flat-rate cost = interval kWh × entered MYR/kWh. Emissions = interval kWh × entered kg CO2e/kWh. Simple payback = entered CAPEX / (entered annual kWh reduction × entered rate − entered annual maintenance); positive net benefit and every input are required. No day is annualised; missing inputs show Not calculated. Scene geometry, photographs, solar shapes and equipment graphics are illustrative. The read-only AI panel sends your question and selected-building BDG2 evidence to Google Gemini only when you send. Optional simulation inputs are explicitly included and recomputed by the backend. Responses cite observed/forecast/detected/simulated evidence and may be incorrect. No tools, settings changes or equipment control are available. AI is unavailable without a privately configured backend provider; never enter secrets or personal data. All simulations are hypothetical and perform no live control.</p></section></main>
   <script type="module">
     import { createPersistentDisclosure } from './src/js/data_classification.js';
     createPersistentDisclosure();

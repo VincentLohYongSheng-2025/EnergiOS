@@ -52,6 +52,8 @@ Success requires approved real-data lineage, evaluated forecasts, traceable dete
 
 The 20-item checklist is triage, not a mandate to build every item. Full authentication implementation, separate staging infrastructure, Sentry, plugins/MCP setup and a formal design-system document are deferred unless needed/requested. Appropriate real-data access control remains a release gate. Autonomous remediation and live equipment control are outside this MVP and require separate explicit approval.
 
+For the isolated local review only, the owner has explicitly approved interactive HVAC and floor **simulation panels** inside Norman's township drawer. They may combine one clearly identified observed whole-building BDG2 interval with visible user-controlled allocation assumptions. Every floor, equipment, sensor, state, setpoint and control value remains labelled `Simulated` or `Illustrative`; no value is a measured floor/HVAC reading, inferred cause, equipment command, BMS/SCADA connection or savings claim. Production integration remains conditional on authorised meters, plans, equipment mapping, telemetry and control approval.
+
 ## 4. Locked technology and present implementation
 
 - **Backend:** Python 3.12, FastAPI and Pydantic; `backend/app.py` exports `app`.
@@ -105,6 +107,7 @@ The owner explicitly approved the following smallest unversioned read contract f
 | `GET /assets/{id}/readings?from=...&to=...&limit=...` | Implemented locally; bounded observed interval-kWh history with UTC/source timestamps, quality and provenance. | Backend-mediated public benchmark read |
 | `GET /assets/{id}/forecast` | Implemented locally; 24 hourly forecast values plus method, split, held-out metrics, provenance and limitations. | Backend-mediated public benchmark read |
 | `GET /assets/{id}/anomalies?from=...&to=...&limit=...` | Implemented locally; validation-thresholded `unusual_consumption_pattern` detections with no cause claim. | Backend-mediated public benchmark read |
+| `GET /demo/assets/{id}/history?granularity=daily|monthly&periods=...` | Implemented for the isolated demo; source-local calendar aggregation of observed hourly BDG2 readings, with bounded periods, interval coverage and incomplete totals kept explicit. | Local backend-mediated public benchmark read |
 | `GET /v1/assets/{id}/summary` | Planned consumption, completeness, cost/CO₂ estimates and load trends with sources. | Approved data audience |
 | `GET /v1/alerts` | Planned detected findings, status and evidence/lineage. | Approved data audience |
 | `POST /v1/readings` | Planned bounded real import with accepted/duplicate/rejected counts and explicit conflicts. | Protected backend operation |
@@ -161,3 +164,17 @@ Pending decisions: Sime Darby dataset delivery/permission/publication, BDG2 coho
 - Engineering references retained for future rechecking: [Vercel FastAPI](https://vercel.com/docs/frameworks/backend/fastapi), [Python runtime](https://vercel.com/docs/functions/runtimes/python), [monorepos](https://vercel.com/docs/monorepos), [fair use](https://vercel.com/docs/limits/fair-use-guidelines), [platform limits](https://vercel.com/docs/limits), [Supabase securing data](https://supabase.com/docs/guides/database/secure-data).
 
 The PRD governs scope/claims/API intent; the plan governs task order. Code, tests, real data and deployment evidence determine completion. Coordinate document/frontend contract updates when scope, API shapes, stack or deployment architecture changes. This documentation-only update authorises no code edit, import, migration, training, credential handling, deployment, commit or push.
+
+
+## Approved isolated full-stack demo scope — 16 October 2026
+
+The owner now explicitly approves preserving Norman's `norman_frontend_v2/frontend-v2` product design and adding stateless, clearly labelled solar/storage, load-shift, impact, peer-comparison and Green CFO scenario calculations in an isolated branch from `feature/simulated-energy-modules`. This approval permits hypothetical scenario assumptions; it does not permit synthetic operational observations, inferred equipment readings, live control, hosted database changes or deployment changes. The existing five health/data contracts, import, RLS and analytics remain authoritative and unchanged.
+
+Observed BDG2 readings, calculated forecasts, detected unusual patterns, derived comparisons, simulated assumptions/results and illustrative geometry must remain visually distinct. Optional cost/carbon use explicit user-entered prices/factors with a disclosed source or hypothetical-assumption reference. Payback also requires CAPEX, separately entered annual energy reduction and annual maintenance; a benchmark day is never annualised. Missing inputs mean `Not calculated`. No verified savings, causal diagnosis, actual township geometry, investment recommendation or corporate-site performance is implied.
+
+Only local additive `/demo` routes support this review: `POST /demo/energy-scenario`, `POST /demo/peak-shift`, `POST /demo/impact`, `POST /demo/investment-comparison`, `GET /demo/portfolio`, `GET /demo/assistant/status`, and `POST /demo/assistant/chat`. Existing health and BDG2 data routes and response schemas are unchanged. The local browser uses `/api`: existing data calls reach the public backend, and `/api/demo` reaches the isolated local backend. No new production availability is claimed. See `docs/full-stack-demo-integration.md` for screen inventory, contracts, formulas and evidence.
+
+
+## Approved isolated-demo assistant contract — 16 October 2026
+
+The Norman AI panel may call the additive, read-only `POST /demo/assistant/chat` endpoint with a 1–1500-character message, API-returned asset UUID and optional validated simulation inputs for that same asset. `GET /demo/assistant/status` reports backend configuration presence only. Gemini receives only selected-asset verified historical BDG2 evidence and explicitly included, server-recomputed simulated results; citations and observed/forecast/detected/simulated distinctions are required. Missing equipment/corporate measurements, causes, applicable tariffs, official factors, verified savings and control capabilities remain unavailable. No tools or writes are exposed. Provider failures are explicit; no scripted answer is a fallback. The key remains exclusively in a private backend process environment. Request/rate/timeout bounds, response shape and current verification evidence are recorded in `full-stack-demo-integration.md`. This scope adds no deployment or hosted secret/database authorization. A local real-provider response using one approved BDG2 asset was verified on 17 October 2026; this is not deployment evidence or a blanket accuracy claim.
