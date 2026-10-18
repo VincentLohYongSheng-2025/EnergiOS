@@ -146,6 +146,7 @@
         btn.classList.toggle('ring-2', isSelected);
         btn.classList.toggle('ring-[#FF7A00]', isSelected);
         btn.classList.toggle('border-[#FF7A00]', isSelected);
+        btn.setAttribute('aria-checked', String(isSelected));
         const checkIcon = btn.querySelector('.theme-check-icon');
         if (checkIcon) {
           checkIcon.classList.toggle('hidden', !isSelected);

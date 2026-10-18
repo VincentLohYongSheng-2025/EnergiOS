@@ -12,9 +12,14 @@ test('cost and carbon remain unavailable until each required user assumption is 
 });
 
 test('preferences save, load and reset only browser-local values',()=>{
-  const local=storage();const saved=savePreferences({aiPanelVisible:false,notificationBadges:false,anomalyDisplay:'large'},local);
-  assert.deepEqual(saved.errors,[]);assert.equal(loadPreferences(local).aiPanelVisible,false);assert.equal(loadPreferences(local).anomalyDisplay,'large');
-  resetPreferences(local);assert.equal(loadPreferences(local).aiPanelVisible,true);assert.equal(loadPreferences(local).tariff_myr_per_kwh,null);
+  const local=storage();const saved=savePreferences({aiPanelVisible:false,notificationBadges:false,anomalyDisplay:'large',assistantMode:'advisory_demo',refreshPreview:'1m',scenarioSuggestions:true,emailDigestPreview:true,webhookPreview:true,benchmarkOverlay:true},local);
+  assert.deepEqual(saved.errors,[]);const loaded=loadPreferences(local);assert.equal(loaded.aiPanelVisible,false);assert.equal(loaded.anomalyDisplay,'large');assert.equal(loaded.assistantMode,'advisory_demo');assert.equal(loaded.refreshPreview,'1m');assert.equal(loaded.emailDigestPreview,true);assert.equal(loaded.webhookPreview,true);assert.equal(loaded.benchmarkOverlay,true);
+  resetPreferences(local);const reset=loadPreferences(local);assert.equal(reset.aiPanelVisible,true);assert.equal(reset.tariff_myr_per_kwh,null);assert.equal(reset.assistantMode,'on_demand');assert.equal(reset.refreshPreview,'30s');assert.equal(reset.webhookPreview,false);
+});
+
+test('invalid local demo choices fall back to safe read-only defaults',()=>{
+  const local=storage();local.setItem('ENERGIOS_DEMO_PREFERENCES',JSON.stringify({assistantMode:'autonomous',refreshPreview:'continuous'}));
+  const loaded=loadPreferences(local);assert.equal(loaded.assistantMode,'on_demand');assert.equal(loaded.refreshPreview,'30s');
 });
 
 test('local anomaly sensitivity only filters already detected patterns',()=>{

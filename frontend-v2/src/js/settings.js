@@ -6,11 +6,17 @@ class DemoSettings {
  constructor(){this.values=loadPreferences();}
  async init(){
   this.bind();
-  for(const selector of ['.op-mode-btn','.poll-interval-btn','#toggle-autonomous-insights','#toggle-notify-email','#toggle-notify-webhook','#toggle-benchmark-lines'])document.querySelectorAll(selector).forEach(n=>{n.disabled=true;n.checked=false;n.title='Unavailable: requires an authorised service or operational integration.';});
   for(const [id,key] of [['input-currency-symbol','currency_code'],['input-peak-rate','tariff_myr_per_kwh'],['input-offpeak-rate','carbon_kg_per_kwh'],['tariff-source','tariff_source'],['carbon-source','carbon_source'],['assumption-reference','assumption_reference'],['capex-input','capex_myr'],['annual-reduction-input','annual_energy_reduction_kwh'],['maintenance-input','annual_maintenance_myr']])document.getElementById(id).value=this.values[key]??'';
   document.getElementById('toggle-island-alert-badges').checked=this.values.aiPanelVisible;
   document.getElementById('toggle-notify-inapp').checked=this.values.notificationBadges;
-  document.querySelectorAll('.sensitivity-btn').forEach(button=>button.classList.toggle('active',button.dataset.value===this.values.anomalyDisplay));
+  document.getElementById('toggle-autonomous-insights').checked=this.values.scenarioSuggestions;
+  document.getElementById('toggle-notify-email').checked=this.values.emailDigestPreview;
+  document.getElementById('toggle-notify-webhook').checked=this.values.webhookPreview;
+  document.getElementById('toggle-benchmark-lines').checked=this.values.benchmarkOverlay;
+  this.selectChoice('.op-mode-btn',this.values.assistantMode);
+  this.selectChoice('.poll-interval-btn',this.values.refreshPreview);
+  this.renderLocalPreferenceState();
+  this.selectChoice('.sensitivity-btn',this.values.anomalyDisplay);
   status('Loading available BDG2 building preferences...');
   try{this.assets=await assets();const select=document.getElementById('select-default-building');select.innerHTML=this.assets.map(a=>`<option value="${a.id}">${esc(a.source_asset_id)}</option>`).join('');if(this.assets.some(a=>a.id===this.values.defaultAssetId))select.value=this.values.defaultAssetId;select.onchange=()=>this.loadScenario(select.value);await this.loadScenario(select.value);status('Local preferences and versioned demonstration assumptions loaded. Backend thresholds, credentials and equipment remain unchanged.','success');}
   catch(e){status(e.message,'error',()=>this.init());}
@@ -50,13 +56,40 @@ class DemoSettings {
    annual_energy_reduction_kwh:number('annual-reduction-input'),annual_maintenance_myr:number('maintenance-input'),
    aiPanelVisible:document.getElementById('toggle-island-alert-badges').checked,
    notificationBadges:document.getElementById('toggle-notify-inapp').checked,
-   anomalyDisplay:document.querySelector('.sensitivity-btn.active')?.dataset.value||'all'};
+   anomalyDisplay:document.querySelector('.sensitivity-btn.active')?.dataset.value||'all',
+   assistantMode:document.querySelector('.op-mode-btn.active')?.dataset.value||'on_demand',
+   refreshPreview:document.querySelector('.poll-interval-btn.active')?.dataset.value||'30s',
+   scenarioSuggestions:document.getElementById('toggle-autonomous-insights').checked,
+   emailDigestPreview:document.getElementById('toggle-notify-email').checked,
+   webhookPreview:document.getElementById('toggle-notify-webhook').checked,
+   benchmarkOverlay:document.getElementById('toggle-benchmark-lines').checked};
+ }
+ selectChoice(selector,value){document.querySelectorAll(selector).forEach(button=>{const selected=button.dataset.value===value;button.classList.toggle('active',selected);button.setAttribute('aria-checked',String(selected));});}
+ markChanged(message){document.getElementById('save-status-text').textContent='Unsaved local changes';this.renderLocalPreferenceState();status(message,'info');}
+ renderLocalPreferenceState(){
+  const output=document.getElementById('local-demo-preference-state');if(!output)return;
+  const values=this.read();const enabled=[];
+  if(values.scenarioSuggestions)enabled.push('scenario suggestions');
+  if(values.emailDigestPreview)enabled.push('email digest preview');
+  if(values.webhookPreview)enabled.push('webhook payload preview');
+  if(values.benchmarkOverlay)enabled.push('derived benchmark overlay');
+  const mode=values.assistantMode==='advisory_demo'?'Advisory demo':'On-demand only';
+  const rows=[
+   ['Assistant response',mode,'Changes the local AI panel prompt mode; responses remain read-only.'],
+   ['Dashboard refresh',`${values.refreshPreview} preview`,'Sets the browser-local refresh preference; historical BDG2 data is never treated as live telemetry.'],
+   ['Scenario suggestions',values.scenarioSuggestions?'Preview cards shown':'Preview cards hidden','Only local suggestions from user-entered assumptions.'],
+   ['Email digest',values.emailDigestPreview?'Preview enabled':'Preview disabled','No email is sent.'],
+   ['Webhook payload',values.webhookPreview?'Preview enabled':'Preview disabled','No BACnet, MQTT, BMS, or SCADA request is sent.'],
+   ['Benchmark overlay',values.benchmarkOverlay?'Derived comparison shown':'Derived comparison hidden','BDG2 comparison only; not a certified rating.'],
+  ];
+  output.innerHTML=`<strong>Applied local demo preferences</strong><div class="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">${rows.map(([name,value,detail])=>`<article class="rounded-xl border border-amber-200 bg-white/70 p-3"><span class="block text-[10px] font-black uppercase tracking-wider text-[#71767B]">${esc(name)}</span><strong class="mt-1 block text-xs text-[#1E2022]">${esc(value)}</strong><span class="mt-1 block text-[10px] leading-4 text-[#5F6469]">${esc(detail)}</span></article>`).join('')}</div><p class="mt-3">These are browser-local previews. No email, webhook, telemetry request, setting change, or equipment command is sent.</p>`;
+  window.dispatchEvent(new CustomEvent('energios:demo-preferences-preview',{detail:values}));
  }
  async calculate(){
   const output=document.getElementById('impact-results');output.textContent='Calculating from observed BDG2 intervals...';
   try{const values=this.read();const validation=validatePreferences(values);if(validation.errors.length)throw new Error(validation.errors.join('. '));
    const {defaultAssetId,...assumptions}=values;assumptions.assumption_reference=[values.tariff_source&&`Tariff: ${values.tariff_source}`,values.carbon_source&&`Carbon: ${values.carbon_source}`,values.assumption_reference].filter(Boolean).join('; ');
-   delete assumptions.currency_code;delete assumptions.tariff_source;delete assumptions.carbon_source;delete assumptions.aiPanelVisible;delete assumptions.notificationBadges;delete assumptions.anomalyDisplay;
+   delete assumptions.currency_code;delete assumptions.tariff_source;delete assumptions.carbon_source;delete assumptions.aiPanelVisible;delete assumptions.notificationBadges;delete assumptions.anomalyDisplay;delete assumptions.assistantMode;delete assumptions.refreshPreview;delete assumptions.scenarioSuggestions;delete assumptions.emailDigestPreview;delete assumptions.webhookPreview;delete assumptions.benchmarkOverlay;
    const result=await window.apiClient.post('/demo/impact',{asset_id:defaultAssetId,basis:'observed',...assumptions});
    window.energiosAssistantScenario={kind:'impact',inputs:{asset_id:defaultAssetId,basis:'observed',...assumptions}};
    const fmt=(v,unit)=>v==null?'Not calculated':`${v.toLocaleString(undefined,{maximumFractionDigits:2})} ${unit}`;
@@ -102,7 +135,7 @@ class DemoSettings {
  saveSettings(){
   const values=this.read();
   if([values.capex_myr,values.annual_energy_reduction_kwh].some(value=>value!=null)&&!values.assumption_reference){status('Describe the investment source or hypothetical assumption before saving.','error');return;}
-  try{const scenario=this.syncScenario();if(scenario.errors.length){status(scenario.errors.join('. '),'error');return;}const result=savePreferences(values);if(result.errors.length){status(result.errors.join('. '),'error');return;}this.values=result.preferences;mountScenarioPanel(this.scenario);document.getElementById('save-status-text').textContent='Saved in this browser';window.dispatchEvent(new CustomEvent('energios:preferences-changed',{detail:this.values}));status('Preferences and demonstration assumptions saved in this browser only.','success');}catch{status('Browser storage is unavailable.','error');}
+  try{const scenario=this.syncScenario();if(scenario.errors.length){status(scenario.errors.join('. '),'error');return;}const result=savePreferences(values);if(result.errors.length){status(result.errors.join('. '),'error');return;}this.values=result.preferences;mountScenarioPanel(this.scenario);this.renderLocalPreferenceState();document.getElementById('save-status-text').textContent='Saved in this browser';window.dispatchEvent(new CustomEvent('energios:preferences-changed',{detail:this.values}));status('Preferences and demonstration assumptions saved in this browser only. No external service or equipment setting was changed.','success');}catch{status('Browser storage is unavailable.','error');}
  }
  resetDefaults(){
   if(this.scenario)resetScenarioProfile(this.scenario.asset_id);this.values=resetPreferences();document.getElementById('save-status-text').textContent='Defaults restored locally';this.init();window.dispatchEvent(new CustomEvent('energios:preferences-changed',{detail:this.values}));status('Local preferences reset to versioned demonstration defaults. Backend settings and equipment were not changed.','success');
@@ -113,8 +146,19 @@ class DemoSettings {
   document.getElementById('impact-form').onsubmit=e=>{e.preventDefault();this.calculate();};
   document.getElementById('investment-comparison-form').onsubmit=e=>{e.preventDefault();this.compareInvestments();};
   document.querySelectorAll('.theme-option-btn').forEach(button=>button.onclick=()=>{window.themeManager.setTheme(button.dataset.theme);status('Appearance saved in this browser.','success');});
-  document.querySelectorAll('.sensitivity-btn').forEach(button=>button.onclick=()=>{document.querySelectorAll('.sensitivity-btn').forEach(item=>item.classList.toggle('active',item===button));document.getElementById('save-status-text').textContent='Unsaved local changes';status('Local anomaly display filter changed. The backend detection rule is unchanged.','info');});
-  document.querySelectorAll('main input:not(:disabled), main select:not(:disabled)').forEach(control=>control.addEventListener('input',()=>{document.getElementById('save-status-text').textContent='Unsaved local changes';}));
+  document.querySelectorAll('.op-mode-btn').forEach(button=>button.onclick=()=>{this.selectChoice('.op-mode-btn',button.dataset.value);this.markChanged(button.dataset.value==='advisory_demo'?'Advisory demo selected locally. The assistant remains read-only.':'On-demand assistant mode selected locally.');});
+  document.querySelectorAll('.poll-interval-btn').forEach(button=>button.onclick=()=>{this.selectChoice('.poll-interval-btn',button.dataset.value);this.markChanged(`Refresh preview set to ${button.dataset.value}. This does not poll SCADA or equipment.`);});
+  document.querySelectorAll('.sensitivity-btn').forEach(button=>button.onclick=()=>{this.selectChoice('.sensitivity-btn',button.dataset.value);document.getElementById('save-status-text').textContent='Unsaved local changes';status('Local anomaly display filter changed. The backend detection rule is unchanged.','info');});
+  const messages={
+   'toggle-autonomous-insights':'Scenario suggestion preview changed locally. No autonomous action is enabled.',
+   'toggle-notify-email':'Email digest preview changed locally. No email will be sent.',
+   'toggle-notify-webhook':'Webhook payload preview changed locally. No webhook, BACnet, or MQTT request will be sent.',
+   'toggle-benchmark-lines':'Derived benchmark overlay preference changed locally. It is not a certified building rating.',
+   'toggle-island-alert-badges':'AI panel visibility changed locally.',
+   'toggle-notify-inapp':'Browser-local alert badge preference changed.',
+  };
+  document.querySelectorAll('main input:not(:disabled), main select:not(:disabled)').forEach(control=>control.addEventListener('input',()=>{document.getElementById('save-status-text').textContent='Unsaved local changes';this.renderLocalPreferenceState();}));
+  for(const [id,message] of Object.entries(messages))document.getElementById(id).addEventListener('change',()=>this.markChanged(message));
  }
  showToast(message){status(message,'info');}
 }

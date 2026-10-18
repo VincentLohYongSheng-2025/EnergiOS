@@ -288,10 +288,10 @@
 
         <!-- Grouped Card Container with 3 Theme Cards -->
         <div class="velora-card p-5 border border-[#EBE7DF] shadow-xs">
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4" role="radiogroup" aria-label="Appearance theme">
 
             <!-- Option 1: Light Mode -->
-            <button type="button" data-theme="light" class="theme-option-btn group relative flex flex-col p-4 rounded-2xl border border-[#EBE7DF] hover:border-slate-300 transition-all text-left bg-[#FAF8F5] cursor-pointer">
+            <button type="button" role="radio" aria-checked="false" data-theme="light" class="theme-option-btn group relative flex flex-col p-4 rounded-2xl border border-[#EBE7DF] hover:border-slate-300 transition-all text-left bg-[#FAF8F5] cursor-pointer">
               <!-- Visual Mockup Thumbnail -->
               <div class="w-full h-24 rounded-xl bg-[#FAF8F5] border border-black/10 p-2.5 flex flex-col justify-between shadow-inner mb-3 overflow-hidden">
                 <div class="flex items-center justify-between">
@@ -324,7 +324,7 @@
             </button>
 
             <!-- Option 2: Dark Mode -->
-            <button type="button" data-theme="dark" class="theme-option-btn group relative flex flex-col p-4 rounded-2xl border border-[#EBE7DF] hover:border-slate-600 transition-all text-left bg-[#0A0E17] text-white cursor-pointer">
+            <button type="button" role="radio" aria-checked="false" data-theme="dark" class="theme-option-btn group relative flex flex-col p-4 rounded-2xl border border-[#EBE7DF] hover:border-slate-600 transition-all text-left bg-[#0A0E17] text-white cursor-pointer">
               <!-- Visual Mockup Thumbnail -->
               <div class="w-full h-24 rounded-xl bg-[#0A0E17] border border-white/10 p-2.5 flex flex-col justify-between shadow-inner mb-3 overflow-hidden">
                 <div class="flex items-center justify-between">
@@ -357,7 +357,7 @@
             </button>
 
             <!-- Option 3: Auto System -->
-            <button type="button" data-theme="system" class="theme-option-btn group relative flex flex-col p-4 rounded-2xl border border-[#EBE7DF] hover:border-slate-400 transition-all text-left bg-gradient-to-r from-[#FAF8F5] to-[#0A0E17] cursor-pointer">
+            <button type="button" role="radio" aria-checked="false" data-theme="system" class="theme-option-btn group relative flex flex-col p-4 rounded-2xl border border-[#EBE7DF] hover:border-slate-400 transition-all text-left bg-gradient-to-r from-[#FAF8F5] to-[#0A0E17] cursor-pointer">
               <!-- Visual Mockup Thumbnail -->
               <div class="w-full h-24 rounded-xl bg-gradient-to-r from-[#FAF8F5] via-[#CBD5E1] to-[#0A0E17] border border-black/10 p-2.5 flex flex-col justify-between shadow-inner mb-3 overflow-hidden">
                 <div class="flex items-center justify-between">
@@ -414,21 +414,21 @@
           <!-- Row 1: Operation Mode (Autonomous vs Manual) -->
           <div class="p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div class="max-w-xl">
-              <span class="text-sm font-bold text-[#1E2022] block">Copilot Operation Mode</span>
+              <span class="text-sm font-bold text-[#1E2022] block">Assistant Response Mode</span>
               <p class="text-xs text-[#71767B] mt-0.5 leading-relaxed">
                 The assistant explains selected-building BDG2 evidence only. Its current availability is shown inside the panel; it cannot change settings or control equipment.
               </p>
             </div>
 
             <!-- Segmented Control Pill -->
-            <div class="velora-pill-container shrink-0">
-              <button type="button" data-value="autonomous" class="velora-pill op-mode-btn flex items-center gap-1.5">
+            <div class="velora-pill-container shrink-0" role="radiogroup" aria-label="Assistant response mode">
+              <button type="button" role="radio" aria-checked="false" data-value="advisory_demo" class="velora-pill op-mode-btn flex items-center gap-1.5">
                 <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
-                <span>No autonomous mode</span>
+                <span>Advisory demo</span>
               </button>
-              <button type="button" data-value="manual" class="velora-pill op-mode-btn active bg-white text-[#1E2022] shadow-xs font-semibold flex items-center gap-1.5">
+              <button type="button" role="radio" aria-checked="true" data-value="on_demand" class="velora-pill op-mode-btn flex items-center gap-1.5">
                 <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                <span>Read-only demo</span>
+                <span>On-demand only</span>
               </button>
             </div>
           </div>
@@ -436,21 +436,21 @@
           <!-- Row 2: Telemetry Polling Interval -->
           <div class="p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div class="max-w-xl">
-              <span class="text-sm font-bold text-[#1E2022] block">Telemetry Polling Interval</span>
+              <span class="text-sm font-bold text-[#1E2022] block">Dashboard Refresh Preview</span>
               <p class="text-xs text-[#71767B] mt-0.5 leading-relaxed">
-                Polling is disabled. BDG2 is historical benchmark data; no live SCADA or chiller feed is connected.
+                Choose a browser-local demo preference. It does not poll SCADA, a chiller feed, or any equipment.
               </p>
             </div>
 
             <!-- Segmented Control Pill: 10s, 30s, 1m -->
-            <div class="velora-pill-container shrink-0">
-              <button type="button" data-value="10s" class="velora-pill poll-interval-btn">
+            <div class="velora-pill-container shrink-0" role="radiogroup" aria-label="Dashboard refresh preview">
+              <button type="button" role="radio" aria-checked="false" data-value="10s" class="velora-pill poll-interval-btn">
                 10s <span class="text-[10px] font-mono opacity-60">(High)</span>
               </button>
-              <button type="button" data-value="30s" class="velora-pill poll-interval-btn active bg-white text-[#1E2022] shadow-xs font-semibold">
+              <button type="button" role="radio" aria-checked="true" data-value="30s" class="velora-pill poll-interval-btn">
                 30s <span class="text-[10px] font-mono opacity-60">(Default)</span>
               </button>
-              <button type="button" data-value="1m" class="velora-pill poll-interval-btn">
+              <button type="button" role="radio" aria-checked="false" data-value="1m" class="velora-pill poll-interval-btn">
                 1m <span class="text-[10px] font-mono opacity-60">(Eco)</span>
               </button>
             </div>
@@ -459,9 +459,9 @@
           <!-- Row 3: Autonomous Insights Toggle -->
           <div class="p-5 flex items-center justify-between gap-4">
             <div class="max-w-xl">
-              <span class="text-sm font-bold text-[#1E2022] block">Proactive Optimization Insights</span>
+              <span class="text-sm font-bold text-[#1E2022] block">Scenario Suggestion Previews</span>
               <p class="text-xs text-[#71767B] mt-0.5 leading-relaxed">
-                Automated recommendations and setpoint changes are unavailable. Scenarios require explicit user inputs and perform no equipment control.
+                Show local suggestion prompts based on explicit scenario inputs. No automated setting or equipment control is enabled.
               </p>
             </div>
 
@@ -472,6 +472,7 @@
             </label>
           </div>
 
+          <div id="local-demo-preference-state" class="p-4 text-[11px] leading-5 text-[#5F6469] bg-amber-50/60" aria-live="polite" role="status" aria-label="Applied local demo preferences"></div>
         </div>
       </section>
 
@@ -503,14 +504,14 @@
             </div>
 
             <!-- 3-Step Segmented Control -->
-            <div class="velora-pill-container shrink-0">
-              <button type="button" data-value="all" class="velora-pill sensitivity-btn active bg-white text-[#1E2022] shadow-xs font-semibold">
+            <div class="velora-pill-container shrink-0" role="radiogroup" aria-label="Detected-pattern display threshold">
+              <button type="button" role="radio" aria-checked="true" data-value="all" class="velora-pill sensitivity-btn">
                 All detected
               </button>
-              <button type="button" data-value="medium" class="velora-pill sensitivity-btn">
+              <button type="button" role="radio" aria-checked="false" data-value="medium" class="velora-pill sensitivity-btn">
                 Residual &gt;= 25%
               </button>
-              <button type="button" data-value="large" class="velora-pill sensitivity-btn">
+              <button type="button" role="radio" aria-checked="false" data-value="large" class="velora-pill sensitivity-btn">
                 Residual &gt;= 50%
               </button>
             </div>
@@ -558,8 +559,8 @@
                 <div class="flex items-center gap-2.5">
                   <span class="material-symbols-outlined text-[20px] text-sky-600">mail</span>
                   <div>
-                    <span class="text-xs font-bold text-[#1E2022] block">Email Digest</span>
-                    <span class="text-[10px] text-[#71767B]">Shift summary reports</span>
+                    <span class="text-xs font-bold text-[#1E2022] block">Email Digest Preview</span>
+                    <span class="text-[10px] text-[#71767B]">Local preference; no email is sent</span>
                   </div>
                 </div>
                 <label class="relative inline-flex items-center cursor-pointer select-none shrink-0">
@@ -573,8 +574,8 @@
                 <div class="flex items-center gap-2.5">
                   <span class="material-symbols-outlined text-[20px] text-emerald-600">webhook</span>
                   <div>
-                    <span class="text-xs font-bold text-[#1E2022] block">BMS Webhook</span>
-                    <span class="text-[10px] text-[#71767B]">BACnet/MQTT dispatch</span>
+                    <span class="text-xs font-bold text-[#1E2022] block">Webhook Payload Preview</span>
+                    <span class="text-[10px] text-[#71767B]">Local preview; no BACnet/MQTT dispatch</span>
                   </div>
                 </div>
                 <label class="relative inline-flex items-center cursor-pointer select-none shrink-0">
@@ -681,9 +682,9 @@
           <!-- Row 3: Benchmark Visibility Toggle -->
           <div class="p-5 flex items-center justify-between gap-4">
             <div class="max-w-xl">
-              <span class="text-sm font-bold text-[#1E2022] block">Public Benchmark Curves Visibility</span>
+              <span class="text-sm font-bold text-[#1E2022] block">Derived Benchmark Overlay</span>
               <p class="text-xs text-[#71767B] mt-0.5 leading-relaxed">
-                Certified building ratings and GBI benchmark lines are not supplied by BDG2 and remain disabled.
+                Toggle the browser-local derived BDG2 comparison overlay preference. It is not a certified rating or GBI benchmark.
               </p>
             </div>
 

@@ -17,6 +17,12 @@ export function normalizePreferences(value = {}) {
     aiPanelVisible: value.aiPanelVisible !== false,
     notificationBadges: value.notificationBadges !== false,
     anomalyDisplay: ['all', 'medium', 'large'].includes(value.anomalyDisplay) ? value.anomalyDisplay : 'all',
+    assistantMode: ['advisory_demo', 'on_demand'].includes(value.assistantMode) ? value.assistantMode : 'on_demand',
+    refreshPreview: ['10s', '30s', '1m'].includes(value.refreshPreview) ? value.refreshPreview : '30s',
+    scenarioSuggestions: value.scenarioSuggestions === true,
+    emailDigestPreview: value.emailDigestPreview === true,
+    webhookPreview: value.webhookPreview === true,
+    benchmarkOverlay: value.benchmarkOverlay === true,
   };
 }
 

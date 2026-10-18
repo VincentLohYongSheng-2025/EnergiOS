@@ -126,8 +126,55 @@ test('township drawer exposes labelled local HVAC and floor simulations without 
   assert.doesNotMatch(simulation,/fetch\(|apiClient|savings|fault|cause/);
 });
 
+test('2D portfolio uses observed comparison data and makes the absence of CAD explicit', async()=>{
+  const app=await read('../src/js/digital_twin_app.js');
+  const html=await read('../digital-twin.html');
+  const css=await read('../src/css/demo.css');
+  assert.match(app,/2D benchmark portfolio/);
+  assert.match(app,/No CAD or floorplan data is connected/);
+  assert.match(app,/matching observed BDG2 intervals/);
+  assert.match(app,/selectPortfolioBuilding/);
+  assert.match(app,/township-metrics-overlay/);
+  assert.doesNotMatch(app,/assets\/spatial\/floorplan\.svg/);
+  assert.match(html,/id="township-scene-controls"/);
+  assert.match(html,/2D Portfolio/);
+  assert.match(css,/\.portfolio-map-workspace/);
+  assert.match(css,/\.portfolio-map-grid/);
+});
+
 test('diagnostics keeps the selected subsystem aligned with its rendered panel', async () => {
   const app = await read('../src/js/diagnostics_app.js');
   assert.match(app, /subsystem:this\.state\.subsystem\|\|'whole'/);
   assert.match(app, /button\.id===`diag-tab-\$\{kind\}`/);
+});
+
+test('system preferences remain clickable browser-local previews without operational claims', async()=>{
+  const app=await read('../src/js/settings.js');
+  const preferences=await read('../src/js/demo_preferences.js');
+  const html=await read('../settings.html');
+  assert.doesNotMatch(app,/n\.disabled=true/);
+  assert.match(app,/No email will be sent/);
+  assert.match(app,/No webhook, BACnet, or MQTT request will be sent/);
+  assert.match(app,/The assistant remains read-only/);
+  assert.match(preferences,/assistantMode/);
+  assert.match(preferences,/refreshPreview/);
+  assert.match(html,/Advisory demo/);
+  assert.match(html,/Local preference; no email is sent/);
+  assert.match(html,/Local preview; no BACnet\/MQTT dispatch/);
+  assert.match(html,/not a certified rating or GBI benchmark/);
+  assert.match(app,/Applied local demo preferences/);
+  assert.match(app,/Preview cards shown/);
+  assert.match(app,/No BACnet, MQTT, BMS, or SCADA request is sent/);
+});
+
+test('exclusive Settings choices use one active selection and radio semantics', async()=>{
+  const settings=await read('../settings.html');
+  const app=await read('../src/js/settings.js');
+  const theme=await read('../src/js/theme.js');
+  assert.doesNotMatch(settings,/active bg-white text=\[#1E2022\] shadow-xs font-semibold/);
+  assert.match(settings,/role="radiogroup" aria-label="Assistant response mode"/);
+  assert.match(settings,/role="radiogroup" aria-label="Dashboard refresh preview"/);
+  assert.match(settings,/role="radiogroup" aria-label="Detected-pattern display threshold"/);
+  assert.match(app,/button\.setAttribute\('aria-checked',String\(selected\)\)/);
+  assert.match(theme,/btn\.setAttribute\('aria-checked', String\(isSelected\)\)/);
 });

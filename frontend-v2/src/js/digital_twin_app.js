@@ -6,7 +6,7 @@ import {createDrawerSimulation,calculateHvacPreview,calculateFloorPreview} from 
 import {estimateImpact} from './demo_preferences.js';
 import {loadScenarioProfile,mountScenarioPanel,saveScenarioProfile} from './scenario_profile.js';
 class TownshipDemo {
- constructor(){this.assets=[];this.state={selected:null};this.sequence=0;this.scene=null;this.drawerTab='evidence';this.simulations=new Map();}
+ constructor(){this.assets=[];this.state={selected:null};this.sequence=0;this.scene=null;this.drawerTab='evidence';this.simulations=new Map();this.viewMode='3d';}
  async init(){
   status('Loading the BDG2 catalogue and timestamp-aligned portfolio...');
   try{
@@ -107,7 +107,23 @@ class TownshipDemo {
  resetDrawerSimulation(section){const current=this.simulationFor(this.state.selected);current[section]=createDrawerSimulation()[section];if(this.persistDrawer())this.renderDrawer();}
  closeDrawer(){document.getElementById('velora-analytics-drawer').classList.add('translate-x-[110%]','opacity-0','pointer-events-none');}
  resetView(){this.scene?.resetView();this.state.selected=null;this.closeDrawer();this.floorPicker();document.getElementById('breadcrumb-asset-name').textContent='Illustrative Township';}
- setViewMode(mode){document.getElementById('township-3d-container').classList.toggle('hidden',mode==='2d');const plan=document.getElementById('floorplan-2d-container');plan.classList.toggle('hidden',mode!=='2d');if(mode==='2d')plan.innerHTML='<div class="p-6"><strong>Illustrative floor-plan visual</strong><p>No relationship to a BDG2 building, room meter or actual township is established.</p><img class="illustrative-plan" src="assets/spatial/floorplan.svg" alt="Illustrative reference plan, no measured room data"></div>';for(const [id,active] of [['btn-view-3d',mode==='3d'],['btn-view-2d',mode==='2d']]){const button=document.getElementById(id);button.classList.toggle('active',active);button.setAttribute('aria-pressed',String(active));}status(`${mode==='2d'?'Illustrative 2D plan':'Illustrative 3D township'} view opened. No measured spatial or equipment telemetry is shown.`,'info');}
+ setViewMode(mode){
+  if(!['3d','2d'].includes(mode))return;this.viewMode=mode;const is2d=mode==='2d';
+  document.getElementById('township-3d-container').classList.toggle('hidden',is2d);
+  const plan=document.getElementById('floorplan-2d-container');plan.classList.toggle('hidden',!is2d);
+  for(const id of ['township-metrics-overlay','township-scene-controls','township-bottom-dock'])document.getElementById(id)?.classList.toggle('hidden',is2d);
+  if(is2d){this.closeDrawer();this.renderPortfolioMap();}
+  for(const [id,active] of [['btn-view-3d',!is2d],['btn-view-2d',is2d]]){const button=document.getElementById(id);button.classList.toggle('active',active);button.setAttribute('aria-pressed',String(active));}
+  status(is2d?'2D portfolio comparison opened from matching observed BDG2 intervals. No floorplan or spatial data is available.':'Illustrative 3D township opened. Select a building for observed whole-building evidence.','info');
+ }
+ renderPortfolioMap(){
+  const plan=document.getElementById('floorplan-2d-container');if(!plan)return;const data=this.portfolio;
+  if(!data?.items?.length){plan.innerHTML='<section class="portfolio-map-workspace"><p role="status">Loading observed benchmark comparison…</p></section>';return;}
+  const fmt=(value,digits=1)=>value==null?'Unavailable':Number(value).toFixed(digits);
+  const cards=data.items.map((item,index)=>`<button type="button" class="portfolio-map-card" onclick="twinApp.selectPortfolioBuilding('${item.asset.id}')"><span class="portfolio-map-index">0${index+1}</span><span class="data-classification" data-kind="observed">Observed BDG2</span><strong>${esc(item.asset.source_asset_id)}</strong><small>${esc(item.asset.primary_space_usage)}</small><dl><div><dt>Shared-window energy</dt><dd>${fmt(item.common_energy_kwh)} kWh</dd></div><div><dt>Mean interval</dt><dd>${fmt(item.mean_interval_average_kw)} kW avg</dd></div><div><dt>Peak interval</dt><dd>${fmt(item.peak_interval_average_kw)} kW avg</dd></div></dl><span class="portfolio-map-action">Open building evidence <span aria-hidden="true">→</span></span></button>`).join('');
+  plan.innerHTML=`<section class="portfolio-map-workspace" aria-label="2D BDG2 portfolio comparison"><header class="portfolio-map-header"><div><span class="data-classification" data-kind="derived">Derived comparison</span><h2>2D benchmark portfolio</h2><p>Four public BDG2 buildings compared over ${data.common_interval_count} matching observed hourly intervals.</p></div><div class="portfolio-map-window"><small>COMMON OBSERVED WINDOW</small><strong>${esc(data.common_start||'Unavailable')}</strong><span>to ${esc(data.common_end||'Unavailable')}</span></div></header><div class="portfolio-map-grid">${cards}</div><footer><strong>No CAD or floorplan data is connected.</strong><span>Card positions are a dashboard layout, not real coordinates. BDG2 provides no surveyed geometry, floor, room, HVAC or equipment mapping.</span><a href="methodology.html">BDG2 source and methodology</a></footer></section>`;
+ }
+ selectPortfolioBuilding(id){this.setViewMode('3d');this.loadSelection(id);}
  toggleMacroMetrics(){const n=document.getElementById('macro-metrics-cards');n.hidden=!n.hidden;document.getElementById('macro-toggle-text').textContent=n.hidden?'Expand':'Collapse';status(`Derived portfolio metrics ${n.hidden?'collapsed':'expanded'}. Values use matching observed BDG2 intervals; the scene remains illustrative.`,'info');}
  toggleVisual(id,action,label){action?.();const button=document.getElementById(id);const active=button?.getAttribute('aria-pressed')!=='true';button?.setAttribute('aria-pressed',String(active));status(`${label} ${active?'enabled':'disabled'} for the illustrative scene only. No building control action occurred.`,'info');}
  toggleEnergyFlow(){this.toggleVisual('btn-energy-flow',()=>this.scene?.toggleEnergyFlow(),'Animated energy flow');}
